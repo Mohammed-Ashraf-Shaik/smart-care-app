@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SmartCare HQMS</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Leaflet Map (Mapbox Alternative) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+        // Initialize Global Namespace
+        window.App = {
+            Views: {}
+        };
+    </script>
+</head>
+
+<body class="bg-slate-50 text-slate-900 antialiased selection:bg-brand-100 selection:text-brand-900">
+    <div id="app" class="min-h-screen transition-opacity duration-300"></div>
+
+    <!-- Scripts (Order Matters) -->
+    <script src="js/api.js"></script>
+    <script src="js/state.js"></script>
+    <script src="js/views/landing.js"></script>
+    <script src="js/views/login.js"></script>
+    <script src="js/views/patient.js"></script>
+    <script src="js/views/doctor.js"></script>
+    <script src="js/views/staff.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
