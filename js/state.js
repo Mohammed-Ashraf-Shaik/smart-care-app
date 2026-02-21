@@ -11,12 +11,7 @@
             symptoms: '',
             hospital: ''
         },
-        queue: [
-            { id: 101, name: "John Doe", age: 45, problem: "Chest Pain", triage: "Red", fee: 150 },
-            { id: 102, name: "Sarah Smith", age: 22, problem: "Fever", triage: "Yellow", fee: 50 },
-            { id: 103, name: "Mike Ross", age: 30, problem: "Checkup", triage: "Green", fee: 30 },
-            { id: 104, name: "Emily Clark", age: 28, problem: "Migraine", triage: "Green", fee: 40 },
-        ]
+        queue: [] // Now populated from DB
     };
 
     const listeners = [];
@@ -32,7 +27,13 @@
     // Actions
     function setView(newView) {
         state.view = newView;
-        if (newView === 'landing') state.step = 1;
+        if (newView === 'landing') {
+            state.step = 1;
+            // Clear patient data on return to landing
+            state.patientData = {
+                name: '', age: '', gender: '', doctorPref: '', area: '', symptoms: '', hospital: ''
+            };
+        }
         notify();
     }
 
@@ -49,10 +50,38 @@
 
     function updatePatientData(key, value) {
         state.patientData[key] = value;
+        notify(); // Ensure UI reflects changes immediately
+    }
+
+    function updateQueue(newQueue) {
+        state.queue = newQueue;
+        notify();
     }
 
     function getRevenue() {
-        return state.queue.reduce((acc, curr) => acc + curr.fee, 0);
+        return state.queue.reduce((acc, curr) => acc + (curr.fee || 0), 0);
+    }
+
+    // Initialize Database Sync
+    function initSync() {
+        // Initial Fetch
+        window.App.DB.fetchQueue().then(queue => {
+            updateQueue(queue);
+        });
+
+        // Real-time listener
+        window.App.DB.listenToQueue(queue => {
+            updateQueue(queue);
+        });
+    }
+
+    // Wait for DB to be available
+    if (window.App.DB) {
+        initSync();
+    } else {
+        window.addEventListener('load', () => {
+            if (window.App.DB) initSync();
+        });
     }
 
     // Expose to Global App Namespace

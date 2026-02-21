@@ -469,7 +469,25 @@
             container.querySelector('#input-symptoms').oninput = (e) => updatePatientData('symptoms', e.target.value);
             container.querySelector('#btn-next').onclick = () => setStep(5);
         }
-        if (state.step === 5) container.querySelector('#btn-next').onclick = () => setStep(6);
+        if (state.step === 5) {
+            container.querySelector('#btn-next').onclick = async () => {
+                const btn = container.querySelector('#btn-next');
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = `<i data-lucide="loader-2" class="animate-spin w-5 h-5 inline mr-2"></i> Processing...`;
+                lucide.createIcons();
+
+                try {
+                    await window.App.DB.addPatient(state.patientData);
+                    setStep(6);
+                } catch (e) {
+                    alert("Failed to confirm booking. Please try again.");
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                    lucide.createIcons();
+                }
+            };
+        }
         if (state.step === 6) container.querySelector('#btn-home').onclick = () => setView('landing');
 
         return container;

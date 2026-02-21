@@ -29,6 +29,10 @@
             `;
         }).join('');
 
+        const currentPatient = state.queue[0] || null;
+        const currentPatientName = currentPatient ? `${currentPatient.name} (#${currentPatient.id})` : "No Patient";
+        const currentPatientProblem = currentPatient ? currentPatient.problem : "No active session";
+
         container.innerHTML = `
             <div class="max-w-6xl mx-auto">
                  <button id="btn-back" class="mb-8 flex items-center text-slate-500 hover:text-blue-600 font-bold transition-colors">
@@ -42,8 +46,8 @@
                     <!-- Patient Info -->
                     <div class="relative z-10 mb-6 md:mb-0 md:w-1/3">
                         <p class="opacity-70 uppercase text-xs tracking-widest mb-1">Currently Treating</p>
-                        <h2 class="text-4xl font-black tracking-tight">John Doe (#101)</h2>
-                        <p class="text-blue-200 mt-2 flex items-center"><i data-lucide="clock" class="w-4 h-4 mr-2"></i> Session: 14:32</p>
+                        <h2 class="text-4xl font-black tracking-tight">${currentPatientName}</h2>
+                        <p class="text-blue-200 mt-2 flex items-center"><i data-lucide="activity" class="w-4 h-4 mr-2"></i> ${currentPatientProblem}</p>
                     </div>
 
                     <!-- Vitals Widget (NEW) -->
@@ -67,7 +71,7 @@
                          <button class="bg-white/10 hover:bg-white/20 text-white p-4 rounded-xl transition backdrop-blur-md" title="Patient History">
                             <i data-lucide="file-text" class="w-5 h-5"></i>
                         </button>
-                        <button class="bg-white text-slate-900 px-6 py-4 rounded-xl font-black hover:bg-blue-50 transition shadow-lg flex items-center">
+                        <button id="btn-next-patient" class="bg-white text-slate-900 px-6 py-4 rounded-xl font-black hover:bg-blue-50 transition shadow-lg flex items-center ${!currentPatient ? 'opacity-50 cursor-not-allowed' : ''}">
                             NEXT <i data-lucide="chevron-right" class="w-5 h-5 ml-2"></i>
                         </button>
                     </div>
@@ -99,6 +103,23 @@
         `;
 
         container.querySelector('#btn-back').onclick = () => setView('landing');
+
+        const nextBtn = container.querySelector('#btn-next-patient');
+        if (nextBtn && currentPatient) {
+            nextBtn.onclick = async () => {
+                nextBtn.disabled = true;
+                nextBtn.innerHTML = `<i data-lucide="loader-2" class="animate-spin w-5 h-5"></i>`;
+                lucide.createIcons();
+                try {
+                    await window.App.DB.removePatient(currentPatient.id);
+                } catch (e) {
+                    alert("Failed to complete treatment. Please try again.");
+                    nextBtn.disabled = false;
+                    nextBtn.innerHTML = `NEXT <i data-lucide="chevron-right" class="w-5 h-5 ml-2"></i>`;
+                    lucide.createIcons();
+                }
+            };
+        }
 
         return container;
     };
