@@ -9,10 +9,16 @@
             doctorPref: '', // 'male', 'female', 'any'
             area: '',
             symptoms: '',
-            hospital: ''
+            hospital: '',
+            country: '',
+            state: '',
+            city: ''
         },
         queue: [], // Now populated from DB
-        loggedHospital: '' // Track which hospital the professional belongs to
+        loggedHospital: '', // Track which hospital the professional belongs to
+        loggedCountry: '',
+        loggedState: '',
+        loggedCity: ''
     };
 
     const listeners = [];
@@ -33,9 +39,13 @@
             state.step = 1;
             // Clear patient data on return to landing
             state.patientData = {
-                name: '', age: '', gender: '', doctorPref: '', area: '', symptoms: '', hospital: ''
+                name: '', age: '', gender: '', doctorPref: '', area: '', symptoms: '', hospital: '',
+                country: '', state: '', city: ''
             };
             state.loggedHospital = '';
+            state.loggedCountry = '';
+            state.loggedState = '';
+            state.loggedCity = '';
         }
         notify();
     }
@@ -58,9 +68,14 @@
 
     function updateQueue(newQueue) {
         fullQueue = newQueue;
-        // Filter by logged-in hospital if applicable
-        if (state.loggedHospital) {
-            state.queue = fullQueue.filter(p => p.hospital === state.loggedHospital);
+        // Filter by logged-in location if applicable (Country, State, City, Hospital)
+        if (state.loggedHospital && state.loggedCity && state.loggedState && state.loggedCountry) {
+            state.queue = fullQueue.filter(p =>
+                p.hospital === state.loggedHospital &&
+                p.city === state.loggedCity &&
+                p.state === state.loggedState &&
+                p.country === state.loggedCountry
+            );
         } else {
             state.queue = fullQueue;
         }
@@ -71,7 +86,10 @@
         }
     }
 
-    function setLoggedHospital(hospital) {
+    function setLoggedLocation(country, stateName, city, hospital) {
+        state.loggedCountry = country;
+        state.loggedState = stateName;
+        state.loggedCity = city;
         state.loggedHospital = hospital;
         // Re-run filter on existing data
         updateQueue(fullQueue);
@@ -111,7 +129,7 @@
         setStep,
         setAuthTarget,
         updatePatientData,
-        setLoggedHospital,
+        setLoggedLocation,
         getRevenue
     };
 })();

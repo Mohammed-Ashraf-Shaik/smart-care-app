@@ -131,8 +131,13 @@
                 return;
             }
 
-            // Save hospital for filtering
-            window.App.Store.setLoggedHospital(hospitalInput.value);
+            // Save hospital for filtering (Country, State, City, Hospital)
+            window.App.Store.setLoggedLocation(
+                countrySelect.value,
+                stateSelect.value,
+                citySelect.value,
+                hospitalInput.value
+            );
             setView(role);
         };
 

@@ -92,6 +92,7 @@
                 container.querySelectorAll('.hospital-card').forEach(card => {
                     card.onclick = () => {
                         updatePatientData('hospital', card.dataset.name);
+                        // At this point, country/state/city should already be in state.patientData
                         setStep(4);
                     };
                 });
@@ -231,7 +232,38 @@
                 <div class="space-y-8 w-full animate-fade-in">
                     <div class="text-center">
                         <h2 class="text-3xl font-bold text-slate-800">Where are you?</h2>
-                        <p class="text-slate-500">Choose how to find hospitals near you.</p>
+                        <p class="text-slate-500">Select your location to find nearby hospitals.</p>
+                    </div>
+
+                    <div class="bg-white border border-slate-200 p-8 rounded-3xl shadow-sm space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Country</label>
+                            <select id="patient-country" class="w-full p-4 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white transition-colors outline-none text-sm">
+                                <option value="">Loading Countries...</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">State</label>
+                            <select id="patient-state" disabled class="w-full p-4 border border-slate-200 rounded-xl bg-slate-100 text-slate-400 outline-none text-sm transition-colors">
+                                <option value="">Select Country</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">City</label>
+                            <select id="patient-city" disabled class="w-full p-4 border border-slate-200 rounded-xl bg-slate-100 text-slate-400 outline-none text-sm transition-colors">
+                                <option value="">Select State</option>
+                            </select>
+                        </div>
+
+                        <button id="btn-location-next" disabled class="w-full bg-slate-800 text-white p-4 rounded-xl font-bold hover:bg-slate-900 transition-all opacity-50 cursor-not-allowed">
+                            Find Hospitals
+                        </button>
+                    </div>
+
+                    <div class="relative flex items-center w-full my-4">
+                        <div class="h-px bg-slate-200 w-full"></div>
+                        <span class="px-4 text-xs font-bold text-slate-400 uppercase">OR</span>
+                        <div class="h-px bg-slate-200 w-full"></div>
                     </div>
 
                     <!-- Option A: Live -->
@@ -241,27 +273,9 @@
                         </div>
                         <div>
                             <h3 class="font-bold text-lg text-slate-800">Use Live Location</h3>
-                            <p class="text-slate-500 text-sm">Automatically find nearest hospitals using GPS</p>
+                            <p class="text-slate-500 text-sm">Find hospitals automatically (Beta)</p>
                         </div>
                     </button>
-
-                    <div class="relative flex items-center w-full my-4">
-                        <div class="h-px bg-slate-200 w-full"></div>
-                        <span class="px-4 text-xs font-bold text-slate-400 uppercase">OR</span>
-                        <div class="h-px bg-slate-200 w-full"></div>
-                    </div>
-
-                    <!-- Option B: Manual -->
-                    <div class="bg-white border border-slate-200 p-6 rounded-2xl shadow-sm">
-                        <h3 class="font-bold text-slate-800 mb-4">Enter Manual Address</h3>
-                        <div class="flex gap-2">
-                            <input id="input-manual" type="text" placeholder="e.g. Kurnool, Andhra Pradesh" 
-                                class="w-full p-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none">
-                            <button id="btn-search" class="bg-slate-800 text-white px-6 rounded-xl font-bold hover:bg-slate-900 transition-colors">
-                                <i data-lucide="search" class="w-5 h-5"></i>
-                            </button>
-                        </div>
-                    </div>
                 </div>
             `;
         }
@@ -418,34 +432,76 @@
 
         // --- STEP 2 HANDLERS (Location) ---
         if (state.step === 2) {
-            // Live Button
-            container.querySelector('#btn-live').onclick = () => {
-                const btn = container.querySelector('#btn-live');
-                btn.innerHTML = `<div class="animate-spin mr-3"><i data-lucide="loader-2"></i></div> Searching...`;
-                startLiveTracking();
-            };
+            container.querySelector('#btn-live').onclick = () => startLiveTracking();
 
-            // Manual Search
-            const searchBtn = container.querySelector('#btn-search');
-            const input = container.querySelector('#input-manual');
-            const doManualSearch = async () => {
-                const query = input.value;
-                if (!query) return;
-                searchBtn.innerHTML = `<i data-lucide="loader-2" class="animate-spin"></i>`;
-                const coords = await getCoordinates(query);
-                if (coords) {
-                    const data = await getNearbyHospitals(coords.lat, coords.lng);
-                    state.tempHospitals = data.results;
-                    state.searchRadius = data.radius;
-                    state.userCoords = coords;
-                    updatePatientData('area', query);
-                    setStep(3); // Go to Step 3 (Map)
+            const countrySelect = container.querySelector('#patient-country');
+            const stateSelect = container.querySelector('#patient-state');
+            const citySelect = container.querySelector('#patient-city');
+            const nextBtn = container.querySelector('#btn-location-next');
+
+            const { fetchCountries, fetchStates, fetchCities } = window.App.API;
+
+            (async () => {
+                const countries = await fetchCountries();
+                const india = countries.find(c => c.name === "India");
+                const others = countries.filter(c => c.name !== "India").sort((a, b) => a.name.localeCompare(b.name));
+                const sorted = india ? [india, ...others] : others;
+
+                countrySelect.innerHTML = `<option value="" disabled selected>Select Country</option>` +
+                    sorted.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+            })();
+
+            countrySelect.onchange = async () => {
+                updatePatientData('country', countrySelect.value);
+                stateSelect.innerHTML = `<option>Loading...</option>`;
+                stateSelect.disabled = true;
+                const states = await fetchStates(countrySelect.value);
+                if (states.length) {
+                    stateSelect.innerHTML = `<option value="" disabled selected>Select State</option>` +
+                        states.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+                    stateSelect.disabled = false;
+                    stateSelect.classList.remove('bg-slate-100', 'text-slate-400');
+                    stateSelect.classList.add('bg-white', 'text-slate-900');
                 } else {
-                    alert("Location not found");
-                    searchBtn.innerHTML = `<i data-lucide="search"></i>`;
+                    stateSelect.innerHTML = `<option>No States</option>`;
                 }
             };
-            searchBtn.onclick = doManualSearch;
+
+            stateSelect.onchange = async () => {
+                updatePatientData('state', stateSelect.value);
+                citySelect.innerHTML = `<option>Loading...</option>`;
+                citySelect.disabled = true;
+                const cities = await fetchCities(countrySelect.value, stateSelect.value);
+                if (cities.length) {
+                    citySelect.innerHTML = `<option value="" disabled selected>Select City</option>` +
+                        cities.map(c => `<option value="${c}">${c}</option>`).join('');
+                    citySelect.disabled = false;
+                    citySelect.classList.remove('bg-slate-100', 'text-slate-400');
+                    citySelect.classList.add('bg-white', 'text-slate-900');
+                } else {
+                    citySelect.innerHTML = `<option>No Cities</option>`;
+                }
+            };
+
+            citySelect.onchange = () => {
+                updatePatientData('city', citySelect.value);
+                nextBtn.disabled = false;
+                nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            };
+
+            nextBtn.onclick = async () => {
+                const query = `${citySelect.value}, ${stateSelect.value}, ${countrySelect.value}`;
+                const coords = await window.App.API.getCoordinates(query);
+                if (coords) {
+                    const data = await window.App.API.getNearbyHospitals(coords.lat, coords.lng);
+                    state.tempHospitals = data.results;
+                    state.searchRadius = data.radius;
+                    state.userCoords = { lat: coords.lat, lng: coords.lng };
+                    setStep(3);
+                } else {
+                    alert("Location not found. Please try a different city.");
+                }
+            };
         }
 
         // --- STEP 3 HANDLERS (Map) ---
@@ -457,7 +513,9 @@
                     renderHospitalMarkers(state.tempHospitals || []);
                 }
             }, 100);
+
             renderHospitalList(state.tempHospitals || []);
+
             container.querySelector('#btn-change-loc').onclick = () => {
                 if (watchId) navigator.geolocation.clearWatch(watchId);
                 setStep(2);
@@ -469,6 +527,7 @@
             container.querySelector('#input-symptoms').oninput = (e) => updatePatientData('symptoms', e.target.value);
             container.querySelector('#btn-next').onclick = () => setStep(5);
         }
+
         if (state.step === 5) {
             container.querySelector('#btn-next').onclick = async () => {
                 const btn = container.querySelector('#btn-next');
@@ -489,6 +548,7 @@
                 }
             };
         }
+
         if (state.step === 6) container.querySelector('#btn-home').onclick = () => setView('landing');
 
         return container;

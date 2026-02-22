@@ -62,6 +62,9 @@
                     area: patientData.area,
                     symptoms: patientData.symptoms,
                     hospital: patientData.hospital,
+                    country: patientData.country,
+                    state: patientData.state,
+                    city: patientData.city,
                     triage: patientData.triage || "Green",
                     fee: patientData.fee || 75,
                     problem: patientData.symptoms || "Unknown"
