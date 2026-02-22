@@ -48,14 +48,17 @@
         state.auth.targetRole = role;
     }
 
-    function updatePatientData(key, value, shouldNotify = true) {
+    function updatePatientData(key, value, shouldNotify = false) {
         state.patientData[key] = value;
         if (shouldNotify) notify(); // Ensure UI reflects changes immediately
     }
 
     function updateQueue(newQueue) {
         state.queue = newQueue;
-        notify();
+        // Only re-render if we are in a view that explicitly needs real-time queue updates
+        if (state.view === 'doctor' || state.view === 'staff') {
+            notify();
+        }
     }
 
     function getRevenue() {
