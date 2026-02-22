@@ -18,7 +18,7 @@
 
                 <header class="mb-10">
                     <h1 class="text-4xl font-black text-slate-900 tracking-tight">Hospital Analytics</h1>
-                    <p class="text-slate-500 mt-2">Real-time insights for ${new Date().toLocaleDateString()}</p>
+                    <p class="text-slate-500 mt-2">Real-time insights for ${state.loggedHospital || 'All Facilities'} • ${new Date().toLocaleDateString()}</p>
                 </header>
 
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">

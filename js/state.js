@@ -11,7 +11,8 @@
             symptoms: '',
             hospital: ''
         },
-        queue: [] // Now populated from DB
+        queue: [], // Now populated from DB
+        loggedHospital: '' // Track which hospital the professional belongs to
     };
 
     const listeners = [];
@@ -33,6 +34,7 @@
             state.patientData = {
                 name: '', age: '', gender: '', doctorPref: '', area: '', symptoms: '', hospital: ''
             };
+            state.loggedHospital = '';
         }
         notify();
     }
@@ -54,7 +56,13 @@
     }
 
     function updateQueue(newQueue) {
-        state.queue = newQueue;
+        // Filter by logged-in hospital if applicable
+        if (state.loggedHospital) {
+            state.queue = newQueue.filter(p => p.hospital === state.loggedHospital);
+        } else {
+            state.queue = newQueue;
+        }
+
         // Only re-render if we are in a view that explicitly needs real-time queue updates
         if (state.view === 'doctor' || state.view === 'staff') {
             notify();

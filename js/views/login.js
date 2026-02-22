@@ -131,6 +131,8 @@
                 return;
             }
 
+            // Save hospital for filtering
+            state.loggedHospital = hospitalInput.value;
             setView(role);
         };
 
