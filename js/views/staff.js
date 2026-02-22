@@ -49,7 +49,7 @@
                             <i data-lucide="dollar-sign" class="w-6 h-6"></i>
                         </div>
                         <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">Revenue Forecast</p>
-                        <h2 class="text-4xl font-black text-slate-900 mt-1">$${revenue}</h2>
+                        <h2 class="text-4xl font-black text-slate-900 mt-1">₹${revenue}</h2>
                         <p class="text-green-500 text-sm font-bold mt-2 flex items-center">
                             <i data-lucide="trending-up" class="w-4 h-4 mr-1"></i> +5%
                         </p>
@@ -149,5 +149,5 @@
 
         return container;
     };
-    
+
 })();
