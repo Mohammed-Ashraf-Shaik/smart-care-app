@@ -16,6 +16,7 @@
     };
 
     const listeners = [];
+    let fullQueue = []; // Persistent cache of all data from DB
 
     function subscribe(callback) {
         listeners.push(callback);
@@ -56,17 +57,24 @@
     }
 
     function updateQueue(newQueue) {
+        fullQueue = newQueue;
         // Filter by logged-in hospital if applicable
         if (state.loggedHospital) {
-            state.queue = newQueue.filter(p => p.hospital === state.loggedHospital);
+            state.queue = fullQueue.filter(p => p.hospital === state.loggedHospital);
         } else {
-            state.queue = newQueue;
+            state.queue = fullQueue;
         }
 
         // Only re-render if we are in a view that explicitly needs real-time queue updates
         if (state.view === 'doctor' || state.view === 'staff') {
             notify();
         }
+    }
+
+    function setLoggedHospital(hospital) {
+        state.loggedHospital = hospital;
+        // Re-run filter on existing data
+        updateQueue(fullQueue);
     }
 
     function getRevenue() {
@@ -103,6 +111,7 @@
         setStep,
         setAuthTarget,
         updatePatientData,
+        setLoggedHospital,
         getRevenue
     };
 })();

@@ -132,7 +132,7 @@
             }
 
             // Save hospital for filtering
-            state.loggedHospital = hospitalInput.value;
+            window.App.Store.setLoggedHospital(hospitalInput.value);
             setView(role);
         };
 
