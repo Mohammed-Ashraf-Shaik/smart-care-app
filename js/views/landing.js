@@ -73,7 +73,7 @@
             </div>
 
             <footer class="bg-white text-slate-600 py-16 px-6 border-t border-slate-100 mt-20">
-                <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+                <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 mb-12">
                     <!-- Column 1: Brand -->
                     <div class="space-y-4">
                         <div class="flex items-center gap-2 text-[#003580]">
@@ -85,44 +85,49 @@
                         </p>
                     </div>
 
-                    <!-- Column 2: Portals -->
-                    <div class="space-y-4">
-                        <h4 class="text-slate-900 font-bold uppercase tracking-widest text-[11px]">Access Portals</h4>
-                        <ul class="space-y-2 text-sm font-medium">
-                            <li><button onclick="window.App.Store.setView('patient')" class="hover:text-blue-600 transition-colors">Patient Portal</button></li>
-                            <li><button onclick="window.App.Store.setAuthTarget('doctor'); window.App.Store.setView('login')" class="hover:text-blue-600 transition-colors">Doctor Login</button></li>
-                            <li><button onclick="window.App.Store.setAuthTarget('staff'); window.App.Store.setView('login')" class="hover:text-blue-600 transition-colors">Admin & Staff</button></li>
-                        </ul>
-                    </div>
-
-                    <!-- Column 3: The Developer -->
+                    <!-- Column 2: The Developer -->
                     <div class="space-y-4">
                         <h4 class="text-slate-900 font-bold uppercase tracking-widest text-[11px]">Developer & Owner</h4>
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center font-bold">AS</div>
+                            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center font-bold text-lg">AS</div>
                             <div>
-                                <p class="text-slate-900 font-bold text-sm">Ashraf Shaik</p>
-                                <p class="text-slate-400 text-[10px] uppercase font-bold tracking-tight">Fullstack Founder</p>
+                                <p class="text-slate-900 font-bold text-base">Ashraf Shaik</p>
+                                <p class="text-slate-400 text-[10px] uppercase font-bold tracking-widest">Founder & Lead Engineer</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Column 4: Support -->
+                    <!-- Column 3: Contact & Socials -->
                     <div class="space-y-4">
-                        <h4 class="text-slate-900 font-bold uppercase tracking-widest text-[11px]">Stay Connected</h4>
-                        <div class="grid grid-cols-1 gap-3">
-                            <a href="tel:8500543154" class="flex items-center gap-2 text-sm hover:text-blue-600 transition-colors">
-                                <i data-lucide="phone" class="w-4 h-4 text-slate-400"></i> 8500543154
-                            </a>
-                            <a href="mailto:ashubasha52@gmail.com" class="flex items-center gap-2 text-sm hover:text-blue-600 transition-colors">
-                                <i data-lucide="mail" class="w-4 h-4 text-slate-400"></i> ashubasha52@gmail.com
-                            </a>
-                            <div class="flex gap-4 pt-2">
-                                <a href="https://instagram.com/shaik.m_ashraf" target="_blank" class="p-2 bg-slate-50 rounded-lg hover:bg-pink-50 hover:text-pink-600 transition-all">
-                                    <i data-lucide="instagram" class="w-4 h-4"></i>
+                        <h4 class="text-slate-900 font-bold uppercase tracking-widest text-[11px]">Get in Touch</h4>
+                        <div class="grid grid-cols-1 gap-4">
+                            <div class="space-y-3">
+                                <a href="tel:8500543154" class="flex items-center gap-3 text-sm hover:text-blue-600 transition-colors group">
+                                    <span class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
+                                        <i data-lucide="phone" class="w-4 h-4 text-slate-400 group-hover:text-blue-500"></i>
+                                    </span>
+                                    <span class="font-medium">8500543154</span>
                                 </a>
-                                <a href="https://twitter.com/ashushaik" target="_blank" class="p-2 bg-slate-50 rounded-lg hover:bg-blue-50 hover:text-blue-400 transition-all">
-                                    <i data-lucide="twitter" class="w-4 h-4"></i>
+                                <a href="mailto:ashubasha52@gmail.com" class="flex items-center gap-3 text-sm hover:text-blue-600 transition-colors group">
+                                    <span class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
+                                        <i data-lucide="mail" class="w-4 h-4 text-slate-400 group-hover:text-blue-500"></i>
+                                    </span>
+                                    <span class="font-medium">ashubasha52@gmail.com</span>
+                                </a>
+                            </div>
+
+                            <div class="flex flex-col gap-3 pt-3 border-t border-slate-50">
+                                <a href="https://instagram.com/shaik.m_ashraf" target="_blank" class="flex items-center gap-3 text-sm hover:text-pink-600 transition-colors group">
+                                    <span class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center group-hover:bg-pink-50 transition-colors">
+                                        <i data-lucide="instagram" class="w-4 h-4 text-slate-400 group-hover:text-pink-500"></i>
+                                    </span>
+                                    <span class="font-medium">@shaik.m_ashraf</span>
+                                </a>
+                                <a href="https://twitter.com/ashushaikz" target="_blank" class="flex items-center gap-3 text-sm hover:text-blue-400 transition-colors group">
+                                    <span class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center group-hover:bg-blue-50 transition-colors">
+                                        <i data-lucide="twitter" class="w-4 h-4 text-slate-400 group-hover:text-blue-400"></i>
+                                    </span>
+                                    <span class="font-medium">@ashushaikz</span>
                                 </a>
                             </div>
                         </div>
