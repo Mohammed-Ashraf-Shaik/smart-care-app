@@ -77,12 +77,19 @@
 
                 if (error) {
                     console.error("Supabase Insert Error:", error);
+                    if (error.code === "42703") {
+                        throw new Error("Missing database columns (country/state/city). Please run the SQL setup script in your Supabase dashboard.");
+                    }
                     throw error;
                 }
                 console.log("Patient added:", insertedData);
                 return insertedData[0].id;
             } catch (e) {
                 console.error("Error adding patient: ", e);
+                // Enhance error message for the UI
+                if (e.message.includes("42703") || e.message.includes("Missing database columns")) {
+                    throw new Error("Database update required. Please check the implementation plan for the SQL script to add Country, State, and City columns.");
+                }
                 throw e; // Rethrow to be caught by the UI
             }
         },
