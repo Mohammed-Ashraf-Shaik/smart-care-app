@@ -76,7 +76,7 @@
                     .select();
 
                 if (error) {
-                    console.error("Supabase Insert Error:", error);
+                    console.error("Supabase Insert Error Detail:", error);
                     if (error.code === "42703") {
                         throw new Error("Missing database columns (country/state/city). Please run the SQL setup script in your Supabase dashboard.");
                     }
