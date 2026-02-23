@@ -9,60 +9,84 @@
         const btnColor = role === 'doctor' ? 'bg-cyan-600 hover:bg-cyan-700' : 'bg-slate-700 hover:bg-slate-800';
 
         const container = document.createElement('div');
-        container.className = "min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 animate-fade-in";
+        container.className = "min-h-screen bg-dark-950 flex flex-col items-center justify-center p-4 relative overflow-hidden font-sans";
 
         container.innerHTML = `
-            <button id="btn-back" class="absolute top-6 left-6 flex items-center text-slate-500 hover:text-brand-600 font-bold transition-colors">
-                <i data-lucide="arrow-left" class="w-5 h-5 mr-2"></i> Back to Hub
+            <!-- Atmospheric Background -->
+            <div class="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-brand-900/20 rounded-full blur-[140px]"></div>
+            <div class="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-teal-500/10 rounded-full blur-[120px]"></div>
+
+            <button id="btn-back" class="absolute top-8 left-8 flex items-center text-slate-500 hover:text-white font-bold transition-colors z-30 group">
+                <i data-lucide="arrow-left" class="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform"></i> Back to Hub
             </button>
 
-            <div class="w-full max-w-md bg-white p-8 rounded-3xl shadow-2xl shadow-slate-200/50 border border-white">
-                <div class="text-center mb-8">
-                    <div class="w-16 h-16 ${role === 'doctor' ? 'bg-cyan-100 text-cyan-700' : 'bg-slate-100 text-slate-700'} rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <i data-lucide="${role === 'doctor' ? 'stethoscope' : 'shield-check'}" class="w-8 h-8"></i>
-                    </div>
-                    <h2 class="text-3xl font-black text-slate-900">${roleName} Access</h2>
-                    <p class="text-slate-500 mt-2">Secure Gateway</p>
-                </div>
+            <div class="w-full max-w-lg relative z-20" data-aos="zoom-in" data-aos-duration="800">
+                <div class="absolute inset-0 bg-brand-500/10 rounded-[3rem] blur-3xl"></div>
+                
+                <div class="relative bg-white/5 border border-white/10 backdrop-blur-2xl p-10 md:p-12 rounded-[3rem] shadow-2xl isolate overflow-hidden">
+                    <!-- Glass Shine -->
+                    <div class="absolute -top-24 -left-24 w-48 h-48 bg-white/5 rounded-full blur-3xl"></div>
 
-                <div class="space-y-4">
-                    <!-- Location Drill -->
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Facility Location</label>
-                        <select id="login-country" class="w-full p-3 mb-2 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white transition-colors outline-none text-sm">
-                            <option value="">Loading Countries...</option>
-                        </select>
-                        <select id="login-state" disabled class="w-full p-3 mb-2 border border-slate-200 rounded-xl bg-slate-100 text-slate-400 outline-none text-sm transition-colors">
-                            <option value="">Select Country</option>
-                        </select>
-                         <select id="login-city" disabled class="w-full p-3 border border-slate-200 rounded-xl bg-slate-100 text-slate-400 outline-none text-sm transition-colors">
-                            <option value="">Select State</option>
-                        </select>
+                    <div class="text-center mb-10">
+                        <div class="w-20 h-20 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-xl">
+                            <i data-lucide="${role === 'doctor' ? 'stethoscope' : 'shield-check'}" class="w-10 h-10 ${role === 'doctor' ? 'text-indigo-400' : 'text-emerald-400'}"></i>
+                        </div>
+                        <h2 class="text-4xl font-black text-white tracking-tight">${roleName} Access</h2>
+                        <p class="text-slate-400 mt-2 font-medium tracking-wide uppercase text-[10px]">Secure Medical Gateway • SmartCare v2.0</p>
                     </div>
 
-                    <!-- Hospital Name -->
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Hospital ID / Name</label>
-                        <input id="login-hospital" type="text" class="w-full p-3 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-brand-500 outline-none" placeholder="e.g. City General">
-                    </div>
+                    <div class="space-y-6">
+                        <!-- Location Drill -->
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3">Facility Intelligence</label>
+                            <div class="space-y-3">
+                                <select id="login-country" class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white outline-none focus:bg-white/10 transition-all text-sm appearance-none cursor-pointer">
+                                    <option value="" class="bg-dark-950">Loading Countries...</option>
+                                </select>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <select id="login-state" disabled class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white/40 outline-none transition-all text-sm appearance-none cursor-not-allowed">
+                                        <option value="" class="bg-dark-950">Select State</option>
+                                    </select>
+                                    <select id="login-city" disabled class="w-full p-4 bg-white/5 border border-white/10 rounded-2xl text-white/40 outline-none transition-all text-sm appearance-none cursor-not-allowed">
+                                        <option value="" class="bg-dark-950">Select City</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
 
-                    <!-- Password -->
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Password</label>
-                        <input id="login-password" type="password" class="w-full p-3 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-brand-500 outline-none" placeholder="••••••••">
-                    </div>
+                        <!-- Hospital Name -->
+                        <div class="space-y-2">
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Institutional ID</label>
+                            <div class="relative group">
+                                <i data-lucide="hospital" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-brand-400 transition-colors"></i>
+                                <input id="login-hospital" type="text" class="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder:text-slate-600 outline-none focus:bg-white/10 focus:border-brand-500/50 transition-all text-sm" placeholder="e.g. Apollo Super Specialty">
+                            </div>
+                        </div>
 
-                    <div id="login-error" class="hidden text-red-500 text-sm font-bold text-center bg-red-50 p-2 rounded-lg">
-                        Incorrect Credentials
-                    </div>
+                        <!-- Password -->
+                        <div class="space-y-2">
+                             <label class="block text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Access Key</label>
+                             <div class="relative group">
+                                <i data-lucide="lock" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-brand-400 transition-colors"></i>
+                                <input id="login-password" type="password" class="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white placeholder:text-slate-600 outline-none focus:bg-white/10 focus:border-brand-500/50 transition-all text-sm" placeholder="••••••••">
+                            </div>
+                        </div>
 
-                    <button id="btn-login" class="w-full ${btnColor} text-white p-4 rounded-xl font-bold text-lg shadow-lg shadow-blue-200/50 transition-all mt-4 transform active:scale-95">
-                        Authenticate
-                    </button>
-                    
-                     <p class="text-center text-xs text-slate-400 mt-4">
-                        Data Protected by 256-bit Encryption
-                    </p>
+                        <div id="login-error" class="hidden text-red-400 text-xs font-bold text-center bg-red-500/10 border border-red-500/20 py-3 rounded-xl backdrop-blur-md">
+                            Validation Failure: Incorrect Credentials
+                        </div>
+
+                        <button id="btn-login" class="w-full relative group mt-4 overflow-hidden rounded-2xl p-[2px]">
+                            <div class="absolute inset-0 bg-gradient-to-r ${role === 'doctor' ? 'from-indigo-500 to-cyan-400' : 'from-emerald-500 to-teal-400'} animate-gradient-x"></div>
+                            <div class="relative bg-dark-950 p-4 rounded-[14px] flex items-center justify-center font-black tracking-widest text-white uppercase text-sm group-hover:bg-transparent transition-colors duration-300">
+                                Authenticate Profile
+                            </div>
+                        </button>
+                        
+                         <p class="text-center text-[9px] text-slate-600 font-bold uppercase tracking-[0.3em] mt-6">
+                            Secure 256-bit AES End-to-End Encryption
+                        </p>
+                    </div>
                 </div>
             </div>
         `;
@@ -142,6 +166,12 @@
         };
 
         container.querySelector('#btn-back').onclick = () => setView('landing');
+
+        // Initialize AOS & Icons
+        setTimeout(() => {
+            if (typeof AOS !== 'undefined') AOS.init({ once: true });
+            lucide.createIcons();
+        }, 100);
 
         return container;
     };
