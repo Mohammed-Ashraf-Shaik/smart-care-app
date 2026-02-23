@@ -73,22 +73,28 @@
             </div>
 
             <footer class="bg-slate-50 text-slate-500 py-12 px-6 border-t border-slate-200">
-                <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
                     <div class="text-left">
-                        <h3 class="font-bold text-slate-800 text-lg mb-2">SmartCare Systems</h3>
-                        <p class="text-slate-400 text-sm max-w-xs">&copy; 2026 SmartCare HQMS. All rights reserved. Revolutionizing medical queue management.</p>
-                    </div>
-                    <div class="flex flex-col md:items-end gap-2 text-sm">
-                        <p class="font-bold text-slate-700 uppercase tracking-widest text-[10px]">Developer & Owner</p>
-                        <p class="text-slate-600 font-medium">Ashraf Shaik</p>
-                        <div class="flex flex-wrap md:justify-end gap-4 mt-2">
-                            <a href="tel:8500543154" class="flex items-center gap-1 hover:text-blue-600 transition-colors"><i data-lucide="phone" class="w-4 h-4"></i> 8500543154</a>
-                            <a href="mailto:ashubasha52@gmail.com" class="flex items-center gap-1 hover:text-blue-600 transition-colors"><i data-lucide="mail" class="w-4 h-4"></i> ashubasha52@gmail.com</a>
+                        <h3 class="font-bold text-slate-800 text-2xl mb-4 tracking-tighter">SmartCare Systems</h3>
+                        
+                        <div class="space-y-4 mb-8">
+                            <div>
+                                <p class="font-bold text-slate-700 uppercase tracking-widest text-[10px] mb-1">Developer & Owner</p>
+                                <p class="text-slate-900 font-bold text-lg">Ashraf Shaik</p>
+                            </div>
+                            
+                            <div class="flex flex-wrap gap-4 text-sm">
+                                <a href="tel:8500543154" class="flex items-center gap-2 hover:text-blue-600 transition-colors bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm"><i data-lucide="phone" class="w-4 h-4 text-blue-500"></i> 8500543154</a>
+                                <a href="mailto:ashubasha52@gmail.com" class="flex items-center gap-2 hover:text-blue-600 transition-colors bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm"><i data-lucide="mail" class="w-4 h-4 text-blue-500"></i> ashubasha52@gmail.com</a>
+                            </div>
+
+                            <div class="flex flex-wrap gap-3 mt-1">
+                                <a href="https://instagram.com/shaik.m_ashraf" target="_blank" class="flex items-center gap-2 hover:text-pink-600 transition-colors text-xs font-medium"><i data-lucide="instagram" class="w-4 h-4"></i> Instagram</a>
+                                <a href="https://twitter.com/ashushaik" target="_blank" class="flex items-center gap-2 hover:text-blue-400 transition-colors text-xs font-medium"><i data-lucide="twitter" class="w-4 h-4"></i> Twitter</a>
+                            </div>
                         </div>
-                        <div class="flex flex-wrap md:justify-end gap-4 mt-1">
-                            <a href="https://instagram.com/shaik.m_ashraf" target="_blank" class="flex items-center gap-1 hover:text-pink-600 transition-colors"><i data-lucide="instagram" class="w-4 h-4"></i> @shaik.m_ashraf</a>
-                            <a href="https://twitter.com/ashushaik" target="_blank" class="flex items-center gap-1 hover:text-blue-400 transition-colors"><i data-lucide="twitter" class="w-4 h-4"></i> @ashushaik</a>
-                        </div>
+
+                        <p class="text-slate-400 text-sm max-w-xs">&copy; 2026 SmartCare HQMS. All rights reserved. Revolutionizing medical queue management through smart technology.</p>
                     </div>
                 </div>
             </footer>
