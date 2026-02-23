@@ -194,7 +194,7 @@
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-1">Full Name</label>
                             <input id="input-name" type="text" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none" 
-                                placeholder="e.g. John Doe" value="${state.patientData.name}">
+                                placeholder="Enter your name" value="${state.patientData.name}">
                         </div>
 
                         <!-- Age & Gender -->
@@ -202,7 +202,7 @@
                             <div>
                                 <label class="block text-sm font-bold text-slate-700 mb-1">Age</label>
                                 <input id="input-age" type="number" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none" 
-                                    placeholder="e.g. 30" value="${state.patientData.age}">
+                                    placeholder="" value="${state.patientData.age}">
                             </div>
                             <div>
                                 <label class="block text-sm font-bold text-slate-700 mb-1">Gender</label>
