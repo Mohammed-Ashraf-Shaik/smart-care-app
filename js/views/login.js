@@ -100,46 +100,78 @@
         })();
 
         const updateLocationSelectors = async (country, state, city) => {
-            // Update Country
+            console.log("[GPS] Updating UI for:", { country, state, city });
+
+            // 1. Handle Country
+            // If the country isn't in the list, we MUST add it to avoid a blank select
+            const countryOptions = Array.from(countrySelect.options).map(o => o.value);
+            if (!countryOptions.includes(country)) {
+                const newOpt = document.createElement('option');
+                newOpt.value = country;
+                newOpt.textContent = country;
+                countrySelect.appendChild(newOpt);
+            }
             countrySelect.value = country;
 
-            // Fetch and Update States
+            // 2. Fetch and Update States
             stateSelect.innerHTML = `<option>Loading...</option>`;
             stateSelect.disabled = true;
-            const states = await fetchStates(country);
-            if (states.length) {
-                stateSelect.innerHTML = `<option value="" disabled>Select State</option>` +
-                    states.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+            try {
+                const states = await fetchStates(country);
+                stateSelect.innerHTML = `<option value="" disabled selected>Select State</option>` +
+                    (states.length ? states.map(s => `<option value="${s.name}">${s.name}</option>`).join('') : '');
 
                 // If detected state isn't in list, inject it
                 if (state && !states.find(s => s.name === state)) {
-                    stateSelect.innerHTML += `<option value="${state}">${state}</option>`;
+                    const opt = document.createElement('option');
+                    opt.value = state;
+                    opt.textContent = state;
+                    stateSelect.appendChild(opt);
                 }
 
-                stateSelect.value = state;
-                stateSelect.disabled = false;
-                stateSelect.classList.remove('bg-slate-100', 'text-slate-400');
-                stateSelect.classList.add('bg-white', 'text-slate-900');
+                if (state) stateSelect.value = state;
+            } catch (e) {
+                console.error("[GPS] State fetch fail", e);
+                if (state) {
+                    stateSelect.innerHTML = `<option value="${state}">${state}</option>`;
+                    stateSelect.value = state;
+                }
             }
 
-            // Fetch and Update Cities
+            stateSelect.disabled = false;
+            stateSelect.classList.remove('bg-slate-100', 'text-slate-400');
+            stateSelect.classList.add('bg-white', 'text-slate-900');
+
+            // 3. Fetch and Update Cities
             citySelect.innerHTML = `<option>Loading...</option>`;
             citySelect.disabled = true;
-            const cities = await fetchCities(country, state);
-            if (cities.length) {
-                citySelect.innerHTML = `<option value="" disabled>Select City</option>` +
-                    cities.map(c => `<option value="${c}">${c}</option>`).join('');
+            try {
+                const cities = await fetchCities(country, stateSelect.value || state);
+                citySelect.innerHTML = `<option value="" disabled selected>Select City</option>` +
+                    (cities.length ? cities.map(c => `<option value="${c}">${c}</option>`).join('') : '');
 
                 // If detected city isn't in list, inject it
                 if (city && !cities.includes(city)) {
-                    citySelect.innerHTML += `<option value="${city}">${city}</option>`;
+                    const opt = document.createElement('option');
+                    opt.value = city;
+                    opt.textContent = city;
+                    citySelect.appendChild(opt);
                 }
 
-                citySelect.value = city;
-                citySelect.disabled = false;
-                citySelect.classList.remove('bg-slate-100', 'text-slate-400');
-                citySelect.classList.add('bg-white', 'text-slate-900');
+                if (city) citySelect.value = city;
+            } catch (e) {
+                console.error("[GPS] City fetch fail", e);
+                if (city) {
+                    citySelect.innerHTML = `<option value="${city}">${city}</option>`;
+                    citySelect.value = city;
+                }
             }
+
+            citySelect.disabled = false;
+            citySelect.classList.remove('bg-slate-100', 'text-slate-400');
+            citySelect.classList.add('bg-white', 'text-slate-900');
+
+            console.log("[GPS] UI Sync Complete");
         };
 
         container.querySelector('#btn-live').onclick = () => {
