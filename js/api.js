@@ -120,6 +120,24 @@
                 results: uniqueHospitals,
                 radius: usedRadius
             };
+        },
+
+        reverseGeocode: async (lat, lng) => {
+            try {
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10`);
+                const data = await res.json();
+                if (data && data.address) {
+                    return {
+                        country: data.address.country,
+                        state: data.address.state || data.address.region,
+                        city: data.address.city || data.address.town || data.address.village || data.address.suburb
+                    };
+                }
+                return null;
+            } catch (e) {
+                console.error("Reverse Geocoding Error", e);
+                return null;
+            }
         }
     };
 

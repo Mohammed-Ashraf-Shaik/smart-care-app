@@ -3,16 +3,7 @@
         const { state, setView } = window.App.Store;
         const { fetchCountries, fetchStates, fetchCities } = window.App.API;
 
-        let loginStep = 1;
-        let formData = {
-            country: '',
-            state: '',
-            city: '',
-            hospital: '',
-            password: ''
-        };
-
-        const role = state.auth ? state.auth.targetRole : 'doctor';
+        const role = state.auth ? state.auth.targetRole : 'doctor'; // Default
         const roleName = role === 'doctor' ? 'Doctor' : 'Staff/Admin';
         const brandColor = role === 'doctor' ? 'text-cyan-600' : 'text-slate-600';
         const btnColor = role === 'doctor' ? 'bg-cyan-600 hover:bg-cyan-700' : 'bg-slate-700 hover:bg-slate-800';
@@ -20,200 +11,219 @@
         const container = document.createElement('div');
         container.className = "min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 animate-fade-in";
 
-        const setLoginStep = (step) => {
-            loginStep = step;
-            render();
-        };
+        container.innerHTML = `
+            <button id="btn-back" class="absolute top-6 left-6 flex items-center text-slate-500 hover:text-brand-600 font-bold transition-colors">
+                <i data-lucide="arrow-left" class="w-5 h-5 mr-2"></i> Back to Hub
+            </button>
 
-        const render = () => {
-            container.innerHTML = `
-                <button id="btn-back-hub" class="absolute top-6 left-6 flex items-center text-slate-500 hover:text-brand-600 font-bold transition-colors">
-                    <i data-lucide="arrow-left" class="w-5 h-5 mr-2"></i> ${loginStep === 1 ? 'Back to Hub' : 'Previous Step'}
-                </button>
+            <div class="w-full max-w-md bg-white p-8 rounded-3xl shadow-2xl shadow-slate-200/50 border border-white">
+                <div class="text-center mb-8">
+                    <div class="w-16 h-16 ${role === 'doctor' ? 'bg-cyan-100 text-cyan-700' : 'bg-slate-100 text-slate-700'} rounded-2xl flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="${role === 'doctor' ? 'stethoscope' : 'shield-check'}" class="w-8 h-8"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-900">Where are you?</h2>
+                    <p class="text-slate-500 mt-2">Select your location to access ${roleName} hub</p>
+                </div>
 
-                <div class="w-full max-w-md bg-white p-8 rounded-3xl shadow-2xl shadow-slate-200/50 border border-white">
-                    <div class="text-center mb-8">
-                        <div class="w-16 h-16 ${role === 'doctor' ? 'bg-cyan-100 text-cyan-700' : 'bg-slate-100 text-slate-700'} rounded-2xl flex items-center justify-center mx-auto mb-4">
-                            <i data-lucide="${loginStep === 1 ? 'map-pin' : 'lock'}" class="w-8 h-8"></i>
-                        </div>
-                        <h2 class="text-3xl font-black text-slate-900">${roleName} Login</h2>
-                        <div class="flex justify-center gap-1 mt-2">
-                            <div class="h-1.5 w-6 rounded-full ${loginStep === 1 ? 'bg-cyan-500' : 'bg-slate-200'}"></div>
-                            <div class="h-1.5 w-6 rounded-full ${loginStep === 2 ? 'bg-cyan-500' : 'bg-slate-200'}"></div>
-                        </div>
+                <div class="space-y-4">
+                    <!-- Location Drill -->
+                    <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Manual Selection</label>
+                        <select id="login-country" class="w-full p-3 mb-2 border border-slate-200 rounded-xl bg-white focus:bg-white transition-colors outline-none text-sm">
+                            <option value="">Loading Countries...</option>
+                        </select>
+                        <select id="login-state" disabled class="w-full p-3 mb-2 border border-slate-200 rounded-xl bg-slate-100 text-slate-400 outline-none text-sm transition-colors">
+                            <option value="">Select Country</option>
+                        </select>
+                         <select id="login-city" disabled class="w-full p-3 border border-slate-200 rounded-xl bg-slate-100 text-slate-400 outline-none text-sm transition-colors">
+                            <option value="">Select State</option>
+                        </select>
                     </div>
 
-                    ${loginStep === 1 ? `
-                        <!-- SLIDE 1: LOCATION -->
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Country</label>
-                                <select id="login-country" class="w-full p-4 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white transition-all outline-none text-sm">
-                                    <option value="">Loading Countries...</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">State / Province</label>
-                                <select id="login-state" disabled class="w-full p-4 border border-slate-200 rounded-xl bg-slate-100 text-slate-400 outline-none text-sm transition-all focus:bg-white">
-                                    <option value="">Select Country First</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">City / District</label>
-                                <select id="login-city" disabled class="w-full p-4 border border-slate-200 rounded-xl bg-slate-100 text-slate-400 outline-none text-sm transition-all focus:bg-white">
-                                    <option value="">Select State First</option>
-                                </select>
-                            </div>
-                            <button id="btn-next" disabled class="w-full ${btnColor} text-white p-4 rounded-xl font-bold text-lg shadow-lg shadow-blue-200/50 transition-all mt-4 opacity-50 cursor-not-allowed">
-                                Continue Selection
-                            </button>
-                        </div>
-                    ` : `
-                        <!-- SLIDE 2: FACILITY & AUTH -->
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Confirm Facility</label>
-                                <select id="login-hospital" class="w-full p-4 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-cyan-500 outline-none text-sm transition-all">
-                                    <option value="">Searching Hospitals...</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Security Key</label>
-                                <input id="login-password" type="password" class="w-full p-4 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-cyan-500 outline-none text-sm" placeholder="••••••••">
-                            </div>
-                            <div id="login-error" class="hidden text-red-500 text-sm font-bold text-center bg-red-50 p-3 rounded-xl border border-red-100">
-                                Incorrect Credentials
-                            </div>
-                            <button id="btn-login" class="w-full ${btnColor} text-white p-4 rounded-xl font-bold text-lg shadow-lg shadow-blue-200/50 transition-all mt-4 transform active:scale-95">
-                                Secure Login
-                            </button>
-                        </div>
-                    `}
+                    <div class="relative py-2 text-center text-xs font-bold text-slate-400 uppercase tracking-widest before:content-[''] before:absolute before:left-0 before:top-1/2 before:w-1/3 before:h-px before:bg-slate-200 after:content-[''] after:absolute after:right-0 after:top-1/2 after:w-1/3 after:h-px after:bg-slate-200">
+                        OR
+                    </div>
 
-                    <p class="text-center text-[10px] text-slate-400 mt-6 uppercase tracking-wider font-bold">
-                        <i data-lucide="shield-check" class="w-3 h-3 inline mr-1"></i> End-to-End Encryption Active
-                    </p>
+                    <!-- Live Location Button -->
+                    <button id="btn-live" class="w-full p-4 bg-white border-2 border-slate-100 rounded-2xl flex items-center hover:border-blue-400 hover:bg-blue-50/30 transition-all group">
+                         <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-4 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                            <i data-lucide="crosshair" class="w-6 h-6"></i>
+                        </div>
+                        <div class="text-left">
+                            <h3 class="font-bold text-slate-800">Use Live Location</h3>
+                            <p class="text-slate-500 text-xs">Set facility location automatically</p>
+                        </div>
+                    </button>
+
+                    <hr class="border-slate-100 my-6">
+
+                    <!-- Hospital Name -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Hospital ID / Name</label>
+                        <input id="login-hospital" type="text" class="w-full p-3 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-brand-500 outline-none" placeholder="e.g. City General">
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Password</label>
+                        <input id="login-password" type="password" class="w-full p-3 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-brand-500 outline-none" placeholder="••••••••">
+                    </div>
+
+                    <div id="login-error" class="hidden text-red-500 text-sm font-bold text-center bg-red-50 p-2 rounded-lg">
+                        Incorrect Credentials
+                    </div>
+
+                    <button id="btn-login" class="w-full ${btnColor} text-white p-4 rounded-xl font-bold text-lg shadow-lg shadow-blue-200/50 transition-all mt-4 transform active:scale-95">
+                        Authenticate
+                    </button>
                 </div>
-            `;
+            </div>
+        `;
 
-            lucide.createIcons();
-            attachHandlers();
-        };
+        // Logic
+        const countrySelect = container.querySelector('#login-country');
+        const stateSelect = container.querySelector('#login-state');
+        const citySelect = container.querySelector('#login-city');
+        const hospitalInput = container.querySelector('#login-hospital');
+        const passInput = container.querySelector('#login-password');
+        const loginBtn = container.querySelector('#btn-login');
+        const errorMsg = container.querySelector('#login-error');
 
-        const attachHandlers = () => {
-            const backBtn = container.querySelector('#btn-back-hub');
-            backBtn.onclick = () => loginStep === 1 ? setView('landing') : setLoginStep(1);
+        (async () => {
+            const countries = await fetchCountries();
+            const india = countries.find(c => c.name === "India");
+            const others = countries.filter(c => c.name !== "India").sort((a, b) => a.name.localeCompare(b.name));
+            const sorted = india ? [india, ...others] : others;
 
-            if (loginStep === 1) {
-                const countrySelect = container.querySelector('#login-country');
-                const stateSelect = container.querySelector('#login-state');
-                const citySelect = container.querySelector('#login-city');
-                const nextBtn = container.querySelector('#btn-next');
+            countrySelect.innerHTML = `<option value="" disabled selected>Select Country</option>` +
+                sorted.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+        })();
 
-                const updateNextBtn = () => {
-                    if (formData.country && formData.state && formData.city) {
-                        nextBtn.disabled = false;
-                        nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                    } else {
-                        nextBtn.disabled = true;
-                        nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                    }
-                };
+        const updateLocationSelectors = async (country, state, city) => {
+            // Update Country
+            countrySelect.value = country;
 
-                (async () => {
-                    const countries = await fetchCountries();
-                    const india = countries.find(c => c.name === "India");
-                    const others = countries.filter(c => c.name !== "India").sort((a, b) => a.name.localeCompare(b.name));
-                    const sorted = india ? [india, ...others] : others;
+            // Fetch and Update States
+            stateSelect.innerHTML = `<option>Loading...</option>`;
+            stateSelect.disabled = true;
+            const states = await fetchStates(country);
+            if (states.length) {
+                stateSelect.innerHTML = `<option value="" disabled>Select State</option>` +
+                    states.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+                stateSelect.value = state;
+                stateSelect.disabled = false;
+                stateSelect.classList.remove('bg-slate-100', 'text-slate-400');
+                stateSelect.classList.add('bg-white', 'text-slate-900');
+            }
 
-                    countrySelect.innerHTML = `<option value="" disabled selected>Select Country</option>` +
-                        sorted.map(c => `<option value="${c.name}" ${formData.country === c.name ? 'selected' : ''}>${c.name}</option>`).join('');
-
-                    if (formData.country) countrySelect.onchange();
-                })();
-
-                countrySelect.onchange = async () => {
-                    formData.country = countrySelect.value;
-                    stateSelect.innerHTML = `<option>Loading...</option>`;
-                    stateSelect.disabled = true;
-                    const states = await fetchStates(formData.country);
-                    if (states.length) {
-                        stateSelect.innerHTML = `<option value="" disabled selected>Select State</option>` +
-                            states.map(s => `<option value="${s.name}" ${formData.state === s.name ? 'selected' : ''}>${s.name}</option>`).join('');
-                        stateSelect.disabled = false;
-                        stateSelect.classList.remove('bg-slate-100', 'text-slate-400');
-                        if (formData.state) stateSelect.onchange();
-                    }
-                    updateNextBtn();
-                };
-
-                stateSelect.onchange = async () => {
-                    formData.state = stateSelect.value;
-                    citySelect.innerHTML = `<option>Loading...</option>`;
-                    citySelect.disabled = true;
-                    const cities = await fetchCities(formData.country, formData.state);
-                    if (cities.length) {
-                        citySelect.innerHTML = `<option value="" disabled selected>Select City</option>` +
-                            cities.map(c => `<option value="${c}" ${formData.city === c ? 'selected' : ''}>${c}</option>`).join('');
-                        citySelect.disabled = false;
-                        citySelect.classList.remove('bg-slate-100', 'text-slate-400');
-                    }
-                    updateNextBtn();
-                };
-
-                citySelect.onchange = () => {
-                    formData.city = citySelect.value;
-                    updateNextBtn();
-                };
-
-                nextBtn.onclick = () => setLoginStep(2);
-            } else {
-                const hospitalSelect = container.querySelector('#login-hospital');
-                const passInput = container.querySelector('#login-password');
-                const loginBtn = container.querySelector('#btn-login');
-                const errorMsg = container.querySelector('#login-error');
-
-                (async () => {
-                    const query = `${formData.city}, ${formData.state}, ${formData.country}`;
-                    const coords = await window.App.API.getCoordinates(query);
-                    if (coords) {
-                        const data = await window.App.API.getNearbyHospitals(coords.lat, coords.lng);
-                        if (data.results && data.results.length > 0) {
-                            hospitalSelect.innerHTML = `<option value="" disabled selected>Choose Hospital</option>` +
-                                data.results.map(h => `<option value="${h.name}">${h.name}</option>`).join('');
-                        } else {
-                            hospitalSelect.innerHTML = `<option>No Hospitals Found</option>`;
-                        }
-                    } else {
-                        hospitalSelect.innerHTML = `<option>Location Error</option>`;
-                    }
-                })();
-
-                loginBtn.onclick = () => {
-                    if (!hospitalSelect.value || !passInput.value) {
-                        errorMsg.textContent = "Please set facility and password";
-                        errorMsg.classList.remove('hidden');
-                        return;
-                    }
-
-                    if (passInput.value.length < 3) {
-                        errorMsg.textContent = "Security Key too short";
-                        errorMsg.classList.remove('hidden');
-                        return;
-                    }
-
-                    window.App.Store.setLoggedLocation(
-                        formData.country,
-                        formData.state,
-                        formData.city,
-                        hospitalSelect.value
-                    );
-                    setView(role);
-                };
+            // Fetch and Update Cities
+            citySelect.innerHTML = `<option>Loading...</option>`;
+            citySelect.disabled = true;
+            const cities = await fetchCities(country, state);
+            if (cities.length) {
+                citySelect.innerHTML = `<option value="" disabled>Select City</option>` +
+                    cities.map(c => `<option value="${c}">${c}</option>`).join('');
+                citySelect.value = city;
+                citySelect.disabled = false;
+                citySelect.classList.remove('bg-slate-100', 'text-slate-400');
+                citySelect.classList.add('bg-white', 'text-slate-900');
             }
         };
 
-        render();
+        container.querySelector('#btn-live').onclick = () => {
+            const btn = container.querySelector('#btn-live');
+            const originalHTML = btn.innerHTML;
+
+            btn.disabled = true;
+            btn.innerHTML = `
+                <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-4 shadow-sm">
+                    <i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i>
+                </div>
+                <div class="text-left">
+                    <h3 class="font-bold text-slate-800">Acquiring...</h3>
+                    <p class="text-slate-500 text-xs">Finding your GPS position</p>
+                </div>
+            `;
+            lucide.createIcons();
+
+            navigator.geolocation.getCurrentPosition(async (pos) => {
+                const { latitude, longitude } = pos.coords;
+                const loc = await window.App.API.reverseGeocode(latitude, longitude);
+
+                if (loc) {
+                    await updateLocationSelectors(loc.country, loc.state, loc.city);
+                } else {
+                    alert("Could not determine your exact location. Please select manually.");
+                }
+
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+                lucide.createIcons();
+            }, (err) => {
+                alert("GPS error: " + err.message);
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+                lucide.createIcons();
+            }, { enableHighAccuracy: true });
+        };
+
+        countrySelect.onchange = async () => {
+            stateSelect.innerHTML = `<option>Loading...</option>`;
+            stateSelect.disabled = true;
+            const states = await fetchStates(countrySelect.value);
+            if (states.length) {
+                stateSelect.innerHTML = `<option value="" disabled selected>Select State</option>` +
+                    states.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+                stateSelect.disabled = false;
+                stateSelect.classList.remove('bg-slate-100', 'text-slate-400');
+                stateSelect.classList.add('bg-white', 'text-slate-900');
+            } else {
+                stateSelect.innerHTML = `<option>No States</option>`;
+            }
+        };
+
+        stateSelect.onchange = async () => {
+            citySelect.innerHTML = `<option>Loading...</option>`;
+            citySelect.disabled = true;
+            const cities = await fetchCities(countrySelect.value, stateSelect.value);
+            if (cities.length) {
+                citySelect.innerHTML = `<option value="" disabled selected>Select City</option>` +
+                    cities.map(c => `<option value="${c}">${c}</option>`).join('');
+                citySelect.disabled = false;
+                citySelect.classList.remove('bg-slate-100', 'text-slate-400');
+                citySelect.classList.add('bg-white', 'text-slate-900');
+            } else {
+                citySelect.innerHTML = `<option>No Cities</option>`;
+            }
+        };
+
+        loginBtn.onclick = () => {
+            // Basic Validation
+            if (!countrySelect.value || !hospitalInput.value || !passInput.value) {
+                errorMsg.textContent = "Please fill all fields";
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            // Simulation
+            if (passInput.value.length < 3) {
+                errorMsg.textContent = "Password too short";
+                errorMsg.classList.remove('hidden');
+                return;
+            }
+
+            // Save hospital for filtering (Country, State, City, Hospital)
+            window.App.Store.setLoggedLocation(
+                countrySelect.value,
+                stateSelect.value,
+                citySelect.value,
+                hospitalInput.value
+            );
+            setView(role);
+        };
+
+        container.querySelector('#btn-back').onclick = () => setView('landing');
+
         return container;
     };
 })();
