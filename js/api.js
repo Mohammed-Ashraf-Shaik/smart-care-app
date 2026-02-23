@@ -124,15 +124,13 @@
 
         reverseGeocode: async (lat, lng) => {
             try {
-                // Zoom 14 is better for identifying suburban/city details accurately
-                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=14`);
+                const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10`);
                 const data = await res.json();
                 if (data && data.address) {
-                    const addr = data.address;
                     return {
-                        country: addr.country,
-                        state: addr.state || addr.region || addr.state_district,
-                        city: addr.city || addr.town || addr.village || addr.suburb || addr.city_district || addr.municipality
+                        country: data.address.country,
+                        state: data.address.state || data.address.region,
+                        city: data.address.city || data.address.town || data.address.village || data.address.suburb
                     };
                 }
                 return null;

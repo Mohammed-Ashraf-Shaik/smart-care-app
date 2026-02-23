@@ -100,78 +100,34 @@
         })();
 
         const updateLocationSelectors = async (country, state, city) => {
-            console.log("[GPS] Updating UI for:", { country, state, city });
-
-            // 1. Handle Country
-            // If the country isn't in the list, we MUST add it to avoid a blank select
-            const countryOptions = Array.from(countrySelect.options).map(o => o.value);
-            if (!countryOptions.includes(country)) {
-                const newOpt = document.createElement('option');
-                newOpt.value = country;
-                newOpt.textContent = country;
-                countrySelect.appendChild(newOpt);
-            }
+            // Update Country
             countrySelect.value = country;
 
-            // 2. Fetch and Update States
+            // Fetch and Update States
             stateSelect.innerHTML = `<option>Loading...</option>`;
             stateSelect.disabled = true;
-            try {
-                const states = await fetchStates(country);
-                stateSelect.innerHTML = `<option value="" disabled selected>Select State</option>` +
-                    (states.length ? states.map(s => `<option value="${s.name}">${s.name}</option>`).join('') : '');
-
-                // If detected state isn't in list, inject it
-                if (state && !states.find(s => s.name === state)) {
-                    const opt = document.createElement('option');
-                    opt.value = state;
-                    opt.textContent = state;
-                    stateSelect.appendChild(opt);
-                }
-
-                if (state) stateSelect.value = state;
-            } catch (e) {
-                console.error("[GPS] State fetch fail", e);
-                if (state) {
-                    stateSelect.innerHTML = `<option value="${state}">${state}</option>`;
-                    stateSelect.value = state;
-                }
+            const states = await fetchStates(country);
+            if (states.length) {
+                stateSelect.innerHTML = `<option value="" disabled>Select State</option>` +
+                    states.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+                stateSelect.value = state;
+                stateSelect.disabled = false;
+                stateSelect.classList.remove('bg-slate-100', 'text-slate-400');
+                stateSelect.classList.add('bg-white', 'text-slate-900');
             }
 
-            stateSelect.disabled = false;
-            stateSelect.classList.remove('bg-slate-100', 'text-slate-400');
-            stateSelect.classList.add('bg-white', 'text-slate-900');
-
-            // 3. Fetch and Update Cities
+            // Fetch and Update Cities
             citySelect.innerHTML = `<option>Loading...</option>`;
             citySelect.disabled = true;
-            try {
-                const cities = await fetchCities(country, stateSelect.value || state);
-                citySelect.innerHTML = `<option value="" disabled selected>Select City</option>` +
-                    (cities.length ? cities.map(c => `<option value="${c}">${c}</option>`).join('') : '');
-
-                // If detected city isn't in list, inject it
-                if (city && !cities.includes(city)) {
-                    const opt = document.createElement('option');
-                    opt.value = city;
-                    opt.textContent = city;
-                    citySelect.appendChild(opt);
-                }
-
-                if (city) citySelect.value = city;
-            } catch (e) {
-                console.error("[GPS] City fetch fail", e);
-                if (city) {
-                    citySelect.innerHTML = `<option value="${city}">${city}</option>`;
-                    citySelect.value = city;
-                }
+            const cities = await fetchCities(country, state);
+            if (cities.length) {
+                citySelect.innerHTML = `<option value="" disabled>Select City</option>` +
+                    cities.map(c => `<option value="${c}">${c}</option>`).join('');
+                citySelect.value = city;
+                citySelect.disabled = false;
+                citySelect.classList.remove('bg-slate-100', 'text-slate-400');
+                citySelect.classList.add('bg-white', 'text-slate-900');
             }
-
-            citySelect.disabled = false;
-            citySelect.classList.remove('bg-slate-100', 'text-slate-400');
-            citySelect.classList.add('bg-white', 'text-slate-900');
-
-            console.log("[GPS] UI Sync Complete");
         };
 
         container.querySelector('#btn-live').onclick = () => {
@@ -192,46 +148,23 @@
 
             navigator.geolocation.getCurrentPosition(async (pos) => {
                 const { latitude, longitude } = pos.coords;
-                console.log(`[GPS] Login Detection: ${latitude}, ${longitude}`);
+                const loc = await window.App.API.reverseGeocode(latitude, longitude);
 
-                try {
-                    const loc = await window.App.API.reverseGeocode(latitude, longitude);
-
-                    if (loc) {
-                        const countries = await window.App.API.fetchCountries();
-                        // Find match in our supported countries list
-                        const matchedCountry = countries.find(c =>
-                            c.name.toLowerCase().includes(loc.country.toLowerCase()) ||
-                            loc.country.toLowerCase().includes(c.name.toLowerCase())
-                        );
-
-                        if (matchedCountry) {
-                            await updateLocationSelectors(matchedCountry.name, loc.state, loc.city);
-                        } else {
-                            await updateLocationSelectors(loc.country, loc.state, loc.city);
-                        }
-                    } else {
-                        throw new Error("Reverse geocode failed");
-                    }
-                } catch (e) {
-                    console.error("[GPS] Fail", e);
-                    alert("Location detection failed. Please select manually.");
+                if (loc) {
+                    await updateLocationSelectors(loc.country, loc.state, loc.city);
+                } else {
+                    alert("Could not determine your exact location. Please select manually.");
                 }
 
                 btn.disabled = false;
                 btn.innerHTML = originalHTML;
                 lucide.createIcons();
             }, (err) => {
-                let msg = "GPS error";
-                if (err.code === 1) msg = "Permission denied";
-                else if (err.code === 2) msg = "Position unavailable";
-                else if (err.code === 3) msg = "Timeout connecting to GPS";
-
-                alert(msg + ". Please enter location manually.");
+                alert("GPS error: " + err.message);
                 btn.disabled = false;
                 btn.innerHTML = originalHTML;
                 lucide.createIcons();
-            }, { enableHighAccuracy: false, timeout: 10000 });
+            }, { enableHighAccuracy: true });
         };
 
         countrySelect.onchange = async () => {
