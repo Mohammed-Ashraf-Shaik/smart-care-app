@@ -72,30 +72,65 @@
                 </div>
             </div>
 
-            <footer class="bg-slate-50 text-slate-500 py-12 px-6 border-t border-slate-200">
-                <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-12">
-                    <div class="text-left">
-                        <h3 class="font-bold text-slate-800 text-2xl mb-4 tracking-tighter">SmartCare Systems</h3>
-                        
-                        <div class="space-y-4 mb-8">
-                            <div>
-                                <p class="font-bold text-slate-700 uppercase tracking-widest text-[10px] mb-1">Developer & Owner</p>
-                                <p class="text-slate-900 font-bold text-lg">Ashraf Shaik</p>
-                            </div>
-                            
-                            <div class="flex flex-wrap gap-4 text-sm">
-                                <a href="tel:8500543154" class="flex items-center gap-2 hover:text-blue-600 transition-colors bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm"><i data-lucide="phone" class="w-4 h-4 text-blue-500"></i> 8500543154</a>
-                                <a href="mailto:ashubasha52@gmail.com" class="flex items-center gap-2 hover:text-blue-600 transition-colors bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm"><i data-lucide="mail" class="w-4 h-4 text-blue-500"></i> ashubasha52@gmail.com</a>
-                            </div>
+            <footer class="bg-white text-slate-600 py-16 px-6 border-t border-slate-100 mt-20">
+                <div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+                    <!-- Column 1: Brand -->
+                    <div class="space-y-4">
+                        <div class="flex items-center gap-2 text-[#003580]">
+                            <i data-lucide="heart" class="w-6 h-6 fill-current"></i>
+                            <span class="text-xl font-black tracking-tighter uppercase">SmartCare</span>
+                        </div>
+                        <p class="text-slate-400 text-sm leading-relaxed">
+                            Revolutionizing medical queue management with smart, real-time technology. Quality care, delivered faster.
+                        </p>
+                    </div>
 
-                            <div class="flex flex-wrap gap-3 mt-1">
-                                <a href="https://instagram.com/shaik.m_ashraf" target="_blank" class="flex items-center gap-2 hover:text-pink-600 transition-colors text-xs font-medium"><i data-lucide="instagram" class="w-4 h-4"></i> Instagram</a>
-                                <a href="https://twitter.com/ashushaik" target="_blank" class="flex items-center gap-2 hover:text-blue-400 transition-colors text-xs font-medium"><i data-lucide="twitter" class="w-4 h-4"></i> Twitter</a>
+                    <!-- Column 2: Portals -->
+                    <div class="space-y-4">
+                        <h4 class="text-slate-900 font-bold uppercase tracking-widest text-[11px]">Access Portals</h4>
+                        <ul class="space-y-2 text-sm font-medium">
+                            <li><button onclick="window.App.Store.setView('patient')" class="hover:text-blue-600 transition-colors">Patient Portal</button></li>
+                            <li><button onclick="window.App.Store.setAuthTarget('doctor'); window.App.Store.setView('login')" class="hover:text-blue-600 transition-colors">Doctor Login</button></li>
+                            <li><button onclick="window.App.Store.setAuthTarget('staff'); window.App.Store.setView('login')" class="hover:text-blue-600 transition-colors">Admin & Staff</button></li>
+                        </ul>
+                    </div>
+
+                    <!-- Column 3: The Developer -->
+                    <div class="space-y-4">
+                        <h4 class="text-slate-900 font-bold uppercase tracking-widest text-[11px]">Developer & Owner</h4>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center font-bold">AS</div>
+                            <div>
+                                <p class="text-slate-900 font-bold text-sm">Ashraf Shaik</p>
+                                <p class="text-slate-400 text-[10px] uppercase font-bold tracking-tight">Fullstack Founder</p>
                             </div>
                         </div>
-
-                        <p class="text-slate-400 text-sm max-w-xs">&copy; 2026 SmartCare HQMS. All rights reserved. Revolutionizing medical queue management through smart technology.</p>
                     </div>
+
+                    <!-- Column 4: Support -->
+                    <div class="space-y-4">
+                        <h4 class="text-slate-900 font-bold uppercase tracking-widest text-[11px]">Stay Connected</h4>
+                        <div class="grid grid-cols-1 gap-3">
+                            <a href="tel:8500543154" class="flex items-center gap-2 text-sm hover:text-blue-600 transition-colors">
+                                <i data-lucide="phone" class="w-4 h-4 text-slate-400"></i> 8500543154
+                            </a>
+                            <a href="mailto:ashubasha52@gmail.com" class="flex items-center gap-2 text-sm hover:text-blue-600 transition-colors">
+                                <i data-lucide="mail" class="w-4 h-4 text-slate-400"></i> ashubasha52@gmail.com
+                            </a>
+                            <div class="flex gap-4 pt-2">
+                                <a href="https://instagram.com/shaik.m_ashraf" target="_blank" class="p-2 bg-slate-50 rounded-lg hover:bg-pink-50 hover:text-pink-600 transition-all">
+                                    <i data-lucide="instagram" class="w-4 h-4"></i>
+                                </a>
+                                <a href="https://twitter.com/ashushaik" target="_blank" class="p-2 bg-slate-50 rounded-lg hover:bg-blue-50 hover:text-blue-400 transition-all">
+                                    <i data-lucide="twitter" class="w-4 h-4"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="max-w-7xl mx-auto pt-8 border-t border-slate-100 text-center">
+                    <p class="text-slate-300 text-[11px] font-medium tracking-wide">&copy; 2026 SmartCare HQMS. All rights reserved. Designed with precision for human health.</p>
                 </div>
             </footer>
         `;
