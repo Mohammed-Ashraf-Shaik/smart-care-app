@@ -127,11 +127,6 @@
                     // If we are on Step 3, update map
                     if (state.step === 3) {
                         updateUserMarker(latitude, longitude);
-
-                        // Fetch new data (debounced ideally, but here distinct)
-                        // For now, simpler: Just update marker. Real refresh could be button or threshold.
-                        // Let's Refresh hospitals on significant move?
-                        // For simplicity, we fetch once on entry.
                     } else if (state.step === 2) {
                         // First Lock -> Go to Step 3
                         const data = await getNearbyHospitals(latitude, longitude);
@@ -145,6 +140,27 @@
                 (err) => console.error("[GPS] Error", err),
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
+        };
+
+        const calculateFee = (symptoms) => {
+            const sym = symptoms.toLowerCase();
+            let min = 150, max = 250; // Default
+
+            // Risk Levels
+            const highRisk = ["chest pain", "breathing", "heart", "unconscious", "accident", "stroke", "bleeding"];
+            const lowRisk = ["cough", "cold", "headache", "minor", "sore throat", "itchy"];
+            const midRisk = ["fever", "vomit", "stomach", "fatigue", "nausea", "pain"];
+
+            if (highRisk.some(k => sym.includes(k))) {
+                min = 350; max = 500;
+            } else if (midRisk.some(k => sym.includes(k))) {
+                min = 200; max = 350;
+            } else if (lowRisk.some(k => sym.includes(k))) {
+                min = 50; max = 200;
+            }
+
+            const fee = Math.floor(Math.random() * (max - min + 1)) + min;
+            return Math.min(Math.max(fee, 1), 500); // Strict clamp 1-500
         };
 
 
@@ -337,12 +353,13 @@
 
         // STEP 5: QUOTE (Was Step 4)
         if (state.step === 5) {
+            const fee = state.patientData.fee || 0;
             contentHTML = `<div class="w-full text-center">
                 <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-3xl mb-8 border border-blue-100 relative overflow-hidden">
                     <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-200/20 rounded-full blur-2xl"></div>
                     <p class="text-slate-500 uppercase tracking-widest text-xs font-bold mb-2">Estimated Fee</p>
-                    <h3 class="text-5xl md:text-6xl font-black text-brand-900 tracking-tighter">₹75.00</h3>
-                    <p class="text-slate-400 text-sm mt-4">Includes Consultation & Basic Triage</p>
+                    <h3 class="text-5xl md:text-6xl font-black text-brand-900 tracking-tighter">₹${fee.toFixed(2)}</h3>
+                    <p class="text-slate-400 text-sm mt-4">Includes Consultation & Quick Triage</p>
                 </div>
                 <!-- Summary of Details -->
                 <div class="bg-slate-50 p-4 rounded-xl text-left text-sm text-slate-600 mb-4">
@@ -544,7 +561,17 @@
         // --- OTHER STEPS ---
         if (state.step === 4) {
             container.querySelector('#input-symptoms').oninput = (e) => updatePatientData('symptoms', e.target.value);
-            container.querySelector('#btn-next').onclick = () => setStep(5);
+            container.querySelector('#btn-next').onclick = () => {
+                const symptoms = container.querySelector('#input-symptoms').value;
+                if (!symptoms) {
+                    alert("Please describe your symptoms.");
+                    return;
+                }
+                const fee = calculateFee(symptoms);
+                updatePatientData('symptoms', symptoms);
+                updatePatientData('fee', fee);
+                setStep(5);
+            };
         }
 
         if (state.step === 5) {
