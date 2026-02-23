@@ -42,8 +42,10 @@
 
                     <!-- Hospital Name -->
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Hospital ID / Name</label>
-                        <input id="login-hospital" type="text" class="w-full p-3 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-brand-500 outline-none" placeholder="e.g. City General">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Select Facility / Hospital</label>
+                        <select id="login-hospital" disabled class="w-full p-3 border border-slate-200 rounded-xl bg-slate-100 text-slate-400 outline-none text-sm transition-colors">
+                            <option value="">Select City First</option>
+                        </select>
                     </div>
 
                     <!-- Password -->
@@ -104,6 +106,11 @@
         stateSelect.onchange = async () => {
             citySelect.innerHTML = `<option>Loading...</option>`;
             citySelect.disabled = true;
+            hospitalInput.innerHTML = `<option value="">Select City First</option>`;
+            hospitalInput.disabled = true;
+            hospitalInput.classList.add('bg-slate-100', 'text-slate-400');
+            hospitalInput.classList.remove('bg-white', 'text-slate-900');
+
             const cities = await fetchCities(countrySelect.value, stateSelect.value);
             if (cities.length) {
                 citySelect.innerHTML = `<option value="" disabled selected>Select City</option>` +
@@ -113,6 +120,29 @@
                 citySelect.classList.add('bg-white', 'text-slate-900');
             } else {
                 citySelect.innerHTML = `<option>No Cities</option>`;
+            }
+        };
+
+        citySelect.onchange = async () => {
+            hospitalInput.innerHTML = `<option>Searching...</option>`;
+            hospitalInput.disabled = true;
+
+            const query = `${citySelect.value}, ${stateSelect.value}, ${countrySelect.value}`;
+            const coords = await window.App.API.getCoordinates(query);
+
+            if (coords) {
+                const data = await window.App.API.getNearbyHospitals(coords.lat, coords.lng);
+                if (data.results && data.results.length > 0) {
+                    hospitalInput.innerHTML = `<option value="" disabled selected>Select Hospital</option>` +
+                        data.results.map(h => `<option value="${h.name}">${h.name}</option>`).join('');
+                    hospitalInput.disabled = false;
+                    hospitalInput.classList.remove('bg-slate-100', 'text-slate-400');
+                    hospitalInput.classList.add('bg-white', 'text-slate-900');
+                } else {
+                    hospitalInput.innerHTML = `<option>No Hospitals Found</option>`;
+                }
+            } else {
+                hospitalInput.innerHTML = `<option>Location Error</option>`;
             }
         };
 
