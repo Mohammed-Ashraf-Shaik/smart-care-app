@@ -148,23 +148,46 @@
 
             navigator.geolocation.getCurrentPosition(async (pos) => {
                 const { latitude, longitude } = pos.coords;
-                const loc = await window.App.API.reverseGeocode(latitude, longitude);
+                console.log(`[GPS] Login Detection: ${latitude}, ${longitude}`);
 
-                if (loc) {
-                    await updateLocationSelectors(loc.country, loc.state, loc.city);
-                } else {
-                    alert("Could not determine your exact location. Please select manually.");
+                try {
+                    const loc = await window.App.API.reverseGeocode(latitude, longitude);
+
+                    if (loc) {
+                        const countries = await window.App.API.fetchCountries();
+                        // Find match in our supported countries list
+                        const matchedCountry = countries.find(c =>
+                            c.name.toLowerCase().includes(loc.country.toLowerCase()) ||
+                            loc.country.toLowerCase().includes(c.name.toLowerCase())
+                        );
+
+                        if (matchedCountry) {
+                            await updateLocationSelectors(matchedCountry.name, loc.state, loc.city);
+                        } else {
+                            await updateLocationSelectors(loc.country, loc.state, loc.city);
+                        }
+                    } else {
+                        throw new Error("Reverse geocode failed");
+                    }
+                } catch (e) {
+                    console.error("[GPS] Fail", e);
+                    alert("Location detection failed. Please select manually.");
                 }
 
                 btn.disabled = false;
                 btn.innerHTML = originalHTML;
                 lucide.createIcons();
             }, (err) => {
-                alert("GPS error: " + err.message);
+                let msg = "GPS error";
+                if (err.code === 1) msg = "Permission denied";
+                else if (err.code === 2) msg = "Position unavailable";
+                else if (err.code === 3) msg = "Timeout connecting to GPS";
+
+                alert(msg + ". Please enter location manually.");
                 btn.disabled = false;
                 btn.innerHTML = originalHTML;
                 lucide.createIcons();
-            }, { enableHighAccuracy: true });
+            }, { enableHighAccuracy: false, timeout: 10000 });
         };
 
         countrySelect.onchange = async () => {
