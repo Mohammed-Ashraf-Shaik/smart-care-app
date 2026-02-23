@@ -432,8 +432,19 @@
             const prefs = container.querySelectorAll('input[name="doctorPref"]');
             prefs.forEach(p => {
                 p.onchange = () => {
-                    updatePatientData('doctorPref', p.value, true);
-                    setStep(1); // Re-render to show selection style
+                    updatePatientData('doctorPref', p.value);
+
+                    // Manual UI Update to avoid full re-render
+                    container.querySelectorAll('input[name="doctorPref"]').forEach(input => {
+                        const label = input.closest('label');
+                        if (input.checked) {
+                            label.classList.remove('border-slate-200');
+                            label.classList.add('border-brand-500', 'bg-blue-50');
+                        } else {
+                            label.classList.remove('border-brand-500', 'bg-blue-50');
+                            label.classList.add('border-slate-200');
+                        }
+                    });
                 };
             });
 
