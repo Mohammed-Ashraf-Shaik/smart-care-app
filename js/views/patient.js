@@ -393,6 +393,27 @@
                             <p class="text-slate-500">Doctor:</p> <p class="font-bold text-slate-900 text-right">${state.patientData.doctorPref === 'Any' ? 'Any Available' : state.patientData.doctorPref}</p>
                          </div>
                     </div>
+                    <div class="mt-8 pt-6 border-t border-green-100 text-left">
+                        <p class="text-[10px] font-bold text-green-700 uppercase tracking-widest mb-3">Support & Developers</p>
+                        <div class="flex items-center gap-3 mb-2">
+                             <div class="w-8 h-8 bg-green-200 rounded-full flex items-center justify-center text-green-700">
+                                <i data-lucide="phone" class="w-4 h-4"></i>
+                             </div>
+                             <div>
+                                <p class="text-xs font-bold text-slate-800">8500543154</p>
+                                <p class="text-[10px] text-slate-500">Call for immediate support</p>
+                             </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                             <div class="w-8 h-8 bg-green-200 rounded-full flex items-center justify-center text-green-700">
+                                <i data-lucide="mail" class="w-4 h-4"></i>
+                             </div>
+                             <div>
+                                <p class="text-xs font-bold text-slate-800">ashubasha52@gmail.com</p>
+                                <p class="text-[10px] text-slate-500">Email for technical issues</p>
+                             </div>
+                        </div>
+                    </div>
                     <button id="btn-home" class="w-full mt-8 bg-white border border-green-200 text-green-700 hover:bg-green-100 p-4 rounded-xl font-bold text-lg transition-all">
                         Back to Home
                     </button>

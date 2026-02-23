@@ -72,8 +72,25 @@
                 </div>
             </div>
 
-            <footer class="bg-slate-50 text-slate-400 text-sm py-8 text-center">
-                &copy; 2026 SmartCare Systems. All rights reserved.
+            <footer class="bg-slate-50 text-slate-500 py-12 px-6 border-t border-slate-200">
+                <div class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+                    <div class="text-left">
+                        <h3 class="font-bold text-slate-800 text-lg mb-2">SmartCare Systems</h3>
+                        <p class="text-slate-400 text-sm max-w-xs">&copy; 2026 SmartCare HQMS. All rights reserved. Revolutionizing medical queue management.</p>
+                    </div>
+                    <div class="flex flex-col md:items-end gap-2 text-sm">
+                        <p class="font-bold text-slate-700 uppercase tracking-widest text-[10px]">Developer & Owner</p>
+                        <p class="text-slate-600 font-medium">Ashraf Shaik</p>
+                        <div class="flex flex-wrap md:justify-end gap-4 mt-2">
+                            <a href="tel:8500543154" class="flex items-center gap-1 hover:text-blue-600 transition-colors"><i data-lucide="phone" class="w-4 h-4"></i> 8500543154</a>
+                            <a href="mailto:ashubasha52@gmail.com" class="flex items-center gap-1 hover:text-blue-600 transition-colors"><i data-lucide="mail" class="w-4 h-4"></i> ashubasha52@gmail.com</a>
+                        </div>
+                        <div class="flex flex-wrap md:justify-end gap-4 mt-1">
+                            <a href="https://instagram.com/shaik.m_ashraf" target="_blank" class="flex items-center gap-1 hover:text-pink-600 transition-colors"><i data-lucide="instagram" class="w-4 h-4"></i> @shaik.m_ashraf</a>
+                            <a href="https://twitter.com/ashushaik" target="_blank" class="flex items-center gap-1 hover:text-blue-400 transition-colors"><i data-lucide="twitter" class="w-4 h-4"></i> @ashushaik</a>
+                        </div>
+                    </div>
+                </div>
             </footer>
         `;
 
