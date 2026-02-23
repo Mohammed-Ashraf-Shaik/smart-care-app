@@ -432,7 +432,26 @@
 
         // --- STEP 2 HANDLERS (Location) ---
         if (state.step === 2) {
-            container.querySelector('#btn-live').onclick = () => startLiveTracking();
+            // Live Button
+            container.querySelector('#btn-live').onclick = async () => {
+                const btn = container.querySelector('#btn-live');
+                const originalContent = btn.innerHTML;
+
+                // Show loading state
+                btn.disabled = true;
+                btn.innerHTML = `
+                    <div class="w-14 h-14 bg-blue-500 text-white rounded-full flex items-center justify-center mr-5 shadow-lg shadow-blue-200">
+                        <i data-lucide="loader-2" class="w-7 h-7 animate-spin"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-lg text-slate-800">Acquiring Location...</h3>
+                        <p class="text-slate-500 text-sm">Please wait while we find nearby hospitals</p>
+                    </div>
+                `;
+                lucide.createIcons();
+
+                startLiveTracking();
+            };
 
             const countrySelect = container.querySelector('#patient-country');
             const stateSelect = container.querySelector('#patient-state');
