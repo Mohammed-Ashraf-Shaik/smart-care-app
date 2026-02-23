@@ -45,7 +45,8 @@
                     
                     <!-- Patient Info -->
                     <div class="relative z-10 mb-6 md:mb-0 md:w-1/3">
-                        <p class="opacity-70 uppercase text-xs tracking-widest mb-1">Treating at ${state.loggedHospital || 'Facility'}</p>
+                        <p class="opacity-70 uppercase text-[10px] tracking-widest mb-1">${state.loggedCountry} • ${state.loggedState} • ${state.loggedCity}</p>
+                        <p class="opacity-90 font-bold text-xs mb-2 flex items-center"><i data-lucide="map-pin" class="w-3 h-3 mr-1"></i> ${state.loggedHospital}</p>
                         <h2 class="text-4xl font-black tracking-tight">${currentPatientName}</h2>
                         <p class="text-blue-200 mt-2 flex items-center"><i data-lucide="activity" class="w-4 h-4 mr-2"></i> ${currentPatientProblem}</p>
                     </div>
