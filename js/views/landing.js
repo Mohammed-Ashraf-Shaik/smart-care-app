@@ -72,7 +72,7 @@
                 </div>
             </div>
 
-            <footer class="bg-slate-950 text-white py-20 px-8 border-t border-white/5 relative overflow-hidden">
+            <footer class="bg-[#08152b] text-white py-20 px-8 border-t border-white/5 relative overflow-hidden">
                 <!-- Decorative background elements -->
                 <div class="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] -z-0"></div>
                 <div class="absolute bottom-0 left-0 w-64 h-64 bg-indigo-600/10 rounded-full blur-[100px] -z-0"></div>
