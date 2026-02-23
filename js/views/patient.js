@@ -202,7 +202,7 @@
                             <div>
                                 <label class="block text-sm font-bold text-slate-700 mb-1">Age</label>
                                 <input id="input-age" type="number" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none" 
-                                    placeholder="" value="${state.patientData.age}">
+                                    placeholder="Enter age" value="${state.patientData.age}">
                             </div>
                             <div>
                                 <label class="block text-sm font-bold text-slate-700 mb-1">Gender</label>
