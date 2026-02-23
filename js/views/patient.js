@@ -348,7 +348,7 @@
                 <div class="bg-slate-50 p-4 rounded-xl text-left text-sm text-slate-600 mb-4">
                     <p><strong>Patient:</strong> ${state.patientData.name} (${state.patientData.age}, ${state.patientData.gender})</p>
                     <p><strong>Doctor Pref:</strong> ${state.patientData.doctorPref}</p>
-                    <p><strong>Hospital:</strong> ${state.patientData.hospital}</p>
+                    <p><strong>Hospital:</strong> ${state.patientData.hospital} (${state.patientData.city}, ${state.patientData.state}, ${state.patientData.country})</p>
                 </div>
                 <button id="btn-next" class="w-full bg-brand-600 hover:bg-brand-700 text-white p-4 rounded-xl font-bold text-lg shadow-lg shadow-blue-200 transition-all">
                     Confirm & Get Token
