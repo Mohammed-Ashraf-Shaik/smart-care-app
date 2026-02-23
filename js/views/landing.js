@@ -72,10 +72,10 @@
                 </div>
             </div>
 
-            <footer class="bg-[#08152b] text-white py-20 px-8 border-t border-white/5 relative overflow-hidden">
-                <!-- Decorative background elements -->
-                <div class="absolute top-0 right-0 w-96 h-96 bg-blue-600/10 rounded-full blur-[120px] -z-0"></div>
-                <div class="absolute bottom-0 left-0 w-64 h-64 bg-indigo-600/10 rounded-full blur-[100px] -z-0"></div>
+            <footer class="bg-[#fdfbf7] text-slate-800 py-20 px-8 border-t border-slate-100 relative overflow-hidden">
+                <!-- Subtle decorative background elements -->
+                <div class="absolute top-0 right-0 w-96 h-96 bg-blue-100/30 rounded-full blur-[120px] -z-0"></div>
+                <div class="absolute bottom-0 left-0 w-64 h-64 bg-orange-50/50 rounded-full blur-[100px] -z-0"></div>
 
                 <div class="max-w-7xl mx-auto relative z-10">
                     <div class="grid grid-cols-1 lg:grid-cols-12 gap-16">
@@ -83,38 +83,38 @@
                         <!-- Col 1: Brand & Vision -->
                         <div class="lg:col-span-5 space-y-8">
                             <div class="flex items-center gap-3">
-                                <div class="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                                <div class="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/10">
                                     <i data-lucide="heart" class="w-6 h-6 text-white fill-current"></i>
                                 </div>
                                 <div>
-                                    <h3 class="text-3xl font-black tracking-tighter uppercase leading-none">SmartCare</h3>
+                                    <h3 class="text-3xl font-black tracking-tighter uppercase leading-none text-[#003580]">SmartCare</h3>
                                     <p class="text-blue-500 font-bold text-[10px] tracking-[0.2em] uppercase mt-1">Health Quality Management</p>
                                 </div>
                             </div>
-                            <p class="text-slate-400 text-lg leading-relaxed max-w-md">
+                            <p class="text-slate-500 text-lg leading-relaxed max-w-md">
                                 Setting new standards in patient care through intelligent infrastructure. We build tools that save time and save lives.
                             </p>
                         </div>
 
                         <!-- Col 2: The Founder / Owner Card -->
                         <div class="lg:col-span-7">
-                            <div class="bg-white/5 backdrop-blur-md border border-white/10 p-8 rounded-[2.5rem] grid grid-cols-1 md:grid-cols-2 gap-8 shadow-2xl">
+                            <div class="bg-white border border-slate-100 p-8 rounded-[2.5rem] grid grid-cols-1 md:grid-cols-2 gap-8 shadow-xl shadow-slate-200/50">
                                 
                                 <div class="space-y-6">
                                     <div>
-                                        <p class="text-blue-400 font-bold uppercase tracking-widest text-[10px] mb-2">Developed & Owned by</p>
-                                        <h4 class="text-2xl font-bold">Ashraf Shaik</h4>
-                                        <p class="text-slate-400 text-sm mt-1">Founder, SmartCare Systems</p>
+                                        <p class="text-blue-600 font-bold uppercase tracking-widest text-[10px] mb-2">Developed & Owned by</p>
+                                        <h4 class="text-2xl font-bold text-slate-900">Ashraf Shaik</h4>
+                                        <p class="text-slate-500 text-sm mt-1 font-medium">Founder, SmartCare Systems</p>
                                     </div>
                                     
                                     <div class="space-y-3">
-                                        <a href="tel:8500543154" class="flex items-center gap-3 text-slate-300 hover:text-white transition-colors group">
+                                        <a href="tel:8500543154" class="flex items-center gap-3 text-slate-600 hover:text-blue-600 transition-colors group">
                                             <i data-lucide="phone" class="w-4 h-4 text-blue-500 group-hover:scale-110 transition-transform"></i>
-                                            <span class="text-sm font-medium">8500543154</span>
+                                            <span class="text-sm font-bold">8500543154</span>
                                         </a>
-                                        <a href="mailto:ashubasha52@gmail.com" class="flex items-center gap-3 text-slate-300 hover:text-white transition-colors group">
+                                        <a href="mailto:ashubasha52@gmail.com" class="flex items-center gap-3 text-slate-600 hover:text-blue-600 transition-colors group">
                                             <i data-lucide="mail" class="w-4 h-4 text-blue-500 group-hover:scale-110 transition-transform"></i>
-                                            <span class="text-sm font-medium">ashubasha52@gmail.com</span>
+                                            <span class="text-sm font-bold">ashubasha52@gmail.com</span>
                                         </a>
                                     </div>
                                 </div>
@@ -122,19 +122,19 @@
                                 <div class="space-y-6">
                                     <p class="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Follow on Socials</p>
                                     <div class="grid grid-cols-1 gap-3">
-                                        <a href="https://instagram.com/shaik.m_ashraf" target="_blank" class="flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl transition-all group">
+                                        <a href="https://instagram.com/shaik.m_ashraf" target="_blank" class="flex items-center justify-between p-4 bg-slate-50 hover:bg-pink-50/50 border border-slate-100 rounded-2xl transition-all group">
                                             <div class="flex items-center gap-3">
                                                 <i data-lucide="instagram" class="w-5 h-5 text-pink-500"></i>
-                                                <span class="text-sm font-bold">@shaik.m_ashraf</span>
+                                                <span class="text-sm font-bold text-slate-700">@shaik.m_ashraf</span>
                                             </div>
-                                            <i data-lucide="external-link" class="w-4 h-4 text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                                            <i data-lucide="external-link" class="w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity"></i>
                                         </a>
-                                        <a href="https://twitter.com/ashushaikz" target="_blank" class="flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl transition-all group">
+                                        <a href="https://twitter.com/ashushaikz" target="_blank" class="flex items-center justify-between p-4 bg-slate-50 hover:bg-blue-50/50 border border-slate-100 rounded-2xl transition-all group">
                                             <div class="flex items-center gap-3">
                                                 <i data-lucide="twitter" class="w-5 h-5 text-blue-400"></i>
-                                                <span class="text-sm font-bold">@ashushaikz</span>
+                                                <span class="text-sm font-bold text-slate-700">@ashushaikz</span>
                                             </div>
-                                            <i data-lucide="external-link" class="w-4 h-4 text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                                            <i data-lucide="external-link" class="w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity"></i>
                                         </a>
                                     </div>
                                 </div>
@@ -144,11 +144,11 @@
                     </div>
 
                     <!-- Bottom Bar -->
-                    <div class="mt-20 pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-500 text-[10px] font-bold uppercase tracking-widest">
+                    <div class="mt-20 pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
                         <p>&copy; 2026 SmartCare HQMS. All rights reserved.</p>
                         <div class="flex gap-8">
-                            <span class="text-slate-700">Privacy Policy</span>
-                            <span class="text-slate-700">Terms of Service</span>
+                            <span class="hover:text-slate-600 cursor-pointer transition-colors">Privacy Policy</span>
+                            <span class="hover:text-slate-600 cursor-pointer transition-colors">Terms of Service</span>
                         </div>
                     </div>
                 </div>
