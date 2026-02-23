@@ -110,6 +110,12 @@
             if (states.length) {
                 stateSelect.innerHTML = `<option value="" disabled>Select State</option>` +
                     states.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+
+                // If detected state isn't in list, inject it
+                if (state && !states.find(s => s.name === state)) {
+                    stateSelect.innerHTML += `<option value="${state}">${state}</option>`;
+                }
+
                 stateSelect.value = state;
                 stateSelect.disabled = false;
                 stateSelect.classList.remove('bg-slate-100', 'text-slate-400');
@@ -123,6 +129,12 @@
             if (cities.length) {
                 citySelect.innerHTML = `<option value="" disabled>Select City</option>` +
                     cities.map(c => `<option value="${c}">${c}</option>`).join('');
+
+                // If detected city isn't in list, inject it
+                if (city && !cities.includes(city)) {
+                    citySelect.innerHTML += `<option value="${city}">${city}</option>`;
+                }
+
                 citySelect.value = city;
                 citySelect.disabled = false;
                 citySelect.classList.remove('bg-slate-100', 'text-slate-400');
