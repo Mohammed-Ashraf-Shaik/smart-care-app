@@ -11,138 +11,218 @@
         const avgWait = "14m";
 
         container.innerHTML = `
-            <div class="max-w-7xl mx-auto">
-                <button id="btn-back" class="mb-8 flex items-center text-slate-500 hover:text-blue-600 font-bold transition-colors">
-                    <i data-lucide="arrow-left" class="w-5 h-5 mr-2"></i> Back to Hub
-                </button>
+            <div class="max-w-7xl mx-auto space-y-12">
+                <div class="flex items-center justify-between">
+                    <button id="btn-back" class="group flex items-center gap-3 text-slate-400 hover:text-brand-600 font-black transition-all">
+                        <div class="w-10 h-10 glass-card rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-xs tracking-widest uppercase">Portal Hub</span>
+                    </button>
+                    <div class="flex items-center gap-4 text-right">
+                        <div>
+                            <p class="text-xs font-black text-slate-900 tracking-tight">Executive Dashboard</p>
+                            <p class="text-[10px] text-slate-400 uppercase tracking-widest font-black">${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                        </div>
+                        <div class="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-slate-200">
+                             <i data-lucide="bar-chart-3" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                </div>
 
-                <header class="mb-10">
-                    <h1 class="text-4xl font-black text-slate-900 tracking-tight">Hospital Analytics</h1>
-                    <p class="text-slate-500 mt-2">${state.loggedHospital || 'All Facilities'} • ${state.loggedCity}, ${state.loggedState}, ${state.loggedCountry}</p>
-                    <p class="text-slate-400 text-xs mt-1 uppercase tracking-widest font-bold">${new Date().toLocaleDateString()}</p>
+                <header class="relative">
+                    <div class="absolute -left-10 top-0 w-24 h-24 bg-brand-500/10 rounded-full blur-3xl"></div>
+                    <h1 class="text-5xl md:text-6xl font-black text-slate-900 tracking-tighter relative z-10">Facility Intelligence</h1>
+                    <p class="text-slate-400 mt-3 font-medium text-lg tracking-tight">${state.loggedHospital || 'Central Medical Hub'} • <span class="text-brand-600 font-bold">${state.loggedCity} District</span></p>
                 </header>
 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-                        <div class="w-12 h-12 bg-blue-50 text-brand-600 rounded-xl flex items-center justify-center mb-4">
-                            <i data-lucide="users" class="w-6 h-6"></i>
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <!-- Total Patients -->
+                    <div class="glass-card p-8 rounded-[2.5rem] border-white shadow-xl hover:shadow-2xl transition-all group overflow-hidden relative">
+                        <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-brand-50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-700"></div>
+                        <div class="relative z-10">
+                            <div class="w-12 h-12 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform">
+                                <i data-lucide="users" class="w-6 h-6"></i>
+                            </div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Patients</p>
+                            <h2 class="text-5xl font-black text-slate-900 tracking-tighter">${patients}</h2>
+                            <div class="flex items-center gap-2 mt-4">
+                                <span class="flex items-center text-[10px] font-black text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-full uppercase tracking-widest">
+                                    <i data-lucide="trending-up" class="w-3 h-3 mr-1"></i> 12%
+                                </span>
+                                <span class="text-[10px] font-bold text-slate-300 uppercase tracking-widest">vs last month</span>
+                            </div>
                         </div>
-                        <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">Total Patients</p>
-                        <h2 class="text-4xl font-black text-slate-900 mt-1">${patients}</h2>
-                        <p class="text-green-500 text-sm font-bold mt-2 flex items-center">
-                            <i data-lucide="trending-up" class="w-4 h-4 mr-1"></i> +12%
-                        </p>
                     </div>
 
-                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-                        <div class="w-12 h-12 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center mb-4">
-                            <i data-lucide="clock" class="w-6 h-6"></i>
+                    <!-- Wait Time -->
+                    <div class="glass-card p-8 rounded-[2.5rem] border-white shadow-xl hover:shadow-2xl transition-all group overflow-hidden relative">
+                        <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-amber-50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-700"></div>
+                        <div class="relative z-10">
+                            <div class="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform">
+                                <i data-lucide="clock" class="w-6 h-6"></i>
+                            </div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Average Wait</p>
+                            <h2 class="text-5xl font-black text-slate-900 tracking-tighter">${avgWait}</h2>
+                            <div class="flex items-center gap-2 mt-4">
+                                <span class="flex items-center text-[10px] font-black text-rose-500 bg-rose-50 px-2 py-0.5 rounded-full uppercase tracking-widest">
+                                    <i data-lucide="trending-up" class="w-3 h-3 mr-1"></i> +2m
+                                </span>
+                                <span class="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Efficiency Alert</span>
+                            </div>
                         </div>
-                        <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">Avg Wait Time</p>
-                        <h2 class="text-4xl font-black text-slate-900 mt-1">${avgWait}</h2>
-                        <p class="text-red-400 text-sm font-bold mt-2 flex items-center">
-                            <i data-lucide="trending-down" class="w-4 h-4 mr-1"></i> +2m vs yest
-                        </p>
                     </div>
 
-                     <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-                        <div class="w-12 h-12 bg-green-50 text-green-600 rounded-xl flex items-center justify-center mb-4">
-                            <i data-lucide="dollar-sign" class="w-6 h-6"></i>
+                    <!-- Revenue -->
+                    <div class="glass-card p-8 rounded-[2.5rem] border-white shadow-xl hover:shadow-2xl transition-all group overflow-hidden relative">
+                        <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-blue-50 rounded-full opacity-50 group-hover:scale-150 transition-transform duration-700"></div>
+                        <div class="relative z-10">
+                            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform">
+                                <i data-lucide="banknote" class="w-6 h-6"></i>
+                            </div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Projected Revenue</p>
+                            <h2 class="text-5xl font-black text-slate-900 tracking-tighter">₹${revenue} <span class="text-lg text-slate-300">k</span></h2>
+                            <div class="flex items-center gap-2 mt-4">
+                                <span class="flex items-center text-[10px] font-black text-emerald-500 bg-emerald-50 px-2 py-0.5 rounded-full uppercase tracking-widest">
+                                    <i data-lucide="trending-up" class="w-3 h-3 mr-1"></i> 5%
+                                </span>
+                                <span class="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Target achieved</span>
+                            </div>
                         </div>
-                        <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">Revenue Forecast</p>
-                        <h2 class="text-4xl font-black text-slate-900 mt-1">₹${revenue}</h2>
-                        <p class="text-green-500 text-sm font-bold mt-2 flex items-center">
-                            <i data-lucide="trending-up" class="w-4 h-4 mr-1"></i> +5%
-                        </p>
                     </div>
 
-                     <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-                        <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-4">
-                            <i data-lucide="activity" class="w-6 h-6"></i>
+                    <!-- Active Cases -->
+                    <div class="glass-card p-8 rounded-[2.5rem] border-white shadow-xl hover:shadow-2xl transition-all group overflow-hidden relative">
+                        <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-slate-900 rounded-full opacity-5 group-hover:scale-150 transition-transform duration-700"></div>
+                        <div class="relative z-10">
+                            <div class="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center mb-6 shadow-sm group-hover:scale-110 transition-transform">
+                                <i data-lucide="activity" class="w-6 h-6"></i>
+                            </div>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Active Queue</p>
+                            <h2 class="text-5xl font-black text-slate-900 tracking-tighter">${state.queue.length}</h2>
+                            <div class="flex items-center gap-2 mt-4 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                Live Session tracking
+                            </div>
                         </div>
-                        <p class="text-slate-400 text-xs font-bold uppercase tracking-widest">Pending Cases</p>
-                        <h2 class="text-4xl font-black text-slate-900 mt-1">${state.queue.length}</h2>
-                        <p class="text-slate-400 text-sm font-bold mt-2">Active Queue</p>
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <!-- Simple CSS Bar Chart -->
-                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-                        <h3 class="text-xl font-bold mb-8 text-slate-800">Patient Traffic (Hourly)</h3>
-                        <div class="h-64 flex items-end justify-between space-x-4">
-                             ${[40, 65, 45, 90, 65, 80, 50].map(h => `
-                                <div class="w-full bg-blue-100 hover:bg-brand-600 transition-colors rounded-t-xl relative group" style="height: ${h}%">
-                                    <span class="opacity-0 group-hover:opacity-100 absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-xs px-2 py-1 rounded transition-opacity">
-                                        ${h}
-                                    </span>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                    <!-- Hourly Traffic Chart -->
+                    <div class="glass-card p-10 rounded-[3.5rem] border-white shadow-2xl relative overflow-hidden group">
+                        <div class="absolute right-0 top-0 w-32 h-32 bg-brand-500/5 rounded-full blur-2xl"></div>
+                        <div class="flex justify-between items-center mb-12">
+                            <div>
+                                <h3 class="text-2xl font-black text-slate-900 tracking-tight">Patient Traffic</h3>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Hourly Distribution</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-slate-900 hover:text-white transition-all"><i data-lucide="download" class="w-4 h-4"></i></button>
+                                <button class="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-slate-900 hover:text-white transition-all"><i data-lucide="maximize" class="w-4 h-4"></i></button>
+                            </div>
+                        </div>
+                        <div class="h-64 flex items-end justify-between space-x-6 px-2">
+                             ${[40, 65, 45, 90, 65, 80, 50].map((h, i) => `
+                                <div class="flex-1 group/bar relative">
+                                    <div class="w-full bg-slate-50 rounded-[1.5rem] group-hover/bar:bg-brand-50 transition-all cursor-pointer relative overflow-hidden" style="height: ${h}%">
+                                        <div class="absolute inset-x-0 bottom-0 bg-brand-500 rounded-t-[1.5rem] transition-all duration-1000 origin-bottom scale-y-0 group-hover/bar:scale-y-100" style="height: 100%"></div>
+                                        <div class="absolute inset-x-0 bottom-0 bg-brand-400/20 rounded-t-[1.5rem]" style="height: 100%"></div>
+                                    </div>
+                                    <div class="absolute -top-12 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] font-black px-3 py-1.5 rounded-lg opacity-0 group-hover/bar:opacity-100 transition-all scale-75 group-hover/bar:scale-100 shadow-xl z-20 whitespace-nowrap">
+                                        ${h} PAX
+                                        <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-slate-900 rotate-45"></div>
+                                    </div>
+                                    <span class="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] font-black text-slate-300 uppercase tracking-tighter">${8 + i * 2}${8 + i * 2 >= 12 ? 'pm' : 'am'}</span>
                                 </div>
                             `).join('')}
                         </div>
-                        <div class="flex justify-between mt-4 text-xs font-bold text-slate-400 uppercase">
-                            <span>8am</span>
-                            <span>10am</span>
-                            <span>12pm</span>
-                            <span>2pm</span>
-                            <span>4pm</span>
-                            <span>6pm</span>
-                            <span>8pm</span>
-                        </div>
                     </div>
 
-                    <!-- Heatmap Style Grid -->
-                    <div class="bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
-                        <h3 class="text-xl font-bold mb-6 text-slate-800">Department Load</h3>
-                        <h3 class="text-xl font-bold mb-6 text-slate-800 flex justify-between items-center">
-                            Live Room Status
-                            <span class="text-xs font-bold bg-green-100 text-green-700 px-2 py-1 rounded uppercase tracking-wide">Update: Just now</span>
-                        </h3>
-                        <div class="grid grid-cols-2 gap-4">
-                            <!-- Room 1 -->
-                            <div class="p-4 border border-red-100 bg-red-50/50 rounded-2xl flex items-center justify-between">
-                                <div>
-                                    <p class="text-xs font-bold text-red-400 uppercase tracking-wider">OPD-1</p>
-                                    <p class="font-bold text-slate-700">Occupied</p>
-                                </div>
-                                <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                    <!-- Room Status Grid -->
+                    <div class="glass-card p-10 rounded-[3.5rem] border-white shadow-2xl relative overflow-hidden">
+                        <div class="flex justify-between items-center mb-10">
+                            <div>
+                                <h3 class="text-2xl font-black text-slate-900 tracking-tight">Room Assets</h3>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Live Occupancy Monitor</p>
                             </div>
-                            <!-- Room 2 -->
-                            <div class="p-4 border border-green-100 bg-green-50/50 rounded-2xl flex items-center justify-between">
-                                <div>
-                                    <p class="text-xs font-bold text-green-400 uppercase tracking-wider">OPD-2</p>
-                                    <p class="font-bold text-slate-700">Available</p>
-                                </div>
-                                <div class="w-3 h-3 bg-green-500 rounded-full"></div>
-                            </div>
-                            <!-- Room 3 -->
-                            <div class="p-4 border border-red-100 bg-red-50/50 rounded-2xl flex items-center justify-between">
-                                <div>
-                                    <p class="text-xs font-bold text-red-400 uppercase tracking-wider">ER-1</p>
-                                    <p class="font-bold text-slate-700">Occupied</p>
-                                </div>
-                                <div class="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                            </div>
-                             <!-- Room 4 -->
-                             <div class="p-4 border border-yellow-100 bg-yellow-50/50 rounded-2xl flex items-center justify-between">
-                                <div>
-                                    <p class="text-xs font-bold text-yellow-600 uppercase tracking-wider">ER-2</p>
-                                    <p class="font-bold text-slate-700">Cleaning</p>
-                                </div>
-                                <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                            <div class="px-4 py-1.5 bg-emerald-50 text-emerald-600 rounded-full border border-emerald-100 flex items-center gap-2">
+                                <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></div>
+                                <span class="text-[10px] font-black uppercase tracking-widest">Real-time</span>
                             </div>
                         </div>
 
-                        <div class="mt-8 p-6 bg-slate-50 rounded-2xl border border-slate-100">
-                            <div class="flex items-start">
-                                <i data-lucide="alert-triangle" class="text-orange-500 w-5 h-5 mr-3 mt-1"></i>
+                        <div class="grid grid-cols-2 gap-4">
+                            <!-- Room 1 -->
+                            <div class="glass-card p-5 border-slate-50/50 hover:border-white transition-all flex items-center justify-between group">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center shrink-0">
+                                        <i data-lucide="door-closed" class="w-6 h-6"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest">OPD-1</p>
+                                        <p class="font-black text-slate-800 tracking-tight">Internal Med</p>
+                                    </div>
+                                </div>
+                                <div class="px-3 py-1 bg-rose-500 text-white rounded-full text-[8px] font-black uppercase tracking-widest group-hover:scale-105 transition-transform">Busy</div>
+                            </div>
+                            <!-- Room 2 -->
+                            <div class="glass-card p-5 border-slate-50/50 hover:border-white transition-all flex items-center justify-between group">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center shrink-0">
+                                        <i data-lucide="door-open" class="w-6 h-6"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest">OPD-2</p>
+                                        <p class="font-black text-slate-800 tracking-tight">Pediatrics</p>
+                                    </div>
+                                </div>
+                                <div class="px-3 py-1 bg-emerald-500 text-white rounded-full text-[8px] font-black uppercase tracking-widest group-hover:scale-105 transition-transform">Free</div>
+                            </div>
+                            <!-- Room 3 -->
+                            <div class="glass-card p-5 border-slate-50/50 hover:border-white transition-all flex items-center justify-between group">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 bg-rose-50 text-rose-500 rounded-2xl flex items-center justify-center shrink-0">
+                                        <i data-lucide="door-closed" class="w-6 h-6"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest">ER-1</p>
+                                        <p class="font-black text-slate-800 tracking-tight">Trauma Bay</p>
+                                    </div>
+                                </div>
+                                <div class="px-3 py-1 bg-rose-500 text-white rounded-full text-[8px] font-black uppercase tracking-widest group-hover:scale-105 transition-transform">Critical</div>
+                            </div>
+                             <!-- Room 4 -->
+                             <div class="glass-card p-5 border-slate-50/50 hover:border-white transition-all flex items-center justify-between group">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 bg-amber-50 text-amber-500 rounded-2xl flex items-center justify-center shrink-0">
+                                        <i data-lucide="sparkles" class="w-6 h-6"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest">ER-2</p>
+                                        <p class="font-black text-slate-800 tracking-tight">Sterilization</p>
+                                    </div>
+                                </div>
+                                <div class="px-3 py-1 bg-amber-500 text-white rounded-full text-[8px] font-black uppercase tracking-widest group-hover:scale-105 transition-transform">Clean</div>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 p-6 bg-slate-900 rounded-[2rem] border border-white/10 relative overflow-hidden group">
+                            <div class="absolute right-0 top-0 w-24 h-24 bg-brand-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform"></div>
+                            <div class="flex items-start gap-4 relative z-10">
+                                <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-amber-500">
+                                    <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                                </div>
                                 <div>
-                                    <h4 class="font-bold text-slate-800">High Load Warning</h4>
-                                    <p class="text-sm text-slate-500 mt-1">Cardiology department is approaching capacity. Consider routing non-urgent cases to General Ward.</p>
+                                    <h4 class="font-black text-white text-sm tracking-tight">Infrastructure Alert</h4>
+                                    <p class="text-[10px] text-slate-400 font-medium leading-relaxed mt-1 uppercase tracking-widest">Cardiology dept. reaching threshold. Automated routing enabled.</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
+
             </div>
         `;
 

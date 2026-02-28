@@ -3,7 +3,7 @@
         const { state, setStep, updatePatientData, setView } = window.App.Store;
 
         const container = document.createElement('div');
-        container.className = "min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 animate-fade-in";
+        container.className = "min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center p-6 animate-fade-in font-sans";
 
         // --- API HELPERS ---
         const { getCoordinates, getNearbyHospitals } = window.App.API;
@@ -70,23 +70,30 @@
 
             if (hospitals.length > 0) {
                 listContainer.innerHTML = hospitals.map((h, index) => {
-                    const colors = ['green', 'blue', 'purple', 'orange'];
+                    const colors = ['blue', 'cyan', 'indigo', 'violet'];
                     const color = colors[index % colors.length];
                     return `
-                    <div class="hospital-card cursor-pointer bg-white p-5 border border-slate-100 rounded-2xl hover:border-brand-500 hover:shadow-md transition-all flex justify-between items-center group mb-4" 
+                    <div class="hospital-card cursor-pointer bg-white/40 border border-white p-6 rounded-[2rem] hover:bg-white hover:shadow-xl hover:-translate-y-1 transition-all flex justify-between items-center group mb-4 shadow-sm" 
                          data-name="${h.name}">
-                        <div class="flex items-center">
-                            <div class="w-12 h-12 bg-${color}-100 text-${color}-600 rounded-full flex items-center justify-center mr-5 shrink-0">
-                                <i data-lucide="activity" class="w-6 h-6"></i>
+                        <div class="flex items-center gap-5">
+                            <div class="w-14 h-14 bg-${color}-50 text-${color}-600 rounded-2xl flex items-center justify-center shrink-0 shadow-sm group-hover:scale-110 transition-transform">
+                                <i data-lucide="hospital" class="w-7 h-7"></i>
                             </div>
                             <div>
-                                <h3 class="font-bold text-lg text-slate-800 group-hover:text-brand-600">${h.name}</h3>
-                                <p class="text-sm text-slate-500 capitalize">${h.type} • ${(Math.random() * 5 + 0.5).toFixed(1)} km</p>
+                                <h3 class="font-black text-xl text-slate-800 group-hover:text-brand-600 tracking-tight">${h.name}</h3>
+                                <div class="flex items-center gap-3 mt-1">
+                                    <span class="text-xs font-bold text-slate-400 border px-2 py-0.5 rounded-full uppercase tracking-widest">${h.type}</span>
+                                    <span class="text-xs font-black text-brand-500">${(Math.random() * 5 + 0.5).toFixed(1)} km</span>
+                                </div>
                             </div>
                         </div>
-                        <span class="px-3 py-1 bg-${color}-50 text-${color}-700 rounded-full text-xs font-bold uppercase tracking-wide">Select</span>
+                        <div class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-brand-600 group-hover:text-white transition-all shadow-inner">
+                            <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                        </div>
                     </div>`;
                 }).join('');
+
+                if (window.lucide) window.lucide.createIcons();
 
                 // Re-attach listeners
                 container.querySelectorAll('.hospital-card').forEach(card => {
@@ -169,44 +176,81 @@
 
         // Progress UI
         const steps = [1, 2, 3, 4, 5, 6];
+        const stepIcons = ['user', 'map-pin', 'search', 'activity', 'credit-card', 'check-circle'];
+
         const progressHTML = `
-            <div class="flex justify-between w-full max-w-lg mb-10 relative">
-                <div class="absolute top-1/2 left-0 w-full h-1 bg-slate-200 -z-10 -translate-y-1/2 rounded-full"></div>
-                ${steps.map(s => `
-                    <div class="w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold text-xs md:text-sm transition-all duration-500 ${state.step >= s ? 'bg-brand-600 text-white shadow-lg shadow-blue-200 scale-110' : 'bg-slate-200 text-slate-400'}">
-                        ${s}
+            <div class="flex justify-between w-full max-w-lg mb-12 relative px-2">
+                <div class="absolute top-1/2 left-0 w-full h-1 bg-slate-100 -z-10 -translate-y-1/2 rounded-full overflow-hidden">
+                    <div class="h-full bg-brand-500 transition-all duration-700 ease-in-out" style="width: ${((state.step - 1) / (steps.length - 1)) * 100}%"></div>
+                </div>
+                ${steps.map((s, i) => `
+                    <div class="flex flex-col items-center gap-2">
+                        <div class="w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-sm transition-all duration-500 z-10 
+                            ${state.step === s ? 'bg-brand-600 text-white shadow-xl shadow-blue-200 scale-110 rotate-3' :
+                state.step > s ? 'bg-brand-100 text-brand-600' : 'bg-white text-slate-300 border border-slate-100'}">
+                            <i data-lucide="${stepIcons[i]}" class="w-5 h-5"></i>
+                        </div>
                     </div>
                 `).join('')}
             </div>
         `;
 
-        // STEP 1: PATIENT DETAILS (NEW)
+        // Render Progress and Container Shell
+        const backBtn = `
+            <button id="btn-back" class="absolute top-8 left-8 flex items-center gap-2 text-slate-400 hover:text-brand-600 font-bold transition-all group">
+                <div class="w-10 h-10 glass-card rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                </div>
+                <span class="text-sm tracking-widest uppercase">Go Back</span>
+            </button>`;
+
+        container.innerHTML = `
+            ${backBtn}
+            <div class="w-full max-w-xl glass-card p-10 md:p-12 rounded-[3.5rem] shadow-2xl border border-white relative overflow-hidden animate-slide-up">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-brand-500/5 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                <div class="absolute bottom-0 left-0 w-32 h-32 bg-cyan-500/5 rounded-full blur-3xl -ml-16 -mb-16"></div>
+                
+                <div class="relative z-10">
+                    ${progressHTML}
+                    <div id="step-content"></div>
+                </div>
+            </div>
+        `;
+        const stepContent = container.querySelector('#step-content');
+
+        // STEP 1: PATIENT DETAILS
         if (state.step === 1) {
-            contentHTML = `
-                <div class="space-y-6 w-full animate-fade-in">
-                    <div class="text-center">
-                        <h2 class="text-2xl font-bold text-slate-800">Patient Details</h2>
-                        <p class="text-slate-500">Tell us a bit about who needs care.</p>
+            stepContent.innerHTML = `
+                <div class="space-y-8 w-full animate-fade-in">
+                    <div class="text-center mb-10">
+                        <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-2">Patient Profile</h2>
+                        <p class="text-slate-500 text-lg">Help us tailor your care experience.</p>
                     </div>
 
-                    <div class="space-y-4">
+                    <div class="space-y-6">
                         <!-- Name -->
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-1">Full Name</label>
-                            <input id="input-name" type="text" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none" 
-                                placeholder="Enter your name" value="${state.patientData.name}">
+                        <div class="group">
+                            <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Full Name</label>
+                            <div class="relative">
+                                <i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-brand-500 transition-colors"></i>
+                                <input id="input-name" type="text" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all text-lg font-medium" 
+                                    placeholder="e.g. John Doe" value="${state.patientData.name}">
+                            </div>
                         </div>
 
                         <!-- Age & Gender -->
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-1">Age</label>
-                                <input id="input-age" type="number" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none" 
-                                    placeholder="Enter age" value="${state.patientData.age}">
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="group">
+                                <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Age</label>
+                                <div class="relative">
+                                    <i data-lucide="calendar" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-brand-500 transition-colors"></i>
+                                    <input id="input-age" type="number" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all text-lg font-medium" 
+                                        placeholder="25" value="${state.patientData.age}">
+                                </div>
                             </div>
-                            <div>
-                                <label class="block text-sm font-bold text-slate-700 mb-1">Gender</label>
-                                <select id="input-gender" class="w-full p-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none bg-white">
+                            <div class="group">
+                                <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Gender</label>
+                                <select id="input-gender" class="w-full px-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all text-lg font-medium appearance-none">
                                     <option value="" disabled ${!state.patientData.gender ? 'selected' : ''}>Select</option>
                                     <option value="Male" ${state.patientData.gender === 'Male' ? 'selected' : ''}>Male</option>
                                     <option value="Female" ${state.patientData.gender === 'Female' ? 'selected' : ''}>Female</option>
@@ -217,223 +261,278 @@
 
                         <!-- Doctor Preference -->
                         <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-1">Doctor Preference</label>
-                            <div class="grid grid-cols-2 gap-3">
-                                <label class="cursor-pointer border ${state.patientData.doctorPref === 'Male' ? 'border-brand-500 bg-blue-50' : 'border-slate-200'} rounded-xl p-3 flex items-center justify-center transition-all hover:bg-slate-50" onclick="document.getElementById('pref-male').click()">
+                            <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-3 px-1">Doctor Preference</label>
+                            <div class="grid grid-cols-2 gap-4">
+                                <label class="cursor-pointer border-2 ${state.patientData.doctorPref === 'Male' ? 'border-brand-500 bg-brand-50/50' : 'border-slate-50 bg-slate-50'} rounded-2xl p-4 flex flex-col items-center gap-2 transition-all hover:bg-white hover:border-brand-200" onclick="document.getElementById('pref-male').click()">
                                     <input type="radio" name="doctorPref" id="pref-male" value="Male" class="hidden" ${state.patientData.doctorPref === 'Male' ? 'checked' : ''}>
-                                    <span class="font-medium text-slate-700">👨‍⚕️ Male Doctor</span>
+                                    <span class="text-2xl">👨‍⚕️</span>
+                                    <span class="font-bold text-slate-700 text-sm">Male Doctor</span>
                                 </label>
-                                <label class="cursor-pointer border ${state.patientData.doctorPref === 'Female' ? 'border-brand-500 bg-blue-50' : 'border-slate-200'} rounded-xl p-3 flex items-center justify-center transition-all hover:bg-slate-50" onclick="document.getElementById('pref-female').click()">
+                                <label class="cursor-pointer border-2 ${state.patientData.doctorPref === 'Female' ? 'border-brand-500 bg-brand-50/50' : 'border-slate-50 bg-slate-50'} rounded-2xl p-4 flex flex-col items-center gap-2 transition-all hover:bg-white hover:border-brand-200" onclick="document.getElementById('pref-female').click()">
                                     <input type="radio" name="doctorPref" id="pref-female" value="Female" class="hidden" ${state.patientData.doctorPref === 'Female' ? 'checked' : ''}>
-                                    <span class="font-medium text-slate-700">👩‍⚕️ Female Doctor</span>
+                                    <span class="text-2xl">👩‍⚕️</span>
+                                    <span class="font-bold text-slate-700 text-sm">Female Doctor</span>
                                 </label>
                             </div>
-                            <label class="cursor-pointer border ${state.patientData.doctorPref === 'Any' ? 'border-brand-500 bg-blue-50' : 'border-slate-200'} rounded-xl p-3 flex items-center justify-center transition-all hover:bg-slate-50 mt-2" onclick="document.getElementById('pref-any').click()">
-                                <input type="radio" name="doctorPref" id="pref-any" value="Any" class="hidden" ${state.patientData.doctorPref === 'Any' ? 'checked' : ''}>
-                                <span class="font-medium text-slate-700">No Preference</span>
-                            </label>
                         </div>
                     </div>
 
-                    <button id="btn-next-step1" class="w-full bg-brand-600 hover:bg-brand-700 text-white p-4 rounded-xl font-bold text-lg shadow-lg shadow-blue-200 transition-all">
-                        Next: Find Hospitals <i data-lucide="arrow-right" class="w-5 h-5 inline ml-1"></i>
+                    <button id="btn-next-step1" class="w-full bg-slate-900 hover:bg-brand-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-slate-200 transition-all active:scale-95 flex items-center justify-center gap-3 group">
+                        Find Nearby Hospitals 
+                        <i data-lucide="arrow-right" class="w-6 h-6 group-hover:translate-x-1 transition-transform"></i>
                     </button>
                 </div>
             `;
         }
 
-        // STEP 2: CHOICE (Was Step 1)
+
+        // STEP 2: LOCATION SELECTION
         if (state.step === 2) {
-            contentHTML = `
+            stepContent.innerHTML = `
                 <div class="space-y-8 w-full animate-fade-in">
-                    <div class="text-center">
-                        <h2 class="text-3xl font-bold text-slate-800">Where are you?</h2>
-                        <p class="text-slate-500">Select your location to find nearby hospitals.</p>
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-2">Your Location</h2>
+                        <p class="text-slate-500 text-lg">Pinpoint your area for accurate results.</p>
                     </div>
 
-                    <div class="bg-white border border-slate-200 p-8 rounded-3xl shadow-sm space-y-4">
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Country</label>
-                            <select id="patient-country" class="w-full p-4 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white transition-colors outline-none text-sm">
-                                <option value="">Loading Countries...</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">State</label>
-                            <select id="patient-state" disabled class="w-full p-4 border border-slate-200 rounded-xl bg-slate-100 text-slate-400 outline-none text-sm transition-colors">
-                                <option value="">Select Country</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">City</label>
-                            <select id="patient-city" disabled class="w-full p-4 border border-slate-200 rounded-xl bg-slate-100 text-slate-400 outline-none text-sm transition-colors">
-                                <option value="">Select State</option>
-                            </select>
+                    <div class="glass-card p-1 border-slate-50 rounded-[2.5rem] shadow-sm space-y-4 overflow-hidden">
+                        <div class="p-6 space-y-5">
+                            <div class="group">
+                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">Country</label>
+                                <select id="patient-country" class="w-full px-4 py-4 bg-slate-50/50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all font-bold appearance-none">
+                                    <option value="">Loading Countries...</option>
+                                </select>
+                            </div>
+                            <div class="group">
+                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">State</label>
+                                <select id="patient-state" disabled class="w-full px-4 py-4 bg-slate-100/50 border border-slate-100 rounded-2xl text-slate-300 outline-none transition-all font-bold appearance-none">
+                                    <option value="">Select Country first</option>
+                                </select>
+                            </div>
+                            <div class="group">
+                                <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-1">City</label>
+                                <select id="patient-city" disabled class="w-full px-4 py-4 bg-slate-100/50 border border-slate-100 rounded-2xl text-slate-300 outline-none transition-all font-bold appearance-none">
+                                    <option value="">Select State first</option>
+                                </select>
+                            </div>
                         </div>
 
-                        <button id="btn-location-next" disabled class="w-full bg-slate-800 text-white p-4 rounded-xl font-bold hover:bg-slate-900 transition-all opacity-50 cursor-not-allowed">
-                            Find Hospitals
+                        <button id="btn-location-next" disabled class="w-full bg-slate-900 text-white py-5 rounded-b-[2.5rem] font-black text-lg hover:bg-brand-600 transition-all opacity-50 cursor-not-allowed flex items-center justify-center gap-3 group">
+                            Detect Hospitals
+                            <i data-lucide="search" class="w-6 h-6 group-hover:scale-110 transition-transform"></i>
                         </button>
                     </div>
 
-                    <div class="relative flex items-center w-full my-4">
-                        <div class="h-px bg-slate-200 w-full"></div>
-                        <span class="px-4 text-xs font-bold text-slate-400 uppercase">OR</span>
-                        <div class="h-px bg-slate-200 w-full"></div>
+                    <div class="relative flex items-center w-full">
+                        <div class="h-px bg-slate-100 w-full"></div>
+                        <span class="px-6 text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">Quick Switch</span>
+                        <div class="h-px bg-slate-100 w-full"></div>
                     </div>
 
                     <!-- Option A: Live -->
-                    <button id="btn-live" class="w-full bg-blue-50 hover:bg-blue-100 border-2 border-blue-200 p-6 rounded-2xl flex items-center transition-all group text-left">
-                        <div class="w-14 h-14 bg-blue-500 text-white rounded-full flex items-center justify-center mr-5 shadow-lg shadow-blue-200 group-hover:scale-110 transition-transform">
-                            <i data-lucide="crosshair" class="w-7 h-7"></i>
+                    <button id="btn-live" class="w-full group bg-brand-50/30 hover:bg-brand-50 border-2 border-brand-100 p-6 rounded-3xl flex items-center transition-all text-left">
+                        <div class="w-16 h-16 bg-brand-500 text-white rounded-2xl flex items-center justify-center mr-6 shadow-xl shadow-brand-200 group-hover:scale-110 transition-transform">
+                            <i data-lucide="crosshair" class="w-8 h-8"></i>
                         </div>
                         <div>
-                            <h3 class="font-bold text-lg text-slate-800">Use Live Location</h3>
-                            <p class="text-slate-500 text-sm">Find hospitals automatically (Beta)</p>
+                            <h3 class="font-black text-xl text-slate-900 mb-1">Live Tracking</h3>
+                            <p class="text-brand-600/60 font-medium text-sm">Automatic geopositioning (Secure)</p>
                         </div>
                     </button>
                 </div>
             `;
         }
 
-        // STEP 3: MAP & LIST (Was Step 2)
+
+        // STEP 3: MAP & LIST
         if (state.step === 3) {
-            contentHTML = `
-                <div class="space-y-4 w-full animate-fade-in">
-                    <div class="flex justify-between items-center">
+            stepContent.innerHTML = `
+                <div class="space-y-6 w-full animate-fade-in">
+                    <div class="flex justify-between items-end mb-4">
                         <div>
-                            <h2 class="text-2xl font-bold text-slate-800">Nearby Hospitals</h2>
+                            <h2 class="text-3xl font-black text-slate-900 tracking-tight">Hospitals</h2>
                             ${state.searchRadius && state.searchRadius > 5000 ?
-                    `<p class="text-xs text-orange-600 font-bold bg-orange-50 px-2 py-1 rounded inline-block mt-1">
-                                    <i data-lucide="alert-circle" class="w-3 h-3 inline mr-1"></i> Expanded search to ${state.searchRadius / 1000}km
+                    `<p class="text-[10px] text-orange-600 font-bold bg-orange-50 px-3 py-1 rounded-full inline-block mt-2 tracking-widest uppercase">
+                                    <i data-lucide="alert-circle" class="w-3 h-3 inline mr-1"></i> Area Expanded: ${state.searchRadius / 1000}km
                                 </p>` :
-                    `<p class="text-xs text-slate-400">Within ${state.searchRadius ? state.searchRadius / 1000 : 5}km radius</p>`
+                    `<p class="text-xs font-bold text-slate-400 mt-1 uppercase tracking-widest">Radius: ${state.searchRadius ? state.searchRadius / 1000 : 5}km</p>`
                 }
                         </div>
-                        <button id="btn-change-loc" class="text-sm font-bold text-brand-600 hover:text-brand-800">Change Location</button>
+                        <button id="btn-change-loc" class="text-xs font-black text-brand-600 hover:text-brand-800 uppercase tracking-widest pb-1 border-b-2 border-brand-100">Reset</button>
                     </div>
                     
                     <!-- Map Container -->
-                    <div id="hospital-map" class="w-full h-64 rounded-2xl bg-slate-100 z-0 border border-slate-200 shadow-inner"></div>
+                    <div id="hospital-map" class="w-full h-72 rounded-[2.5rem] bg-slate-50 z-0 border border-slate-100 shadow-inner overflow-hidden shadow-2xl shadow-slate-200/50"></div>
 
                     <!-- List Container -->
-                    <div id="hospital-list" class="max-h-80 overflow-y-auto pr-2 pt-2">
+                    <div id="hospital-list" class="max-h-96 overflow-y-auto pr-2 space-y-4 custom-scrollbar">
                         <!-- Items injected by JS -->
-                        <div class="p-4 text-center text-slate-400">Loading hospitals...</div>
+                        <div class="p-8 text-center text-slate-300 font-bold italic">Scanning medical facilities...</div>
                     </div>
                 </div>
             `;
         }
 
-        // STEP 4: SYMPTOMS (Was Step 3, removed Age)
+
+        // STEP 4: SYMPTOMS
         if (state.step === 4) {
             const quickSymptoms = ["Fever", "Headache", "Cough", "Cold", "Body Pain", "Fatigue", "Nausea"];
 
-            contentHTML = `
-                <div class="space-y-4 w-full animate-fade-in">
-                    <h2 class="text-3xl font-bold text-slate-800">Tell us your symptoms</h2>
+            stepContent.innerHTML = `
+                <div class="space-y-8 w-full animate-fade-in">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-black text-slate-900 tracking-tight mb-2">Triage Details</h2>
+                        <p class="text-slate-500 text-lg">Describe your symptoms for pre-analysis.</p>
+                    </div>
                     
-                    <div class="space-y-4">
-                        <textarea id="input-symptoms" class="w-full p-4 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 outline-none resize-none" placeholder="Describe what you are feeling..." rows="4">${state.patientData.symptoms}</textarea>
+                    <div class="space-y-6">
+                        <div class="relative group">
+                            <div class="absolute -top-3 left-6 px-3 bg-white text-[10px] font-black text-slate-400 uppercase tracking-widest z-20">Your Symptoms</div>
+                            <textarea id="input-symptoms" class="w-full p-6 pt-8 bg-slate-50/50 border border-slate-100 rounded-[2rem] focus:bg-white focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none resize-none text-lg font-medium transition-all" placeholder="Tell us how you're feeling..." rows="5">${state.patientData.symptoms}</textarea>
+                        </div>
                         
                         <!-- Quick Select Chips -->
-                        <div class="flex flex-wrap gap-2">
-                            ${quickSymptoms.map(s => `
-                                <button class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-full text-sm font-medium transition-colors"
-                                    onclick="const el = document.getElementById('input-symptoms'); el.value += (el.value ? ', ' : '') + '${s}'; el.dispatchEvent(new Event('input'));">
-                                    + ${s}
-                                </button>
-                            `).join('')}
+                        <div class="space-y-3">
+                            <p class="text-[10px] font-black text-slate-300 uppercase tracking-widest px-1">Common Symptoms</p>
+                            <div class="flex flex-wrap gap-2">
+                                ${quickSymptoms.map(s => `
+                                    <button class="px-5 py-2.5 bg-white border border-slate-100 hover:border-brand-300 hover:bg-brand-50 text-slate-600 rounded-2xl text-sm font-bold transition-all shadow-sm active:scale-95"
+                                        onclick="const el = document.getElementById('input-symptoms'); el.value += (el.value ? ', ' : '') + '${s}'; el.dispatchEvent(new Event('input'));">
+                                        + ${s}
+                                    </button>
+                                `).join('')}
+                            </div>
                         </div>
                     </div>
 
-                    <button id="btn-next" class="w-full bg-brand-600 hover:bg-brand-700 text-white p-4 rounded-xl font-bold text-lg shadow-lg shadow-blue-200 transition-all mt-4">Next</button>
+                    <button id="btn-next" class="w-full bg-slate-900 group hover:bg-brand-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl shadow-slate-200 transition-all active:scale-95 flex items-center justify-center gap-3 mt-6">
+                        Calculate Estimate 
+                        <i data-lucide="arrow-right" class="w-6 h-6 group-hover:translate-x-1 transition-transform"></i>
+                    </button>
                 </div>`;
         }
 
-        // STEP 5: QUOTE (Was Step 4)
+
+        // STEP 5: QUOTE
         if (state.step === 5) {
             const fee = state.patientData.fee || 0;
-            contentHTML = `<div class="w-full text-center">
-                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-8 rounded-3xl mb-8 border border-blue-100 relative overflow-hidden">
-                    <div class="absolute -right-10 -top-10 w-40 h-40 bg-blue-200/20 rounded-full blur-2xl"></div>
-                    <p class="text-slate-500 uppercase tracking-widest text-xs font-bold mb-2">Estimated Fee</p>
-                    <h3 class="text-5xl md:text-6xl font-black text-brand-900 tracking-tighter">₹${fee.toFixed(2)}</h3>
-                    <p class="text-slate-400 text-sm mt-4">Includes Consultation & Quick Triage</p>
-                </div>
-                <!-- Summary of Details -->
-                <div class="bg-slate-50 p-4 rounded-xl text-left text-sm text-slate-600 mb-4">
-                    <p><strong>Patient:</strong> ${state.patientData.name} (${state.patientData.age}, ${state.patientData.gender})</p>
-                    <p><strong>Doctor Pref:</strong> ${state.patientData.doctorPref}</p>
-                    <p><strong>Hospital:</strong> ${state.patientData.hospital} (${state.patientData.city}, ${state.patientData.state}, ${state.patientData.country})</p>
-                </div>
-                <button id="btn-next" class="w-full bg-brand-600 hover:bg-brand-700 text-white p-4 rounded-xl font-bold text-lg shadow-lg shadow-blue-200 transition-all">
-                    Confirm & Get Token
-                </button>
-             </div>`;
+            stepContent.innerHTML = `
+                <div class="w-full text-center space-y-8 animate-fade-in">
+                    <div class="bg-gradient-to-br from-brand-600 to-indigo-700 p-10 rounded-[3rem] shadow-2xl shadow-brand-200 relative overflow-hidden">
+                        <div class="absolute -right-10 -top-10 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
+                        <div class="absolute -left-10 -bottom-10 w-48 h-48 bg-cyan-400/10 rounded-full blur-3xl"></div>
+                        
+                        <div class="relative z-10">
+                            <p class="text-brand-100/60 uppercase tracking-[0.3em] text-[10px] font-black mb-3">Service Fee Estimate</p>
+                            <div class="flex items-center justify-center gap-2">
+                                <span class="text-3xl font-bold text-brand-200 mb-4">₹</span>
+                                <h3 class="text-7xl font-black text-white tracking-tighter mb-4 counter">${fee.toFixed(2)}</h3>
+                            </div>
+                            <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/10 rounded-full border border-white/10">
+                                <i data-lucide="shield-check" class="w-4 h-4 text-cyan-300"></i>
+                                <span class="text-white/80 text-[10px] font-black uppercase tracking-widest">Inclusive of all taxes</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary Card -->
+                    <div class="glass-card p-8 rounded-[2.5rem] text-left space-y-5 border-slate-50">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+                            <h4 class="text-xs font-black text-slate-300 uppercase tracking-widest">Booking Recap</h4>
+                            <div class="w-8 h-8 bg-brand-50 rounded-lg flex items-center justify-center text-brand-600">
+                                <i data-lucide="file-text" class="w-4 h-4"></i>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-4">
+                            <div class="flex justify-between items-center px-2">
+                                <span class="text-slate-400 text-sm font-bold">Patient</span>
+                                <span class="text-slate-800 font-black">${state.patientData.name}</span>
+                            </div>
+                            <div class="flex justify-between items-center px-2">
+                                <span class="text-slate-400 text-sm font-bold">Hospital</span>
+                                <span class="text-slate-800 font-black truncate max-w-[180px]">${state.patientData.hospital}</span>
+                            </div>
+                            <div class="flex justify-between items-center px-2">
+                                <span class="text-slate-400 text-sm font-bold">Priority</span>
+                                <span class="px-3 py-1 bg-orange-50 text-orange-600 rounded-full text-[10px] font-black uppercase tracking-widest">Triage Required</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="btn-next" class="w-full bg-slate-900 hover:bg-brand-600 text-white py-6 rounded-2xl font-black text-xl shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-4 group">
+                        Confirm Appointment
+                        <i data-lucide="check-circle" class="w-6 h-6 group-hover:scale-110 transition-transform"></i>
+                    </button>
+                </div>`;
         }
 
-        // STEP 6: CONFIRM (Was Step 5)
+
+        // STEP 6: CONFIRMATION
         if (state.step === 6) {
             const randomToken = `#${String.fromCharCode(65 + Math.floor(Math.random() * 26))}-${Math.floor(10 + Math.random() * 90)}`;
             const randomWait = Math.floor(5 + Math.random() * 25);
 
-            contentHTML = `
-                <div class="w-full text-center p-10 bg-green-50 rounded-3xl border-2 border-green-100 animate-fade-in">
-                    <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                        <i data-lucide="check" class="w-10 h-10"></i>
-                    </div>
-                    <p class="font-bold text-green-800 text-xl">Booking Confirmed!</p>
-                    <h1 class="text-6xl md:text-7xl font-black text-green-700 my-6 tracking-tighter">${randomToken}</h1>
-                    <div class="bg-white/50 p-4 rounded-xl inline-block text-left w-full mt-4">
-                         <div class="grid grid-cols-2 gap-2 text-sm">
-                            <p class="text-slate-500">Patient:</p> <p class="font-bold text-slate-900 text-right">${state.patientData.name}</p>
-                            <p class="text-slate-500">Hospital:</p> <p class="font-bold text-slate-900 text-right truncate">${state.patientData.hospital}</p>
-                            <p class="text-slate-500">Wait Time:</p> <p class="font-bold text-green-600 text-right">~${randomWait} Mins</p>
-                            <p class="text-slate-500">Doctor:</p> <p class="font-bold text-slate-900 text-right">${state.patientData.doctorPref === 'Any' ? 'Any Available' : state.patientData.doctorPref}</p>
-                         </div>
-                    </div>
-                    <div class="mt-8 pt-6 border-t border-green-100 text-left">
-                        <p class="text-[10px] font-bold text-green-700 uppercase tracking-widest mb-3">Support & Developers</p>
-                        <div class="flex items-center gap-3 mb-2">
-                             <div class="w-8 h-8 bg-green-200 rounded-full flex items-center justify-center text-green-700">
-                                <i data-lucide="phone" class="w-4 h-4"></i>
-                             </div>
-                             <div>
-                                <p class="text-xs font-bold text-slate-800">8500543154</p>
-                                <p class="text-[10px] text-slate-500">Call for immediate support</p>
-                             </div>
-                        </div>
-                        <div class="flex items-center gap-3">
-                             <div class="w-8 h-8 bg-green-200 rounded-full flex items-center justify-center text-green-700">
-                                <i data-lucide="mail" class="w-4 h-4"></i>
-                             </div>
-                             <div>
-                                <p class="text-xs font-bold text-slate-800">ashubasha52@gmail.com</p>
-                                <p class="text-[10px] text-slate-500">Email for technical issues</p>
-                             </div>
+            stepContent.innerHTML = `
+                <div class="w-full text-center space-y-8 animate-fade-in py-4">
+                    <div class="relative inline-block">
+                        <div class="absolute inset-0 bg-green-500/20 blur-3xl rounded-full scale-150"></div>
+                        <div class="w-24 h-24 bg-green-50 text-green-600 rounded-[2rem] flex items-center justify-center mx-auto mb-6 relative z-10 border-4 border-white shadow-xl">
+                            <i data-lucide="check" class="w-12 h-12"></i>
                         </div>
                     </div>
-                    <button id="btn-home" class="w-full mt-8 bg-white border border-green-200 text-green-700 hover:bg-green-100 p-4 rounded-xl font-bold text-lg transition-all">
-                        Back to Home
+
+                    <div class="space-y-2">
+                        <p class="font-black text-slate-400 uppercase tracking-[0.4em] text-[10px]">Queue Status: Confirmed</p>
+                        <h1 class="text-8xl font-black text-slate-900 tracking-tighter py-4">${randomToken}</h1>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="glass-card p-6 rounded-3xl text-center border-slate-50">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Wait Time</p>
+                            <p class="text-2xl font-black text-brand-600 truncate">~${randomWait}m</p>
+                        </div>
+                        <div class="glass-card p-6 rounded-3xl text-center border-slate-50">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Position</p>
+                            <p class="text-2xl font-black text-indigo-600">04</p>
+                        </div>
+                    </div>
+
+                    <!-- Developer Support Card -->
+                    <div class="bg-slate-900 p-8 rounded-[2.5rem] text-left relative overflow-hidden group">
+                        <div class="absolute right-0 top-0 w-32 h-32 bg-brand-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform"></div>
+                        <p class="text-brand-400 font-black text-[10px] tracking-[0.3em] uppercase mb-4">Support Infrastructure</p>
+                        
+                        <div class="space-y-4">
+                            <a href="tel:8500543154" class="flex items-center gap-4 text-white hover:text-brand-400 transition-colors">
+                                <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+                                    <i data-lucide="phone" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-black tracking-widest">8500543154</p>
+                                    <p class="text-[10px] text-slate-500 font-bold uppercase">Emergency Coordination</p>
+                                </div>
+                            </a>
+                            <a href="mailto:ashubasha52@gmail.com" class="flex items-center gap-4 text-white hover:text-brand-400 transition-colors">
+                                <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+                                    <i data-lucide="mail" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <p class="text-xs font-black tracking-widest lowercase">ashubasha52@gmail.com</p>
+                                    <p class="text-[10px] text-slate-500 font-bold uppercase">System Administration</p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+                    <button id="btn-home" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-600 py-5 rounded-2xl font-black text-lg transition-all active:scale-95">
+                        Close Dashboard
                     </button>
                 </div>
             `;
         }
 
-        // Render Container
-        const backBtn = `
-            <button id="btn-back" class="absolute top-6 left-6 flex items-center text-slate-500 hover:text-brand-600 font-bold transition-colors">
-                <i data-lucide="arrow-left" class="w-5 h-5 mr-2"></i> Back
-            </button>`;
 
-        container.innerHTML = `
-            ${backBtn}
-            <div class="w-full max-w-md bg-white p-8 rounded-3xl shadow-2xl shadow-slate-200/50 border border-white">
-                ${progressHTML}
-                ${contentHTML}
-            </div>
-        `;
+
 
         // Event Listeners
         container.querySelector('#btn-back').onclick = () => {

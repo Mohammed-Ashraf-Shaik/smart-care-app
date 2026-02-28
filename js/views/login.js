@@ -12,70 +12,85 @@
         container.className = "min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 animate-fade-in";
 
         container.innerHTML = `
-            <button id="btn-back" class="absolute top-6 left-6 flex items-center text-slate-500 hover:text-brand-600 font-bold transition-colors">
-                <i data-lucide="arrow-left" class="w-5 h-5 mr-2"></i> Back to Hub
+            <button id="btn-back" class="absolute top-8 left-8 group flex items-center gap-3 text-slate-400 hover:text-brand-600 font-black transition-all">
+                <div class="w-10 h-10 glass-card rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                </div>
+                <span class="text-xs tracking-widest uppercase">Go Back</span>
             </button>
 
-            <div class="w-full max-w-md bg-white p-8 rounded-3xl shadow-2xl shadow-slate-200/50 border border-white">
-                <div class="text-center mb-8">
-                    <div class="w-16 h-16 ${role === 'doctor' ? 'bg-cyan-100 text-cyan-700' : 'bg-slate-100 text-slate-700'} rounded-2xl flex items-center justify-center mx-auto mb-4">
-                        <i data-lucide="${role === 'doctor' ? 'stethoscope' : 'shield-check'}" class="w-8 h-8"></i>
-                    </div>
-                    <h2 class="text-2xl font-black text-slate-900">Where are you?</h2>
-                    <p class="text-slate-500 mt-2">Select your location to access ${roleName} hub</p>
-                </div>
-
-                <div class="space-y-4">
-                    <!-- Location Drill -->
-                    <div class="bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">Manual Selection</label>
-                        <select id="login-country" class="w-full p-3 mb-2 border border-slate-200 rounded-xl bg-white focus:bg-white transition-colors outline-none text-sm">
-                            <option value="">Loading Countries...</option>
-                        </select>
-                        <select id="login-state" disabled class="w-full p-3 mb-2 border border-slate-200 rounded-xl bg-slate-100 text-slate-400 outline-none text-sm transition-colors">
-                            <option value="">Select Country</option>
-                        </select>
-                         <select id="login-city" disabled class="w-full p-3 border border-slate-200 rounded-xl bg-slate-100 text-slate-400 outline-none text-sm transition-colors">
-                            <option value="">Select State</option>
-                        </select>
-                    </div>
-
-                    <div class="relative py-2 text-center text-xs font-bold text-slate-400 uppercase tracking-widest before:content-[''] before:absolute before:left-0 before:top-1/2 before:w-1/3 before:h-px before:bg-slate-200 after:content-[''] after:absolute after:right-0 after:top-1/2 after:w-1/3 after:h-px after:bg-slate-200">
-                        OR
-                    </div>
-
-                    <!-- Live Location Button -->
-                    <button id="btn-live" class="w-full p-4 bg-white border-2 border-slate-100 rounded-2xl flex items-center hover:border-blue-400 hover:bg-blue-50/30 transition-all group">
-                         <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-4 shadow-sm group-hover:bg-blue-600 group-hover:text-white transition-colors">
-                            <i data-lucide="crosshair" class="w-6 h-6"></i>
+            <div class="w-full max-w-xl glass-card p-12 md:p-16 rounded-[3.5rem] shadow-2xl border border-white relative overflow-hidden animate-slide-up">
+                <div class="absolute -right-20 -top-20 w-80 h-80 bg-brand-500/5 rounded-full blur-3xl"></div>
+                <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-cyan-500/5 rounded-full blur-3xl"></div>
+                
+                <div class="relative z-10 space-y-10">
+                    <div class="text-center">
+                        <div class="w-20 h-20 ${role === 'doctor' ? 'bg-cyan-50 text-cyan-600' : 'bg-slate-900 text-white'} rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-slate-200">
+                            <i data-lucide="${role === 'doctor' ? 'stethoscope' : 'shield-check'}" class="w-10 h-10"></i>
                         </div>
-                        <div class="text-left">
-                            <h3 class="font-bold text-slate-800">Use Live Location</h3>
-                            <p class="text-slate-500 text-xs">Set facility location automatically</p>
+                        <h2 class="text-4xl font-black text-slate-900 tracking-tighter">Facility Access</h2>
+                        <p class="text-slate-500 mt-3 text-lg font-medium">${roleName} Authentication Portal</p>
+                    </div>
+
+                    <div class="space-y-6">
+                        <!-- Location Intelligence -->
+                        <div class="glass-card p-1 border-slate-50 rounded-[2.5rem] shadow-sm overflow-hidden">
+                            <div class="p-6 space-y-4">
+                                <div class="group">
+                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Location Details</label>
+                                    <div class="grid grid-cols-1 gap-3">
+                                        <select id="login-country" class="w-full px-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all font-bold appearance-none">
+                                            <option value="">Loading Countries...</option>
+                                        </select>
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <select id="login-state" disabled class="w-full px-4 py-4 bg-slate-100/50 border border-slate-100 rounded-2xl text-slate-300 outline-none transition-all font-bold appearance-none">
+                                                <option value="">State</option>
+                                            </select>
+                                            <select id="login-city" disabled class="w-full px-4 py-4 bg-slate-100/50 border border-slate-100 rounded-2xl text-slate-300 outline-none transition-all font-bold appearance-none">
+                                                <option value="">City</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button id="btn-live" class="w-full bg-slate-900 group hover:bg-brand-600 text-white py-5 rounded-b-[2.5rem] font-black text-xs tracking-widest uppercase transition-all flex items-center justify-center gap-3">
+                                Detect My Facility
+                                <i data-lucide="crosshair" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
+                            </button>
                         </div>
-                    </button>
 
-                    <hr class="border-slate-100 my-6">
+                        <div class="relative flex items-center w-full py-2">
+                            <div class="h-px bg-slate-100 w-full"></div>
+                            <span class="px-6 text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">Credentials</span>
+                            <div class="h-px bg-slate-100 w-full"></div>
+                        </div>
 
-                    <!-- Hospital Name -->
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Hospital ID / Name</label>
-                        <input id="login-hospital" type="text" class="w-full p-3 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-brand-500 outline-none" placeholder="e.g. City General">
+                        <!-- Credentials -->
+                        <div class="space-y-4">
+                            <div class="group">
+                                <div class="relative">
+                                    <i data-lucide="hospital" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-brand-500 transition-colors"></i>
+                                    <input id="login-hospital" type="text" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all text-lg font-medium" placeholder="Facility Name or ID">
+                                </div>
+                            </div>
+
+                            <div class="group">
+                                <div class="relative">
+                                    <i data-lucide="lock" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-brand-500 transition-colors"></i>
+                                    <input id="login-password" type="password" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all text-lg font-medium" placeholder="Access Password">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="login-error" class="hidden text-rose-500 text-[10px] font-black text-center bg-rose-50 border border-rose-100 py-3 rounded-xl uppercase tracking-widest">
+                            Access Denied: Invalid Credentials
+                        </div>
+
+                        <button id="btn-login" class="w-full bg-brand-600 text-white py-6 rounded-[2rem] font-black text-xl tracking-widest uppercase shadow-2xl shadow-brand-200 transition-all hover:bg-brand-700 active:scale-95 flex items-center justify-center gap-4">
+                            Sign In
+                            <i data-lucide="log-in" class="w-6 h-6"></i>
+                        </button>
                     </div>
-
-                    <!-- Password -->
-                    <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Password</label>
-                        <input id="login-password" type="password" class="w-full p-3 border border-slate-200 rounded-xl bg-white focus:ring-2 focus:ring-brand-500 outline-none" placeholder="••••••••">
-                    </div>
-
-                    <div id="login-error" class="hidden text-red-500 text-sm font-bold text-center bg-red-50 p-2 rounded-lg">
-                        Incorrect Credentials
-                    </div>
-
-                    <button id="btn-login" class="w-full ${btnColor} text-white p-4 rounded-xl font-bold text-lg shadow-lg shadow-blue-200/50 transition-all mt-4 transform active:scale-95">
-                        Authenticate
-                    </button>
                 </div>
             </div>
         `;

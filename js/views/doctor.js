@@ -6,91 +6,127 @@
         container.className = "min-h-screen bg-slate-50 p-8 animate-fade-in";
 
         const queueRows = state.queue.map(p => {
-            const badgeColor = p.triage === 'Red' ? 'bg-red-100 text-red-600' :
-                p.triage === 'Yellow' ? 'bg-orange-100 text-orange-700' : 'bg-green-100 text-green-600';
+            const badgeStyles = p.triage === 'Red' ? 'bg-red-50 text-red-600 border-red-100' :
+                p.triage === 'Yellow' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100';
 
             return `
-                <tr class="border-b border-slate-50 hover:bg-slate-50 transition-colors group">
-                    <td class="p-6 font-bold text-slate-700">#${p.id}</td>
+                <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-all group cursor-pointer">
                     <td class="p-6">
-                        <div class="font-bold text-slate-900">${p.name}</div>
-                        <div class="text-xs text-slate-400">Age: ${p.age}</div>
+                        <span class="text-xs font-black text-slate-300 group-hover:text-brand-500 transition-colors">#${p.id}</span>
                     </td>
-                    <td class="p-6 text-slate-600">${p.problem}</td>
                     <td class="p-6">
-                        <span class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${badgeColor}">${p.triage}</span>
+                        <div class="font-black text-slate-900 tracking-tight group-hover:translate-x-1 transition-transform inline-block text-lg">${p.name}</div>
+                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Age: ${p.age} • Priority: ${p.triage}</div>
+                    </td>
+                    <td class="p-6">
+                        <div class="text-sm font-medium text-slate-600 line-clamp-1">${p.problem}</div>
+                    </td>
+                    <td class="p-6">
+                        <span class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border ${badgeStyles}">${p.triage}</span>
                     </td>
                     <td class="p-6 text-right">
-                        <button class="text-slate-300 hover:text-brand-600 transition-colors">
-                            <i data-lucide="more-horizontal"></i>
-                        </button>
+                        <div class="w-10 h-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-300 group-hover:bg-slate-900 group-hover:text-white transition-all shadow-inner ml-auto">
+                            <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                        </div>
                     </td>
                 </tr>
             `;
         }).join('');
 
         const currentPatient = state.queue[0] || null;
-        const currentPatientName = currentPatient ? `${currentPatient.name} (#${currentPatient.id})` : "No Patient";
-        const currentPatientProblem = currentPatient ? currentPatient.problem : "No active session";
+        const currentPatientName = currentPatient ? currentPatient.name : "No Active Patient";
+        const currentPatientId = currentPatient ? `#${currentPatient.id}` : "";
+        const currentPatientProblem = currentPatient ? currentPatient.problem : "Awaiting next appointment";
 
         container.innerHTML = `
-            <div class="max-w-6xl mx-auto">
-                 <button id="btn-back" class="mb-8 flex items-center text-slate-500 hover:text-blue-600 font-bold transition-colors">
-                    <i data-lucide="arrow-left" class="w-5 h-5 mr-2"></i> Back to Hub
-                </button>
+            <div class="max-w-6xl mx-auto space-y-10">
+                <div class="flex items-center justify-between">
+                    <button id="btn-back" class="group flex items-center gap-3 text-slate-400 hover:text-brand-600 font-black transition-all">
+                        <div class="w-10 h-10 glass-card rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-xs tracking-widest uppercase">Portal Hub</span>
+                    </button>
+                    <div class="flex items-center gap-4 text-right">
+                        <div>
+                            <p class="text-xs font-black text-slate-900 tracking-tight">${state.loggedHospital}</p>
+                            <p class="text-[10px] text-slate-400 uppercase tracking-widest font-black">${state.loggedCity}</p>
+                        </div>
+                        <div class="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-slate-200">
+                             <i data-lucide="user" class="w-6 h-6"></i>
+                        </div>
+                    </div>
+                </div>
                 
-                <div class="flex flex-col md:flex-row justify-between items-center mb-8 bg-slate-900 p-8 rounded-3xl text-white shadow-xl shadow-slate-900/20 relative overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-r from-brand-900 to-slate-900 opacity-90"></div>
-                    <div class="absolute -right-20 -top-20 w-80 h-80 bg-brand-500/20 rounded-full blur-3xl"></div>
+                <div class="relative overflow-hidden group">
+                    <div class="absolute -right-20 -top-20 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
+                    <div class="absolute -left-20 -bottom-20 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl group-hover:scale-110 transition-transform duration-1000"></div>
                     
-                    <!-- Patient Info -->
-                    <div class="relative z-10 mb-6 md:mb-0 md:w-1/3">
-                        <p class="opacity-70 uppercase text-[10px] tracking-widest mb-1">${state.loggedCountry} • ${state.loggedState} • ${state.loggedCity}</p>
-                        <p class="opacity-90 font-bold text-xs mb-2 flex items-center"><i data-lucide="map-pin" class="w-3 h-3 mr-1"></i> ${state.loggedHospital}</p>
-                        <h2 class="text-4xl font-black tracking-tight">${currentPatientName}</h2>
-                        <p class="text-blue-200 mt-2 flex items-center"><i data-lucide="activity" class="w-4 h-4 mr-2"></i> ${currentPatientProblem}</p>
-                    </div>
+                    <div class="glass-card p-10 md:p-12 rounded-[3.5rem] border-white shadow-2xl relative z-10 flex flex-col lg:flex-row gap-12 items-center">
+                        <!-- Patient Info -->
+                        <div class="flex-1 space-y-6">
+                            <div class="space-y-2">
+                                <p class="text-brand-600 font-black text-[10px] tracking-[0.4em] uppercase">Active Treatment Session</p>
+                                <div class="flex items-baseline gap-4">
+                                    <h2 class="text-5xl md:text-6xl font-black text-slate-900 tracking-tighter">${currentPatientName}</h2>
+                                    <span class="text-2xl font-black text-slate-300">${currentPatientId}</span>
+                                </div>
+                                <p class="text-xl font-medium text-slate-500 max-w-md leading-relaxed">${currentPatientProblem}</p>
+                            </div>
+                            
+                            <div class="flex gap-4">
+                                <button class="px-8 py-4 bg-slate-900 text-white rounded-[1.5rem] font-black text-sm tracking-widest uppercase shadow-xl hover:bg-brand-600 transition-all active:scale-95">Open EMR</button>
+                                <button class="w-14 h-14 glass-card rounded-2xl flex items-center justify-center text-slate-600 hover:text-brand-600 hover:bg-white transition-all">
+                                    <i data-lucide="history" class="w-6 h-6"></i>
+                                </button>
+                            </div>
+                        </div>
 
-                    <!-- Vitals Widget (NEW) -->
-                    <div class="relative z-10 grid grid-cols-3 gap-4 md:w-1/3 mb-6 md:mb-0">
-                        <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 text-center border border-white/10">
-                            <p class="text-[10px] uppercase tracking-wider opacity-60">Heart Rate</p>
-                            <p class="text-xl font-bold text-green-400">72 <span class="text-xs font-normal opacity-50">bpm</span></p>
+                        <!-- Pulse Widget -->
+                        <div class="w-full lg:w-96 space-y-6">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="glass-card p-6 rounded-3xl border-slate-50/50 hover:border-white transition-all">
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Heart Rate</p>
+                                    <div class="flex items-baseline gap-1">
+                                        <span class="text-3xl font-black text-rose-500">72</span>
+                                        <span class="text-xs font-bold text-slate-300">BPM</span>
+                                    </div>
+                                </div>
+                                <div class="glass-card p-6 rounded-3xl border-slate-50/50 hover:border-white transition-all">
+                                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Saturation</p>
+                                    <div class="flex items-baseline gap-1">
+                                        <span class="text-3xl font-black text-cyan-500">98</span>
+                                        <span class="text-xs font-bold text-slate-300">%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button id="btn-next-patient" class="w-full bg-brand-600 text-white py-6 rounded-[2rem] font-black text-lg tracking-widest uppercase shadow-2xl shadow-brand-200 transition-all hover:bg-brand-700 active:scale-95 flex items-center justify-center gap-4 ${!currentPatient ? 'opacity-50 cursor-not-allowed' : ''}">
+                                Complete Treatment
+                                <i data-lucide="check-circle" class="w-6 h-6"></i>
+                            </button>
                         </div>
-                        <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 text-center border border-white/10">
-                            <p class="text-[10px] uppercase tracking-wider opacity-60">Blood Press.</p>
-                            <p class="text-xl font-bold text-blue-400">120/80</p>
-                        </div>
-                        <div class="bg-white/10 backdrop-blur-md rounded-xl p-3 text-center border border-white/10">
-                            <p class="text-[10px] uppercase tracking-wider opacity-60">SpO2</p>
-                            <p class="text-xl font-bold text-yellow-400">98<span class="text-xs font-normal opacity-50">%</span></p>
-                        </div>
-                    </div>
-
-                    <!-- Actions -->
-                    <div class="relative z-10 flex gap-2">
-                         <button class="bg-white/10 hover:bg-white/20 text-white p-4 rounded-xl transition backdrop-blur-md" title="Patient History">
-                            <i data-lucide="file-text" class="w-5 h-5"></i>
-                        </button>
-                        <button id="btn-next-patient" class="bg-white text-slate-900 px-6 py-4 rounded-xl font-black hover:bg-blue-50 transition shadow-lg flex items-center ${!currentPatient ? 'opacity-50 cursor-not-allowed' : ''}">
-                            NEXT <i data-lucide="chevron-right" class="w-5 h-5 ml-2"></i>
-                        </button>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/50 overflow-hidden border border-slate-100">
-                    <div class="p-6 border-b border-slate-100 flex justify-between items-center">
-                        <h3 class="font-bold text-xl text-slate-800">Waiting Queue</h3>
-                        <span class="bg-blue-100 text-brand-700 px-3 py-1 rounded-full text-xs font-bold">${state.queue.length} Patients</span>
+                <div class="glass-card rounded-[3rem] border-white shadow-2xl overflow-hidden pb-6">
+                    <div class="p-10 border-b border-slate-50 flex justify-between items-center bg-white/50">
+                        <div>
+                            <h3 class="font-black text-2xl text-slate-900 tracking-tight">Patient Queue</h3>
+                            <p class="text-xs font-bold text-slate-400 mt-1 uppercase tracking-widest">Real-time status monitor</p>
+                        </div>
+                        <div class="px-6 py-2.5 bg-brand-50 rounded-full border border-brand-100">
+                             <span class="text-brand-600 text-xs font-black uppercase tracking-widest">${state.queue.length} Active in Queue</span>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left border-collapse whitespace-nowrap">
-                            <thead class="bg-slate-50/50 text-slate-500 text-xs uppercase tracking-widest font-bold">
+                            <thead class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] bg-slate-50/30">
                                 <tr>
-                                    <th class="p-6">Token</th>
+                                    <th class="p-6">ID</th>
                                     <th class="p-6">Patient Details</th>
-                                    <th class="p-6">Problem</th>
-                                    <th class="p-6">Priority</th>
+                                    <th class="p-6">Chief Complaint</th>
+                                    <th class="p-6">Triage</th>
                                     <th class="p-6"></th>
                                 </tr>
                             </thead>
@@ -99,6 +135,14 @@
                             </tbody>
                         </table>
                     </div>
+                    ${state.queue.length === 0 ? `
+                        <div class="p-20 text-center space-y-4">
+                            <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-300">
+                                <i data-lucide="coffee" class="w-10 h-10"></i>
+                            </div>
+                            <p class="text-slate-400 font-black uppercase tracking-[0.3em] text-xs">Queue Clear • Time for Coffee</p>
+                        </div>
+                    ` : ''}
                 </div>
             </div>
         `;
