@@ -27,7 +27,7 @@
                     <div class="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
                         <i data-lucide="arrow-left" class="w-5 h-5"></i>
                     </div>
-                    <span class="text-[10px] tracking-widest uppercase">Back to Home</span>
+                    <span class="text-[10px] tracking-widest uppercase">Go Back</span>
                 </button>
 
                 <div class="w-full max-w-[450px] bg-white border border-slate-200 rounded-[2.5rem] shadow-2xl shadow-slate-200/50 p-8 md:p-12 relative overflow-hidden transition-all duration-500 ease-out">
@@ -205,7 +205,13 @@
             const btnComplete = container.querySelector('#btn-complete');
             const btnBackLand = container.querySelector('#btn-back-landing');
 
-            if (btnBackLand) btnBackLand.onclick = () => setView('landing');
+            if (btnBackLand) btnBackLand.onclick = () => {
+                if (currentStep === 'identifier') setView('landing');
+                else if (currentStep === 'password') { currentStep = 'identifier'; renderAuth(); }
+                else if (currentStep === 'signup') { currentStep = 'identifier'; renderAuth(); }
+                else if (currentStep === 'recovery') { currentStep = 'password'; renderAuth(); }
+                else if (currentStep === 'location') { currentStep = 'password'; renderAuth(); }
+            };
 
             if (currentStep === 'identifier') {
                 btnCreate.onclick = () => { currentStep = 'signup'; renderAuth(); };
