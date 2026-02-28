@@ -79,31 +79,22 @@
             transform: translateY(-8px) scale(1.15) rotate(5deg);
         }
 
-        /* Medical Plus Flow & Pulse (4s run, 2s pause) */
-        .animate-run-horizontal {
-            animation: runMedical 6s ease-in-out infinite;
-            filter: drop-shadow(0 0 5px rgba(34, 211, 238, 0.6));
+        /* Breathing Medical Pulse (Static Grid) */
+        .animate-medical-pulse {
+            animation: medicalPulse 4s ease-in-out infinite;
         }
 
-        @keyframes runMedical {
-            0% {
-                transform: translateX(-10px) scale(0.9);
-                opacity: 0.2;
-            }
+        @keyframes medicalPulse {
 
-            33% {
-                transform: translateX(0px) scale(1.1);
-                opacity: 0.9;
-            }
-
-            66.66% {
-                transform: translateX(10px) scale(0.9);
-                opacity: 0.2;
-            }
-
+            0%,
             100% {
-                transform: translateX(10px) scale(0.9);
-                opacity: 0.1;
+                opacity: 0.2;
+                filter: drop-shadow(0 0 2px rgba(34, 211, 238, 0.3));
+            }
+
+            50% {
+                opacity: 0.8;
+                filter: drop-shadow(0 0 10px rgba(34, 211, 238, 0.8));
             }
         }
     </style>

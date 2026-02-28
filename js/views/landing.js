@@ -13,8 +13,8 @@
                     <svg class="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <pattern id="medical-grid" width="60" height="60" patternUnits="userSpaceOnUse">
-                                <!-- Medical Cross drawing -->
-                                <g class="animate-run-horizontal" stroke-width="1.5">
+                                <!-- Medical Cross drawing (Static Grid) -->
+                                <g stroke-width="1.5" class="animate-medical-pulse">
                                     <path d="M 30 22 L 30 38" stroke="#22d3ee" />
                                     <path d="M 22 30 L 38 30" stroke="#22d3ee" />
                                 </g>
