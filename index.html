@@ -84,17 +84,33 @@
             animation: medicalPulse 4s ease-in-out infinite;
         }
 
+        /* Internal "Running Dash" Flow */
+        .animate-run-dash-plus {
+            stroke-dasharray: 4, 12;
+            animation: runDashPlus 1.5s linear infinite;
+        }
+
         @keyframes medicalPulse {
 
             0%,
             100% {
-                opacity: 0.2;
-                filter: drop-shadow(0 0 2px rgba(34, 211, 238, 0.3));
+                opacity: 0.15;
+                filter: drop-shadow(0 0 2px rgba(34, 211, 238, 0.2));
             }
 
             50% {
-                opacity: 0.8;
-                filter: drop-shadow(0 0 10px rgba(34, 211, 238, 0.8));
+                opacity: 0.7;
+                filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.6));
+            }
+        }
+
+        @keyframes runDashPlus {
+            from {
+                stroke-dashoffset: 16;
+            }
+
+            to {
+                stroke-dashoffset: 0;
             }
         }
     </style>
