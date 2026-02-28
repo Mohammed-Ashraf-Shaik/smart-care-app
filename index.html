@@ -60,6 +60,24 @@
             background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+
+        /* Advanced Math-Based Transitions */
+        .smooth-magnetic {
+            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        .group:hover .smooth-magnetic {
+            transform: translateZ(20px) rotateX(10deg) rotateY(10deg) scale(1.2);
+            filter: drop-shadow(0 10px 15px rgba(59, 130, 246, 0.3));
+        }
+
+        .math-bounce {
+            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .group:hover .math-bounce {
+            transform: translateY(-8px) scale(1.15) rotate(5deg);
+        }
     </style>
 
     <script>

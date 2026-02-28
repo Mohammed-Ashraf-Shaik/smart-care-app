@@ -129,11 +129,11 @@
                                     
                                     <div class="space-y-3">
                                         <a href="tel:8500543154" class="flex items-center gap-3 text-slate-600 hover:text-blue-600 transition-colors group">
-                                            <i data-lucide="phone" class="w-4 h-4 text-blue-500 group-hover:scale-110 transition-transform"></i>
+                                            <i data-lucide="phone" class="w-4 h-4 text-blue-500 smooth-magnetic"></i>
                                             <span class="text-sm font-bold">8500543154</span>
                                         </a>
                                         <a href="mailto:ashubasha52@gmail.com" class="flex items-center gap-3 text-slate-600 hover:text-blue-600 transition-colors group">
-                                            <i data-lucide="mail" class="w-4 h-4 text-blue-500 group-hover:scale-110 transition-transform"></i>
+                                            <i data-lucide="mail" class="w-4 h-4 text-blue-500 smooth-magnetic"></i>
                                             <span class="text-sm font-bold">ashubasha52@gmail.com</span>
                                         </a>
                                     </div>
@@ -144,14 +144,14 @@
                                     <div class="grid grid-cols-1 gap-3">
                                         <a href="https://instagram.com/shaik.m_ashraf" target="_blank" class="flex items-center justify-between p-4 bg-slate-50 hover:bg-pink-50/50 border border-slate-100 rounded-2xl transition-all group">
                                             <div class="flex items-center gap-3">
-                                                <i data-lucide="instagram" class="w-5 h-5 text-pink-500"></i>
+                                                <i data-lucide="instagram" class="w-5 h-5 text-pink-500 math-bounce"></i>
                                                 <span class="text-sm font-bold text-slate-700">@shaik.m_ashraf</span>
                                             </div>
                                             <i data-lucide="external-link" class="w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity"></i>
                                         </a>
                                         <a href="https://twitter.com/ashushaikz" target="_blank" class="flex items-center justify-between p-4 bg-slate-50 hover:bg-blue-50/50 border border-slate-100 rounded-2xl transition-all group">
                                             <div class="flex items-center gap-3">
-                                                <i data-lucide="twitter" class="w-5 h-5 text-blue-400"></i>
+                                                <i data-lucide="twitter" class="w-5 h-5 text-blue-400 math-bounce"></i>
                                                 <span class="text-sm font-bold text-slate-700">@ashushaikz</span>
                                             </div>
                                             <i data-lucide="external-link" class="w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity"></i>
