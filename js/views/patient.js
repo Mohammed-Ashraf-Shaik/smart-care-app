@@ -234,18 +234,18 @@
                             <div class="relative">
                                 <i data-lucide="user" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-brand-500 transition-colors"></i>
                                 <input id="input-name" type="text" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all text-lg font-medium" 
-                                    placeholder="e.g. John Doe" value="${state.patientData.name}">
+                                    placeholder="Enter your name" value="${state.patientData.name}">
                             </div>
                         </div>
 
                         <!-- Age & Gender -->
                         <div class="grid grid-cols-2 gap-6">
                             <div class="group">
-                                <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Age</label>
+                                <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2 px-1">enter your age</label>
                                 <div class="relative">
                                     <i data-lucide="calendar" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-brand-500 transition-colors"></i>
                                     <input id="input-age" type="number" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all text-lg font-medium" 
-                                        placeholder="25" value="${state.patientData.age}">
+                                        placeholder="enter your age" value="${state.patientData.age}">
                                 </div>
                             </div>
                             <div class="group">
