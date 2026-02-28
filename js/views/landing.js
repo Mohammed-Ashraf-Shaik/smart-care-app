@@ -14,19 +14,19 @@
                     <svg class="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <pattern id="grid-h" width="40" height="40" patternUnits="userSpaceOnUse">
-                                <path d="M 40 0 L 0 0" fill="none" stroke="white" stroke-width="0.5"/>
+                                <path d="M 40 0 L 0 0" fill="none" stroke="white" stroke-width="0.5" class="animate-run-horizontal"/>
                             </pattern>
                         </defs>
-                        <rect width="110%" height="110%" x="-5%" y="-5%" fill="url(#grid-h)" class="animate-run-horizontal" />
+                        <rect width="100%" height="100%" fill="url(#grid-h)" />
                     </svg>
                     <!-- Vertical Lines -->
                     <svg class="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
                         <defs>
                             <pattern id="grid-v" width="40" height="40" patternUnits="userSpaceOnUse">
-                                <path d="M 0 0 L 0 40" fill="none" stroke="white" stroke-width="0.5"/>
+                                <path d="M 0 0 L 0 40" fill="none" stroke="white" stroke-width="0.5" class="animate-run-vertical"/>
                             </pattern>
                         </defs>
-                        <rect width="110%" height="110%" x="-5%" y="-5%" fill="url(#grid-v)" class="animate-run-vertical" />
+                        <rect width="100%" height="100%" fill="url(#grid-v)" />
                     </svg>
                 </div>
                 

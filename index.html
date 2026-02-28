@@ -79,32 +79,34 @@
             transform: translateY(-8px) scale(1.15) rotate(5deg);
         }
 
-        /* Dual-Axis Hero Animations */
+        /* High-Speed Running Dash Animations */
         .animate-run-horizontal {
-            animation: runHorizontal 8s linear infinite;
+            stroke-dasharray: 10, 30;
+            animation: runDashH 0.8s linear infinite;
         }
 
         .animate-run-vertical {
-            animation: runVertical 8s linear infinite;
+            stroke-dasharray: 10, 30;
+            animation: runDashV 0.8s linear infinite;
         }
 
-        @keyframes runHorizontal {
-            0% {
-                transform: translateX(0);
+        @keyframes runDashH {
+            from {
+                stroke-dashoffset: 40;
             }
 
-            100% {
-                transform: translateX(40px);
+            to {
+                stroke-dashoffset: 0;
             }
         }
 
-        @keyframes runVertical {
-            0% {
-                transform: translateY(0);
+        @keyframes runDashV {
+            from {
+                stroke-dashoffset: 0;
             }
 
-            100% {
-                transform: translateY(40px);
+            to {
+                stroke-dashoffset: 40;
             }
         }
     </style>
