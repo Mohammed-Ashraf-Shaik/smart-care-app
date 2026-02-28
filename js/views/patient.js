@@ -627,7 +627,7 @@
                     stateSelect.innerHTML = `<option value="" disabled selected>Select State</option>` +
                         states.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
                     stateSelect.disabled = false;
-                    stateSelect.classList.remove('bg-slate-100', 'text-slate-400');
+                    stateSelect.classList.remove('bg-slate-100/50', 'text-slate-300');
                     stateSelect.classList.add('bg-white', 'text-slate-900');
                 } else {
                     stateSelect.innerHTML = `<option>No States</option>`;
@@ -643,7 +643,7 @@
                     citySelect.innerHTML = `<option value="" disabled selected>Select City</option>` +
                         cities.map(c => `<option value="${c}">${c}</option>`).join('');
                     citySelect.disabled = false;
-                    citySelect.classList.remove('bg-slate-100', 'text-slate-400');
+                    citySelect.classList.remove('bg-slate-100/50', 'text-slate-300');
                     citySelect.classList.add('bg-white', 'text-slate-900');
                 } else {
                     citySelect.innerHTML = `<option>No Cities</option>`;

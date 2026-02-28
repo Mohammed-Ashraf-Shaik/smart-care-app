@@ -127,7 +127,7 @@
                     states.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
                 stateSelect.value = state;
                 stateSelect.disabled = false;
-                stateSelect.classList.remove('bg-slate-100', 'text-slate-400');
+                stateSelect.classList.remove('bg-slate-100/50', 'text-slate-300');
                 stateSelect.classList.add('bg-white', 'text-slate-900');
             }
 
@@ -140,7 +140,7 @@
                     cities.map(c => `<option value="${c}">${c}</option>`).join('');
                 citySelect.value = city;
                 citySelect.disabled = false;
-                citySelect.classList.remove('bg-slate-100', 'text-slate-400');
+                citySelect.classList.remove('bg-slate-100/50', 'text-slate-300');
                 citySelect.classList.add('bg-white', 'text-slate-900');
             }
         };
@@ -212,7 +212,7 @@
             }
         };
 
-        loginBtn.onclick = () => {
+        loginBtn.onclick = async () => {
             // Basic Validation
             if (!countrySelect.value || !hospitalInput.value || !passInput.value) {
                 errorMsg.textContent = "Please fill all fields";
@@ -220,21 +220,29 @@
                 return;
             }
 
-            // Simulation
-            if (passInput.value.length < 3) {
-                errorMsg.textContent = "Password too short";
-                errorMsg.classList.remove('hidden');
-                return;
-            }
+            // Database Credential Check
+            loginBtn.disabled = true;
+            loginBtn.innerHTML = `<i data-lucide="loader-2" class="animate-spin w-6 h-6 mr-2"></i> Verifying...`;
+            lucide.createIcons();
 
-            // Save hospital for filtering (Country, State, City, Hospital)
-            window.App.Store.setLoggedLocation(
-                countrySelect.value,
-                stateSelect.value,
-                citySelect.value,
-                hospitalInput.value
-            );
-            setView(role);
+            const result = await window.App.DB.checkCredentials(hospitalInput.value, passInput.value, role);
+
+            if (result.success) {
+                // Save hospital for filtering (Country, State, City, Hospital)
+                window.App.Store.setLoggedLocation(
+                    countrySelect.value,
+                    stateSelect.value,
+                    citySelect.value,
+                    hospitalInput.value
+                );
+                setView(role);
+            } else {
+                errorMsg.textContent = result.error;
+                errorMsg.classList.remove('hidden');
+                loginBtn.disabled = false;
+                loginBtn.innerHTML = `Sign In <i data-lucide="log-in" class="w-6 h-6 ml-2"></i>`;
+                lucide.createIcons();
+            }
         };
 
         container.querySelector('#btn-back').onclick = () => setView('landing');

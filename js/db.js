@@ -7,7 +7,29 @@
     // Initialize Supabase Client
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // Mock Professional Database (Simulating a protected table)
+    const DOCTORS_DB = [
+        { hospital: "City Hospital", password: "doctor123", role: "doctor" },
+        { hospital: "City Hospital", password: "admin123", role: "staff" },
+        { hospital: "Apollo Clinic", password: "doctor123", role: "doctor" },
+        { hospital: "Global Health", password: "doctor123", role: "doctor" }
+    ];
+
     const DB = {
+        /**
+         * Verify credentials against the professional database
+         */
+        checkCredentials: async (hospital, password, role) => {
+            // In a real app, this would be a supabase.from('professionals').select()...
+            const user = DOCTORS_DB.find(u =>
+                u.hospital.toLowerCase() === hospital.toLowerCase() &&
+                u.password === password &&
+                u.role === role
+            );
+
+            return { success: !!user, error: user ? null : "Invalid facility name or password for this role." };
+        },
+
         /**
          * Fetch current queue once
          */
