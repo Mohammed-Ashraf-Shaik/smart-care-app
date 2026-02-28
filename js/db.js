@@ -1,15 +1,13 @@
-(function () {
-    // Supabase Configuration
+﻿(function () {
+    
     const SUPABASE_URL = "https://lwltivsudapbpobfdwwp.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3bHRpdnN1ZGFwYnBvYmZkd3dwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE2Njk3MTQsImV4cCI6MjA4NzI0NTcxNH0.0ZoDTM79VfdHIhF0sJDvOdH3lu1oBm3uy4Cxykac3xA";
 
-    // Initialize Supabase Client
+    
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const DB = {
-        /**
-         * Check if a professional email exists in Supabase
-         */
+        
         checkEmailExists: async (email) => {
             const { data, error } = await supabase
                 .from('professionals')
@@ -21,9 +19,7 @@
             return { success: !!data };
         },
 
-        /**
-         * Verify credentials against the Supabase professionals table
-         */
+        
         checkCredentials: async (hospital, email, password, role) => {
             const { data, error } = await supabase
                 .from('professionals')
@@ -46,9 +42,7 @@
             };
         },
 
-        /**
-         * Register a new professional in Supabase
-         */
+        
         registerProfessional: async (profData) => {
             const { data, error } = await supabase
                 .from('professionals')
@@ -68,9 +62,7 @@
             return { success: true, user: data[0] };
         },
 
-        /**
-         * Verify recovery hint (First 2 letters of previous password)
-         */
+        
         verifyPasswordHint: async (email, hint) => {
             const { data, error } = await supabase
                 .from('professionals')
@@ -85,9 +77,7 @@
             return { success: false, error: "Verification hint incorrect." };
         },
 
-        /**
-         * Update professional password
-         */
+        
         resetPassword: async (email, newPassword) => {
             const { error } = await supabase
                 .from('professionals')
@@ -98,9 +88,7 @@
             return { success: true };
         },
 
-        /**
-         * Fetch current queue once
-         */
+        
         fetchQueue: async () => {
             const { data, error } = await supabase
                 .from('queue')
@@ -114,9 +102,7 @@
             return data;
         },
 
-        /**
-         * Listen for real-time updates to the patient queue
-         */
+        
         listenToQueue: (onUpdate) => {
             const channel = supabase.channel('public:queue')
                 .on('postgres_changes', {
@@ -135,9 +121,7 @@
             };
         },
 
-        /**
-         * Add a patient to the queue
-         */
+        
         addPatient: async (patientData) => {
             try {
                 const data = {
@@ -169,9 +153,7 @@
             }
         },
 
-        /**
-         * Update an existing patient in the queue
-         */
+        
         updatePatient: async (id, updates) => {
             try {
                 const { error } = await supabase
@@ -185,9 +167,7 @@
             }
         },
 
-        /**
-         * Remove a patient from the queue
-         */
+        
         removePatient: async (id) => {
             try {
                 const { error } = await supabase

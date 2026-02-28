@@ -1,12 +1,12 @@
-(function () {
+﻿(function () {
     const state = {
-        view: 'landing', // landing, patient, doctor, staff
+        view: 'landing', 
         step: 1,
         patientData: {
             name: '',
             age: '',
-            gender: '', // 'male', 'female', 'other'
-            doctorPref: '', // 'male', 'female', 'any'
+            gender: '', 
+            doctorPref: '', 
             area: '',
             symptoms: '',
             hospital: '',
@@ -14,8 +14,8 @@
             state: '',
             city: ''
         },
-        queue: [], // Now populated from DB
-        loggedHospital: '', // Track which hospital the professional belongs to
+        queue: [], 
+        loggedHospital: '', 
         loggedCountry: '',
         loggedState: '',
         loggedCity: '',
@@ -24,7 +24,7 @@
     };
 
     const listeners = [];
-    let fullQueue = []; // Persistent cache of all data from DB
+    let fullQueue = []; 
 
     function subscribe(callback) {
         listeners.push(callback);
@@ -34,11 +34,11 @@
         listeners.forEach(cb => cb(state));
     }
 
-    // Actions
+    
     function setView(newView) {
-        // Auth Guard
+        
         if ((newView === 'doctor' || newView === 'staff') && !state.isLogged) {
-            setAuthTarget(newView); // Save intended role
+            setAuthTarget(newView); 
             state.view = 'login';
             notify();
             return;
@@ -47,12 +47,12 @@
         state.view = newView;
         if (newView === 'landing') {
             state.step = 1;
-            // Clear patient data on return to landing
+            
             state.patientData = {
                 name: '', age: '', gender: '', doctorPref: '', area: '', symptoms: '', hospital: '',
                 country: '', state: '', city: ''
             };
-            // Note: We don't clear professional session here unless it's a "Logout"
+            
         }
         notify();
     }
@@ -63,19 +63,19 @@
     }
 
     function setAuthTarget(role) {
-        // Role: 'doctor' or 'staff'
+        
         state.auth = state.auth || {};
         state.auth.targetRole = role;
     }
 
     function updatePatientData(key, value, shouldNotify = false) {
         state.patientData[key] = value;
-        if (shouldNotify) notify(); // Ensure UI reflects changes immediately
+        if (shouldNotify) notify(); 
     }
 
     function updateQueue(newQueue) {
         fullQueue = newQueue;
-        // Filter by logged-in location if applicable (Country, State, City, Hospital)
+        
         if (state.loggedHospital && state.loggedCity && state.loggedState && state.loggedCountry) {
             state.queue = fullQueue.filter(p =>
                 p.hospital === state.loggedHospital &&
@@ -87,7 +87,7 @@
             state.queue = fullQueue;
         }
 
-        // Only re-render if we are in a view that explicitly needs real-time queue updates
+        
         if (state.view === 'doctor' || state.view === 'staff') {
             notify();
         }
@@ -98,7 +98,7 @@
         state.loggedState = stateName;
         state.loggedCity = city;
         state.loggedHospital = hospital;
-        // Re-run filter on existing data
+        
         updateQueue(fullQueue);
     }
 
@@ -119,20 +119,20 @@
         return state.queue.reduce((acc, curr) => acc + (curr.fee || 0), 0);
     }
 
-    // Initialize Database Sync
+    
     function initSync() {
-        // Initial Fetch
+        
         window.App.DB.fetchQueue().then(queue => {
             updateQueue(queue);
         });
 
-        // Real-time listener
+        
         window.App.DB.listenToQueue(queue => {
             updateQueue(queue);
         });
     }
 
-    // Wait for DB to be available
+    
     if (window.App.DB) {
         initSync();
     } else {
@@ -141,7 +141,7 @@
         });
     }
 
-    // Expose to Global App Namespace
+    
     window.App.Store = {
         state,
         subscribe,

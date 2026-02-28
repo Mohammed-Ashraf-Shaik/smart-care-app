@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
     const { state, subscribe } = window.App.Store;
     const { Landing, Patient, Doctor, Staff, Login } = window.App.Views;
 
@@ -30,16 +30,16 @@
 
         app.appendChild(viewComponent);
 
-        // Re-initialize Lucide icons
+        
         if (window.lucide) {
             window.lucide.createIcons();
         }
     }
 
-    // Initial Render
+    
     render();
 
-    // Subscribe to state changes
+    
     subscribe(() => {
         render();
     });

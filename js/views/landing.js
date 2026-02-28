@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
     window.App.Views.Landing = function () {
         const { setView } = window.App.Store;
 
@@ -179,7 +179,7 @@
             </footer>
         `;
 
-        // Attach Listeners
+        
         container.querySelector('#btn-patient').onclick = () => setView('patient');
 
         container.querySelector('#btn-doctor').onclick = () => {

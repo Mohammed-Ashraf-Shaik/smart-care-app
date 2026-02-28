@@ -1,21 +1,21 @@
-(function () {
+﻿(function () {
     window.App.Views.Patient = function () {
         const { state, setStep, updatePatientData, setView } = window.App.Store;
 
         const container = document.createElement('div');
         container.className = "min-h-screen bg-[#f8fafc] flex flex-col items-center justify-center p-6 animate-fade-in font-sans";
 
-        // --- API HELPERS ---
+        
         const { getCoordinates, getNearbyHospitals } = window.App.API;
 
-        // --- MAP CONTROLLER ---
+        
         let map = null;
         let userMarker = null;
         let hospitalLayer = null;
         let watchId = null;
 
         const initMap = (lat, lng) => {
-            if (map) return; // Already initialized
+            if (map) return; 
 
             console.log("[Map] Initializing...");
             map = L.map('hospital-map').setView([lat, lng], 13);
@@ -29,7 +29,7 @@
         const updateUserMarker = (lat, lng) => {
             if (!map) return;
 
-            // Create or Move User Marker
+            
             if (!userMarker) {
                 const icon = L.divIcon({
                     className: 'bg-blue-600 w-4 h-4 rounded-full border-2 border-white shadow-lg pulse',
@@ -40,14 +40,14 @@
                 userMarker.setLatLng([lat, lng]);
             }
 
-            // Smooth Pan
+            
             map.flyTo([lat, lng], 13);
         };
 
         const renderHospitalMarkers = (hospitals) => {
             if (!map || !hospitalLayer) return;
 
-            hospitalLayer.clearLayers(); // Remove old markers
+            hospitalLayer.clearLayers(); 
             console.log(`[Map] Rendering ${hospitals.length} markers`);
 
             const icon = L.divIcon({
@@ -62,8 +62,7 @@
             });
         };
 
-
-        // --- UI RENDER HELPERS ---
+        
         const renderHospitalList = (hospitals) => {
             const listContainer = container.querySelector('#hospital-list');
             if (!listContainer) return;
@@ -95,11 +94,11 @@
 
                 if (window.lucide) window.lucide.createIcons();
 
-                // Re-attach listeners
+                
                 container.querySelectorAll('.hospital-card').forEach(card => {
                     card.onclick = () => {
                         updatePatientData('hospital', card.dataset.name);
-                        // At this point, country/state/city should already be in state.patientData
+                        
                         setStep(4);
                     };
                 });
@@ -114,8 +113,7 @@
             }
         };
 
-
-        // --- LOGIC: LIVE TRACKING ---
+        
         const startLiveTracking = () => {
             if (!navigator.geolocation) {
                 alert("Geolocation not supported.");
@@ -124,18 +122,18 @@
 
             console.log("[GPS] Starting Watcher...");
 
-            // Initial "Loading" state if needed
+            
 
             watchId = navigator.geolocation.watchPosition(
                 async (pos) => {
                     const { latitude, longitude } = pos.coords;
                     console.log(`[GPS] Update: ${latitude}, ${longitude}`);
 
-                    // If we are on Step 3, update map
+                    
                     if (state.step === 3) {
                         updateUserMarker(latitude, longitude);
                     } else if (state.step === 2) {
-                        // First Lock -> Go to Step 3
+                        
                         const data = await getNearbyHospitals(latitude, longitude);
                         state.tempHospitals = data.results;
                         state.searchRadius = data.radius;
@@ -151,9 +149,9 @@
 
         const calculateFee = (symptoms) => {
             const sym = symptoms.toLowerCase();
-            let min = 150, max = 250; // Default
+            let min = 150, max = 250; 
 
-            // Risk Levels
+            
             const highRisk = ["chest pain", "breathing", "heart", "unconscious", "accident", "stroke", "bleeding"];
             const lowRisk = ["cough", "cold", "headache", "minor", "sore throat", "itchy"];
             const midRisk = ["fever", "vomit", "stomach", "fatigue", "nausea", "pain"];
@@ -167,14 +165,13 @@
             }
 
             const fee = Math.floor(Math.random() * (max - min + 1)) + min;
-            return Math.min(Math.max(fee, 1), 500); // Strict clamp 1-500
+            return Math.min(Math.max(fee, 1), 500); 
         };
 
-
-        // --- VIEW TEMPLATES ---
+        
         let contentHTML = '';
 
-        // Progress UI
+        
         const steps = [1, 2, 3, 4, 5, 6];
         const stepIcons = ['user', 'map-pin', 'search', 'activity', 'credit-card', 'check-circle'];
 
@@ -195,7 +192,7 @@
             </div>
         `;
 
-        // Render Progress and Container Shell
+        
         const backBtn = `
             <button id="btn-back" class="absolute top-8 left-8 flex items-center gap-2 text-slate-400 hover:text-brand-600 font-bold transition-all group">
                 <div class="w-10 h-10 glass-card rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -218,7 +215,7 @@
         `;
         const stepContent = container.querySelector('#step-content');
 
-        // STEP 1: PATIENT DETAILS
+        
         if (state.step === 1) {
             stepContent.innerHTML = `
                 <div class="space-y-8 w-full animate-fade-in">
@@ -285,8 +282,7 @@
             `;
         }
 
-
-        // STEP 2: LOCATION SELECTION
+        
         if (state.step === 2) {
             stepContent.innerHTML = `
                 <div class="space-y-8 w-full animate-fade-in">
@@ -343,8 +339,7 @@
             `;
         }
 
-
-        // STEP 3: MAP & LIST
+        
         if (state.step === 3) {
             stepContent.innerHTML = `
                 <div class="space-y-6 w-full animate-fade-in">
@@ -373,8 +368,7 @@
             `;
         }
 
-
-        // STEP 4: SYMPTOMS
+        
         if (state.step === 4) {
             const quickSymptoms = ["Fever", "Headache", "Cough", "Cold", "Body Pain", "Fatigue", "Nausea"];
 
@@ -412,8 +406,7 @@
                 </div>`;
         }
 
-
-        // STEP 5: QUOTE
+        
         if (state.step === 5) {
             const fee = state.patientData.fee || 0;
             stepContent.innerHTML = `
@@ -466,8 +459,7 @@
                 </div>`;
         }
 
-
-        // STEP 6: CONFIRMATION
+        
         if (state.step === 6) {
             const randomToken = `#${String.fromCharCode(65 + Math.floor(Math.random() * 26))}-${Math.floor(10 + Math.random() * 90)}`;
             const randomWait = Math.floor(5 + Math.random() * 25);
@@ -531,39 +523,36 @@
             `;
         }
 
-
-
-
-        // Event Listeners
+        
         container.querySelector('#btn-back').onclick = () => {
-            // Cleanup map watcher if active
+            
             if (watchId) navigator.geolocation.clearWatch(watchId);
 
             if (state.step === 1) {
-                // If on the very first step, go back to landing page
+                
                 setView('landing');
             } else if (state.step === 6) {
-                // If on the final confirmation step, they should go home, not back
+                
                 setView('landing');
             } else {
-                // Otherwise, go to the previous step
+                
                 setStep(state.step - 1);
             }
         };
 
-        // --- STEP 1 HANDLERS (Details) ---
+        
         if (state.step === 1) {
             container.querySelector('#input-name').oninput = (e) => updatePatientData('name', e.target.value);
             container.querySelector('#input-age').oninput = (e) => updatePatientData('age', e.target.value);
             container.querySelector('#input-gender').onchange = (e) => updatePatientData('gender', e.target.value);
 
-            // Radio buttons for doctorPref
+            
             const prefs = container.querySelectorAll('input[name="doctorPref"]');
             prefs.forEach(p => {
                 p.onchange = () => {
                     updatePatientData('doctorPref', p.value);
 
-                    // Manual UI Update to avoid full re-render
+                    
                     container.querySelectorAll('input[name="doctorPref"]').forEach(input => {
                         const label = input.closest('label');
                         if (input.checked) {
@@ -587,14 +576,14 @@
             };
         }
 
-        // --- STEP 2 HANDLERS (Location) ---
+        
         if (state.step === 2) {
-            // Live Button
+            
             container.querySelector('#btn-live').onclick = async () => {
                 const btn = container.querySelector('#btn-live');
                 const originalContent = btn.innerHTML;
 
-                // Show loading state
+                
                 btn.disabled = true;
                 btn.innerHTML = `
                     <div class="w-14 h-14 bg-blue-500 text-white rounded-full flex items-center justify-center mr-5 shadow-lg shadow-blue-200">
@@ -680,7 +669,7 @@
             };
         }
 
-        // --- STEP 3 HANDLERS (Map) ---
+        
         if (state.step === 3) {
             setTimeout(() => {
                 if (state.userCoords) {
@@ -698,7 +687,7 @@
             };
         }
 
-        // --- OTHER STEPS ---
+        
         if (state.step === 4) {
             container.querySelector('#input-symptoms').oninput = (e) => updatePatientData('symptoms', e.target.value);
             container.querySelector('#btn-next').onclick = () => {

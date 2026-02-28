@@ -1,13 +1,13 @@
-(function () {
+﻿(function () {
     window.App.Views.Staff = function () {
         const { state, setView, getRevenue } = window.App.Store;
 
         const container = document.createElement('div');
         container.className = "min-h-screen bg-slate-50 p-8 animate-fade-in";
 
-        // Stats calc
+        
         const revenue = getRevenue();
-        const patients = 128; // Static mock
+        const patients = 128; 
         const avgWait = "14m";
 
         container.innerHTML = `

@@ -1,17 +1,17 @@
-(function () {
+﻿(function () {
     window.App.Views.Login = () => {
         const { setView, setLogin, setLoggedLocation } = window.App.Store;
         const { fetchCountries, fetchStates, fetchCities } = window.App.API;
 
         const role = window.App.Store.state.auth?.targetRole || 'doctor';
-        const brandColor = role === 'doctor' ? '#2563eb' : '#059669'; // Blue vs Emerald
+        const brandColor = role === 'doctor' ? '#2563eb' : '#059669'; 
         const container = document.createElement('div');
         container.className = 'min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 selection:bg-brand-100 selection:text-brand-900';
         container.style.fontFamily = "'Inter', sans-serif";
 
-        // Internal State
-        let currentStep = 'identifier'; // identifier, password, signup, location, recovery
-        let recoverySubStep = 'hint'; // hint, reset
+        
+        let currentStep = 'identifier'; 
+        let recoverySubStep = 'hint'; 
         let identifier = '';
         let email = '';
         let hospital = '';
@@ -62,7 +62,7 @@
                 </div>
             `;
 
-            // Re-bind Events
+            
             bindEvents();
             lucide.createIcons();
         };
@@ -219,7 +219,7 @@
                     const input = container.querySelector('#input-identifier');
                     if (!input.value) return showError("Email or ID required");
 
-                    // Loading State
+                    
                     btnNext.disabled = true;
                     btnNext.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>`;
                     lucide.createIcons();
@@ -260,7 +260,7 @@
                     if (!input.value) return showError("Password required");
                     password = input.value;
 
-                    // Loading State
+                    
                     btnNext.disabled = true;
                     btnNext.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>`;
                     lucide.createIcons();
@@ -345,7 +345,7 @@
                 const sSel = container.querySelector('#sel-state');
                 const tSel = container.querySelector('#sel-city');
 
-                // Fill Countries
+                
                 fetchCountries().then(list => {
                     const sorted = list.sort((a, b) => a.name.localeCompare(b.name));
                     cSel.innerHTML = '<option disabled selected>Country</option>' + sorted.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
@@ -400,7 +400,7 @@
             }
         };
 
-        // Add Animations to Head
+        
         if (!document.getElementById('auth-animations')) {
             const style = document.createElement('style');
             style.id = 'auth-animations';

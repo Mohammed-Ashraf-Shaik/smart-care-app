@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
     const API_BASE = "https://countriesnow.space/api/v0.1/countries";
 
     const API = {
@@ -6,7 +6,7 @@
             try {
                 const res = await fetch(`${API_BASE}/iso`);
                 const data = await res.json();
-                return data.data; // Array of { name, Iso2, Iso3 }
+                return data.data; 
             } catch (e) {
                 console.error("API Error", e);
                 return [];
@@ -21,7 +21,7 @@
                     body: JSON.stringify({ country: countryName })
                 });
                 const data = await res.json();
-                return data.data.states; // Array of { name, state_code }
+                return data.data.states; 
             } catch (e) {
                 console.error("API Error", e);
                 return [];
@@ -36,7 +36,7 @@
                     body: JSON.stringify({ country: countryName, state: stateName })
                 });
                 const data = await res.json();
-                return data.data; // Array of strings
+                return data.data; 
             } catch (e) {
                 console.error("API Error", e);
                 return [];
@@ -48,11 +48,11 @@
                 const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`);
                 const data = await res.json();
                 if (data && data.length > 0) {
-                    // Return lat/lng AND bounding box
+                    
                     return {
                         lat: parseFloat(data[0].lat),
                         lng: parseFloat(data[0].lon),
-                        bbox: data[0].boundingbox // [minLat, maxLat, minLon, maxLon]
+                        bbox: data[0].boundingbox 
                     };
                 }
                 return null;
@@ -70,7 +70,7 @@
             const fetchOverpass = async (searchRadius) => {
                 try {
                     console.log(`[API] Fetching hospitals with radius: ${searchRadius}m`);
-                    // Comprehensive Query
+                    
                     const query = `
                         [out:json][timeout:25];
                         (
@@ -98,7 +98,7 @@
                 }
             };
 
-            // Recursive Search
+            
             for (const r of radii) {
                 hospitals = await fetchOverpass(r);
                 if (hospitals.length > 0) {
@@ -107,7 +107,7 @@
                 }
             }
 
-            // Deduplicate
+            
             const seen = new Set();
             const uniqueHospitals = hospitals.filter(h => {
                 const key = h.lat.toFixed(4) + ',' + h.lng.toFixed(4);
