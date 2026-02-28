@@ -79,20 +79,22 @@
             transform: translateY(-8px) scale(1.15) rotate(5deg);
         }
 
-        /* High-Speed Running Dash Animations */
+        /* High-Visibility Neon Glow Animations */
         .animate-run-horizontal {
-            stroke-dasharray: 10, 30;
-            animation: runDashH 0.8s linear infinite;
+            stroke-dasharray: 20, 60;
+            animation: runDashH 1.2s linear infinite;
+            filter: drop-shadow(0 0 4px rgba(34, 211, 238, 0.8));
         }
 
         .animate-run-vertical {
-            stroke-dasharray: 10, 30;
-            animation: runDashV 0.8s linear infinite;
+            stroke-dasharray: 20, 60;
+            animation: runDashV 1.2s linear infinite;
+            filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.8));
         }
 
         @keyframes runDashH {
             from {
-                stroke-dashoffset: 40;
+                stroke-dashoffset: 80;
             }
 
             to {
@@ -106,7 +108,7 @@
             }
 
             to {
-                stroke-dashoffset: 40;
+                stroke-dashoffset: 80;
             }
         }
     </style>
