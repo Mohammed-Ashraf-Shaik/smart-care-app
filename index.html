@@ -79,17 +79,32 @@
             transform: translateY(-8px) scale(1.15) rotate(5deg);
         }
 
-        .animate-grid-run {
-            animation: gridRun 20s linear infinite;
+        /* Dual-Axis Hero Animations */
+        .animate-run-horizontal {
+            animation: runHorizontal 8s linear infinite;
         }
 
-        @keyframes gridRun {
+        .animate-run-vertical {
+            animation: runVertical 8s linear infinite;
+        }
+
+        @keyframes runHorizontal {
             0% {
-                transform: translate(0, 0);
+                transform: translateX(0);
             }
 
             100% {
-                transform: translate(40px, 40px);
+                transform: translateX(40px);
+            }
+        }
+
+        @keyframes runVertical {
+            0% {
+                transform: translateY(0);
+            }
+
+            100% {
+                transform: translateY(40px);
             }
         }
     </style>

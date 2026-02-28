@@ -9,14 +9,24 @@
             <!-- Hero Section -->
             <div class="w-full bg-[#002b5c] text-white pt-28 pb-40 px-6 flex flex-col items-center justify-center relative overflow-hidden">
                 <!-- Advanced Background Pattern -->
-                <div class="absolute inset-0 opacity-20">
-                    <svg class="absolute w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                <div class="absolute inset-0 opacity-20 overflow-hidden pointer-events-none">
+                    <!-- Horizontal Lines -->
+                    <svg class="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
                         <defs>
-                            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5"/>
+                            <pattern id="grid-h" width="40" height="40" patternUnits="userSpaceOnUse">
+                                <path d="M 40 0 L 0 0" fill="none" stroke="white" stroke-width="0.5"/>
                             </pattern>
                         </defs>
-                        <rect width="100%" height="100%" fill="url(#grid)" class="animate-grid-run" />
+                        <rect width="110%" height="110%" x="-5%" y="-5%" fill="url(#grid-h)" class="animate-run-horizontal" />
+                    </svg>
+                    <!-- Vertical Lines -->
+                    <svg class="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <pattern id="grid-v" width="40" height="40" patternUnits="userSpaceOnUse">
+                                <path d="M 0 0 L 0 40" fill="none" stroke="white" stroke-width="0.5"/>
+                            </pattern>
+                        </defs>
+                        <rect width="110%" height="110%" x="-5%" y="-5%" fill="url(#grid-v)" class="animate-run-vertical" />
                     </svg>
                 </div>
                 
