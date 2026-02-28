@@ -78,6 +78,20 @@
         .group:hover .math-bounce {
             transform: translateY(-8px) scale(1.15) rotate(5deg);
         }
+
+        .animate-grid-run {
+            animation: gridRun 20s linear infinite;
+        }
+
+        @keyframes gridRun {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            100% {
+                transform: translate(40px, 40px);
+            }
+        }
     </style>
 
     <script>

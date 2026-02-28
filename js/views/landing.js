@@ -16,7 +16,7 @@
                                 <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5"/>
                             </pattern>
                         </defs>
-                        <rect width="100%" height="100%" fill="url(#grid)" />
+                        <rect width="100%" height="100%" fill="url(#grid)" class="animate-grid-run" />
                     </svg>
                 </div>
                 
