@@ -8,25 +8,19 @@
         container.innerHTML = `
             <!-- Hero Section -->
             <div class="w-full bg-[#002b5c] text-white pt-28 pb-40 px-6 flex flex-col items-center justify-center relative overflow-hidden">
-                <!-- Advanced Background Pattern -->
-                <div class="absolute inset-0 opacity-60 overflow-hidden pointer-events-none">
-                    <!-- Horizontal Lines -->
+                <!-- Medical Plus (+) Background Pattern -->
+                <div class="absolute inset-0 opacity-40 overflow-hidden pointer-events-none">
                     <svg class="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
                         <defs>
-                            <pattern id="grid-h" width="40" height="40" patternUnits="userSpaceOnUse">
-                                <path d="M 40 0 L 0 0" fill="none" stroke="#22d3ee" stroke-width="1.2" class="animate-run-horizontal"/>
+                            <pattern id="medical-grid" width="60" height="60" patternUnits="userSpaceOnUse">
+                                <!-- Medical Cross drawing -->
+                                <g class="animate-run-horizontal" stroke-width="1.5">
+                                    <path d="M 30 22 L 30 38" stroke="#22d3ee" />
+                                    <path d="M 22 30 L 38 30" stroke="#22d3ee" />
+                                </g>
                             </pattern>
                         </defs>
-                        <rect width="100%" height="100%" fill="url(#grid-h)" />
-                    </svg>
-                    <!-- Vertical Lines -->
-                    <svg class="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <pattern id="grid-v" width="40" height="40" patternUnits="userSpaceOnUse">
-                                <path d="M 0 0 L 0 40" fill="none" stroke="#3b82f6" stroke-width="1.2" class="animate-run-vertical"/>
-                            </pattern>
-                        </defs>
-                        <rect width="100%" height="100%" fill="url(#grid-v)" />
+                        <rect width="100%" height="100%" fill="url(#medical-grid)" />
                     </svg>
                 </div>
                 
