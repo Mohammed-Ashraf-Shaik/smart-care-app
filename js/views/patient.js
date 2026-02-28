@@ -536,10 +536,19 @@
 
         // Event Listeners
         container.querySelector('#btn-back').onclick = () => {
-            // Cleanup
+            // Cleanup map watcher if active
             if (watchId) navigator.geolocation.clearWatch(watchId);
-            if (state.step === 1) setView('landing');
-            else setStep(state.step - 1);
+
+            if (state.step === 1) {
+                // If on the very first step, go back to landing page
+                setView('landing');
+            } else if (state.step === 6) {
+                // If on the final confirmation step, they should go home, not back
+                setView('landing');
+            } else {
+                // Otherwise, go to the previous step
+                setStep(state.step - 1);
+            }
         };
 
         // --- STEP 1 HANDLERS (Details) ---
