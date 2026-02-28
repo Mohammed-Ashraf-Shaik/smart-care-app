@@ -112,7 +112,7 @@
                                 </div>
                                 <div>
                                     <h3 class="text-3xl font-black tracking-tighter uppercase leading-none text-[#003580]">SmartCare</h3>
-                                    <p class="text-blue-500 font-bold text-[10px] tracking-[0.2em] uppercase mt-1">Health Quality Management</p>
+                                    <p class="text-blue-500 font-bold text-[10px] tracking-[0.2em] uppercase mt-1">Hospital Queue Management</p>
                                 </div>
                             </div>
                             <p class="text-slate-500 text-lg leading-relaxed max-w-md">

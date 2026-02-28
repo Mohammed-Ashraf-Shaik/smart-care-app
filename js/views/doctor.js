@@ -5,14 +5,14 @@
         const container = document.createElement('div');
         container.className = "min-h-screen bg-slate-50 p-8 animate-fade-in";
 
-        const queueRows = state.queue.map(p => {
+        const queueRows = state.queue.map((p, index) => {
             const badgeStyles = p.triage === 'Red' ? 'bg-red-50 text-red-600 border-red-100' :
                 p.triage === 'Yellow' ? 'bg-amber-50 text-amber-600 border-amber-100' : 'bg-emerald-50 text-emerald-600 border-emerald-100';
 
             return `
                 <tr class="border-b border-slate-50 hover:bg-slate-50/50 transition-all group cursor-pointer">
                     <td class="p-6">
-                        <span class="text-xs font-black text-slate-300 group-hover:text-brand-500 transition-colors">#${p.id}</span>
+                        <span class="text-xs font-black text-slate-300 group-hover:text-brand-500 transition-colors">#${index + 1}</span>
                     </td>
                     <td class="p-6">
                         <div class="font-black text-slate-900 tracking-tight group-hover:translate-x-1 transition-transform inline-block text-lg">${p.name}</div>
@@ -35,7 +35,7 @@
 
         const currentPatient = state.queue[0] || null;
         const currentPatientName = currentPatient ? currentPatient.name : "No Active Patient";
-        const currentPatientId = currentPatient ? `#${currentPatient.id}` : "";
+        const currentPatientId = currentPatient ? "#1" : "";
         const currentPatientProblem = currentPatient ? currentPatient.problem : "Awaiting next appointment";
 
         container.innerHTML = `

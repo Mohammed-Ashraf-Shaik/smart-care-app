@@ -493,7 +493,7 @@
                         </div>
                         <div class="glass-card p-6 rounded-3xl text-center border-slate-50">
                             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Position</p>
-                            <p class="text-2xl font-black text-indigo-600">04</p>
+                            <p class="text-2xl font-black text-indigo-600">${String(state.queue.length).padStart(2, '0')}</p>
                         </div>
                     </div>
 

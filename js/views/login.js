@@ -1,262 +1,417 @@
 (function () {
-    window.App.Views.Login = function () {
-        const { state, setView } = window.App.Store;
+    window.App.Views.Login = () => {
+        const { setView, setLogin, setLoggedLocation } = window.App.Store;
         const { fetchCountries, fetchStates, fetchCities } = window.App.API;
 
-        const role = state.auth ? state.auth.targetRole : 'doctor'; // Default
-        const roleName = role === 'doctor' ? 'Doctor' : 'Staff/Admin';
-        const brandColor = role === 'doctor' ? 'text-cyan-600' : 'text-slate-600';
-        const btnColor = role === 'doctor' ? 'bg-cyan-600 hover:bg-cyan-700' : 'bg-slate-700 hover:bg-slate-800';
-
+        const role = window.App.Store.state.auth?.targetRole || 'doctor';
+        const brandColor = role === 'doctor' ? '#2563eb' : '#059669'; // Blue vs Emerald
         const container = document.createElement('div');
-        container.className = "min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 animate-fade-in";
+        container.className = 'min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 selection:bg-brand-100 selection:text-brand-900';
+        container.style.fontFamily = "'Inter', sans-serif";
 
-        container.innerHTML = `
-            <button id="btn-back" class="absolute top-8 left-8 group flex items-center gap-3 text-slate-400 hover:text-brand-600 font-black transition-all">
-                <div class="w-10 h-10 glass-card rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
-                </div>
-                <span class="text-xs tracking-widest uppercase">Go Back</span>
-            </button>
+        // Internal State
+        let currentStep = 'identifier'; // identifier, password, signup, location, recovery
+        let recoverySubStep = 'hint'; // hint, reset
+        let identifier = '';
+        let email = '';
+        let hospital = '';
+        let password = '';
+        let selectedCountry = 'India';
+        let selectedState = '';
+        let selectedCity = '';
 
-            <div class="w-full max-w-xl glass-card p-12 md:p-16 rounded-[3.5rem] shadow-2xl border border-white relative overflow-hidden animate-slide-up">
-                <div class="absolute -right-20 -top-20 w-80 h-80 bg-brand-500/5 rounded-full blur-3xl"></div>
-                <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-cyan-500/5 rounded-full blur-3xl"></div>
-                
-                <div class="relative z-10 space-y-10">
-                    <div class="text-center">
-                        <div class="w-20 h-20 ${role === 'doctor' ? 'bg-cyan-50 text-cyan-600' : 'bg-slate-900 text-white'} rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-xl shadow-slate-200">
-                            <i data-lucide="${role === 'doctor' ? 'stethoscope' : 'shield-check'}" class="w-10 h-10"></i>
-                        </div>
-                        <h2 class="text-4xl font-black text-slate-900 tracking-tighter">Facility Access</h2>
-                        <p class="text-slate-500 mt-3 text-lg font-medium">${roleName} Authentication Portal</p>
+        const renderAuth = () => {
+            container.innerHTML = `
+                <!-- Back to Home -->
+                <button id="btn-back-landing" class="absolute top-8 left-8 group flex items-center gap-3 text-slate-400 hover:text-brand-600 font-black transition-all z-50">
+                    <div class="w-10 h-10 bg-white border border-slate-100 rounded-xl flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
+                        <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                    </div>
+                    <span class="text-[10px] tracking-widest uppercase">Back to Home</span>
+                </button>
+
+                <div class="w-full max-w-[450px] bg-white border border-slate-200 rounded-[2.5rem] shadow-2xl shadow-slate-200/50 p-8 md:p-12 relative overflow-hidden transition-all duration-500 ease-out">
+                    <!-- Progress Bar (Subtle) -->
+                    <div class="absolute top-0 left-0 w-full h-1 bg-slate-100">
+                        <div id="auth-progress" class="h-full bg-brand-600 transition-all duration-700" style="width: ${currentStep === 'identifier' ? '25%' : currentStep === 'password' ? '50%' : currentStep === 'location' ? '75%' : '100%'}"></div>
                     </div>
 
-                    <div class="space-y-6">
-                        <!-- Location Intelligence -->
-                        <div class="glass-card p-1 border-slate-50 rounded-[2.5rem] shadow-sm overflow-hidden">
-                            <div class="p-6 space-y-4">
-                                <div class="group">
-                                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 px-1">Location Details</label>
-                                    <div class="grid grid-cols-1 gap-3">
-                                        <select id="login-country" class="w-full px-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all font-bold appearance-none">
-                                            <option value="">Loading Countries...</option>
-                                        </select>
-                                        <div class="grid grid-cols-2 gap-3">
-                                            <select id="login-state" disabled class="w-full px-4 py-4 bg-slate-100/50 border border-slate-100 rounded-2xl text-slate-300 outline-none transition-all font-bold appearance-none">
-                                                <option value="">State</option>
-                                            </select>
-                                            <select id="login-city" disabled class="w-full px-4 py-4 bg-slate-100/50 border border-slate-100 rounded-2xl text-slate-300 outline-none transition-all font-bold appearance-none">
-                                                <option value="">City</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
+                    <div id="auth-step-container" class="space-y-8 animate-fade-in">
+                        <!-- Brand Identity -->
+                        <div class="flex flex-col items-center gap-4">
+                            <div class="w-16 h-16 bg-white border border-slate-100 rounded-2xl flex items-center justify-center shadow-xl shadow-brand-500/10 group animate-float">
+                                <i data-lucide="heart-pulse" class="w-10 h-10 text-brand-600 transition-transform group-hover:scale-110"></i>
                             </div>
-                            <button id="btn-live" class="w-full bg-slate-900 group hover:bg-brand-600 text-white py-5 rounded-b-[2.5rem] font-black text-xs tracking-widest uppercase transition-all flex items-center justify-center gap-3">
-                                Detect My Facility
-                                <i data-lucide="crosshair" class="w-4 h-4 group-hover:scale-110 transition-transform"></i>
-                            </button>
+                            <h1 class="text-3xl font-black text-slate-800 tracking-tight">SmartCare <span class="text-brand-600">HQMS</span></h1>
                         </div>
 
-                        <div class="relative flex items-center w-full py-2">
-                            <div class="h-px bg-slate-100 w-full"></div>
-                            <span class="px-6 text-[10px] font-black text-slate-300 uppercase tracking-[0.3em]">Credentials</span>
-                            <div class="h-px bg-slate-100 w-full"></div>
+                        ${currentStep === 'identifier' ? renderIdentifierStep() :
+                    currentStep === 'password' ? renderPasswordStep() :
+                        currentStep === 'recovery' ? renderRecoveryStep() :
+                            currentStep === 'signup' ? renderSignupStep() :
+                                currentStep === 'location' ? renderLocationStep() : ''}
+                    </div>
+
+                    <!-- Footer Links -->
+                    <div class="mt-12 flex justify-end items-center text-[10px] font-black uppercase tracking-widest text-slate-400">
+                        <div class="flex gap-4">
+                            <a href="#" class="hover:text-slate-600">Privacy</a>
+                            <a href="#" class="hover:text-slate-600">Terms</a>
                         </div>
+                    </div>
+                </div>
+            `;
 
-                        <!-- Credentials -->
-                        <div class="space-y-4">
-                            <div class="group">
-                                <div class="relative">
-                                    <i data-lucide="hospital" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-brand-500 transition-colors"></i>
-                                    <input id="login-hospital" type="text" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all text-lg font-medium" placeholder="Facility Name or ID">
-                                </div>
-                            </div>
+            // Re-bind Events
+            bindEvents();
+            lucide.createIcons();
+        };
 
-                            <div class="group">
-                                <div class="relative">
-                                    <i data-lucide="mail" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-brand-500 transition-colors"></i>
-                                    <input id="login-email" type="email" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all text-lg font-medium" placeholder="Professional Email">
-                                </div>
-                            </div>
+        const renderIdentifierStep = () => `
+            <div class="space-y-8">
+                <div class="text-center">
+                    <h2 class="text-2xl font-black text-slate-800">Sign in</h2>
+                    <p class="text-slate-500 font-medium mt-1">Use your Professional Account (Doctor/Staff)</p>
+                </div>
 
-                            <div class="group">
-                                <div class="relative">
-                                    <i data-lucide="lock" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-brand-500 transition-colors"></i>
-                                    <input id="login-password" type="password" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all text-lg font-medium" placeholder="Access Password">
-                                </div>
-                            </div>
-                        </div>
+                <div class="space-y-4">
+                    <div class="group relative">
+                        <i data-lucide="mail" class="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-brand-500 transition-colors"></i>
+                        <input id="input-identifier" type="text" value="${identifier}" class="w-full pl-14 pr-4 py-5 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all text-lg font-bold placeholder:text-slate-300" placeholder="Email or Professional ID">
+                    </div>
+                    <div id="error-msg" class="hidden text-rose-500 text-[10px] font-black uppercase tracking-widest bg-rose-50 p-4 rounded-xl border border-rose-100">Invalid identifier</div>
+                </div>
 
-                        <div id="login-error" class="hidden text-rose-500 text-[10px] font-black text-center bg-rose-50 border border-rose-100 py-3 rounded-xl uppercase tracking-widest">
-                            Access Denied: Invalid Credentials
-                        </div>
-
-                        <button id="btn-login" class="w-full bg-brand-600 text-white py-6 rounded-[2rem] font-black text-xl tracking-widest uppercase shadow-2xl shadow-brand-200 transition-all hover:bg-brand-700 active:scale-95 flex items-center justify-center gap-4">
-                            Sign In
-                            <i data-lucide="log-in" class="w-6 h-6"></i>
-                        </button>
+                <div class="flex flex-col gap-6">
+                    <button id="btn-create-account" class="text-brand-600 font-black text-xs uppercase tracking-widest self-start hover:text-brand-700 transition-colors">Create account</button>
+                    <div class="flex justify-end">
+                        <button id="btn-next" class="bg-brand-600 text-white px-10 py-5 rounded-2xl font-black text-sm tracking-widest uppercase shadow-xl shadow-brand-500/30 hover:bg-brand-700 hover:-translate-y-1 transition-all active:scale-95">Next</button>
                     </div>
                 </div>
             </div>
         `;
 
-        // Logic
-        const countrySelect = container.querySelector('#login-country');
-        const stateSelect = container.querySelector('#login-state');
-        const citySelect = container.querySelector('#login-city');
-        const hospitalInput = container.querySelector('#login-hospital');
-        const passInput = container.querySelector('#login-password');
-        const loginBtn = container.querySelector('#btn-login');
-        const errorMsg = container.querySelector('#login-error');
+        const renderPasswordStep = () => `
+            <div class="space-y-8 animate-slide-in-right">
+                <div class="text-center">
+                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-slate-50 border border-slate-100 rounded-full mb-4">
+                        <div class="w-2 h-2 rounded-full bg-brand-500"></div>
+                        <span class="text-xs font-black text-slate-600 uppercase tracking-widest">${identifier}</span>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-800">Welcome back</h2>
+                    <p class="text-slate-500 font-medium mt-1">Enter your credential password</p>
+                </div>
 
-        (async () => {
-            const countries = await fetchCountries();
-            const india = countries.find(c => c.name === "India");
-            const others = countries.filter(c => c.name !== "India").sort((a, b) => a.name.localeCompare(b.name));
-            const sorted = india ? [india, ...others] : others;
+                <div class="space-y-4">
+                    <div class="group relative">
+                        <i data-lucide="lock" class="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-brand-500 transition-colors"></i>
+                        <input id="input-password" type="password" class="w-full pl-14 pr-4 py-5 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all text-lg font-bold placeholder:text-slate-300" placeholder="Password" autofocus>
+                    </div>
+                    <button id="btn-forgot-password" class="text-brand-600 font-black text-[10px] uppercase tracking-widest hover:text-brand-700 transition-colors">Forgot password?</button>
+                    <div id="error-msg" class="hidden text-rose-500 text-[10px] font-black uppercase tracking-widest bg-rose-50 p-4 rounded-xl border border-rose-100">Incorrect password</div>
+                </div>
 
-            countrySelect.innerHTML = `<option value="" disabled selected>Select Country</option>` +
-                sorted.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
-        })();
+                <div class="flex justify-between items-center">
+                    <button id="btn-back-step" class="text-brand-600 font-black text-xs uppercase tracking-widest hover:text-brand-700 transition-colors">Back</button>
+                    <button id="btn-next" class="bg-brand-600 text-white px-10 py-5 rounded-2xl font-black text-sm tracking-widest uppercase shadow-xl shadow-brand-500/30 hover:bg-brand-700 hover:-translate-y-1 transition-all active:scale-95">Sign In</button>
+                </div>
+            </div>
+        `;
 
-        const updateLocationSelectors = async (country, state, city) => {
-            // Update Country
-            countrySelect.value = country;
+        const renderRecoveryStep = () => `
+            <div class="space-y-6 animate-slide-in-right">
+                <div class="text-center">
+                    <h2 class="text-2xl font-black text-slate-800">Account Recovery</h2>
+                    <p class="text-slate-500 font-medium mt-1">${recoverySubStep === 'hint' ? 'Verify your identity' : 'Create new password'}</p>
+                </div>
 
-            // Fetch and Update States
-            stateSelect.innerHTML = `<option>Loading...</option>`;
-            stateSelect.disabled = true;
-            const states = await fetchStates(country);
-            if (states.length) {
-                stateSelect.innerHTML = `<option value="" disabled>Select State</option>` +
-                    states.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
-                stateSelect.value = state;
-                stateSelect.disabled = false;
-                stateSelect.classList.remove('bg-slate-100/50', 'text-slate-300');
-                stateSelect.classList.add('bg-white', 'text-slate-900');
+                <div class="space-y-4">
+                    ${recoverySubStep === 'hint' ? `
+                        <div class="p-5 bg-blue-50 border border-blue-100 rounded-2xl">
+                            <p class="text-blue-900 text-xs font-medium leading-relaxed">Safety Check: Enter the <strong>first 2 letters</strong> of your previous password to continue.</p>
+                        </div>
+                        <input id="input-hint" type="text" maxlength="2" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-xl focus:bg-white outline-none font-bold text-center text-2xl tracking-[0.5em] uppercase" placeholder="XX">
+                    ` : `
+                        <input id="input-new-pass" type="password" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-xl focus:bg-white outline-none font-bold" placeholder="New Password">
+                        <input id="input-confirm-pass" type="password" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-xl focus:bg-white outline-none font-bold" placeholder="Confirm Password">
+                    `}
+                    <div id="error-msg" class="hidden text-rose-500 text-[10px] font-black uppercase tracking-widest bg-rose-50 p-4 rounded-xl border border-rose-100">Verification failed</div>
+                </div>
+
+                <div class="flex justify-between items-center">
+                    <button id="btn-back-pass" class="text-brand-600 font-black text-xs uppercase tracking-widest hover:text-brand-700 transition-colors">Abort</button>
+                    <button id="btn-recover-next" class="bg-brand-600 text-white px-10 py-4 rounded-xl font-black text-sm tracking-widest uppercase shadow-xl hover:bg-brand-700 transition-all">${recoverySubStep === 'hint' ? 'Verify' : 'Reset Password'}</button>
+                </div>
+            </div>
+        `;
+
+        const renderSignupStep = () => `
+            <div class="space-y-6 animate-slide-in-right">
+                <div class="text-center">
+                    <h2 class="text-2xl font-black text-slate-800">Create Account</h2>
+                    <p class="text-slate-500 font-medium mt-1">Join the SmartCare Network</p>
+                </div>
+
+                <div class="space-y-3">
+                    <input id="reg-hospital" type="text" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-xl focus:bg-white focus:border-brand-500 outline-none transition-all font-bold placeholder:text-slate-300" placeholder="Facility Name (e.g., City Hospital)">
+                    <input id="reg-email" type="email" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-xl focus:bg-white focus:border-brand-500 outline-none transition-all font-bold placeholder:text-slate-300" placeholder="Professional Email">
+                    <input id="reg-password" type="password" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-xl focus:bg-white focus:border-brand-500 outline-none transition-all font-bold placeholder:text-slate-300" placeholder="Create Password (Min 8 characters)">
+                    <div id="error-msg" class="hidden text-rose-500 text-[10px] font-black uppercase tracking-widest bg-rose-50 p-4 rounded-xl border border-rose-100">Invalid registration data</div>
+                </div>
+
+                <div class="flex justify-between items-center">
+                    <button id="btn-back-identifier" class="text-brand-600 font-black text-xs uppercase tracking-widest hover:text-brand-700 transition-colors">Sign in instead</button>
+                    <button id="btn-register" class="bg-brand-600 text-white px-10 py-4 rounded-xl font-black text-sm tracking-widest uppercase shadow-xl hover:bg-brand-700 transition-all">Register</button>
+                </div>
+            </div>
+        `;
+
+        const renderLocationStep = () => `
+            <div class="space-y-6 animate-slide-in-right">
+                <div class="text-center">
+                    <h2 class="text-2xl font-black text-slate-800">Session Setup</h2>
+                    <p class="text-slate-500 font-medium mt-1">Confirm login facility location</p>
+                </div>
+
+                <div class="space-y-4">
+                    <button id="btn-live-gps" class="w-full flex items-center p-5 bg-blue-50/50 border border-blue-100 rounded-2xl hover:bg-blue-100 transition-colors group">
+                        <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                            <i data-lucide="map-pin" class="text-blue-600 w-6 h-6"></i>
+                        </div>
+                        <div class="ml-4 text-left">
+                            <h3 class="font-black text-slate-800 text-sm uppercase tracking-wider">Detect GPS</h3>
+                            <p class="text-[10px] text-blue-500 font-black uppercase tracking-widest">Automatic Fetch</p>
+                        </div>
+                    </button>
+
+                    <div class="space-y-3">
+                        <select id="sel-country" class="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-xl font-bold text-slate-800 outline-none focus:border-brand-500"></select>
+                        <div class="grid grid-cols-2 gap-3">
+                            <select id="sel-state" disabled class="px-5 py-4 bg-slate-100/50 border border-slate-100 rounded-xl font-bold text-slate-300 outline-none"></select>
+                            <select id="sel-city" disabled class="px-5 py-4 bg-slate-100/50 border border-slate-100 rounded-xl font-bold text-slate-300 outline-none"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <button id="btn-complete" class="w-full bg-slate-900 text-white py-5 rounded-2xl font-black text-sm tracking-[0.3em] uppercase shadow-2xl hover:bg-black transition-all">Submit & Start Session</button>
+            </div>
+        `;
+
+        const bindEvents = () => {
+            const btnNext = container.querySelector('#btn-next');
+            const btnBackStep = container.querySelector('#btn-back-step');
+            const btnCreate = container.querySelector('#btn-create-account');
+            const btnRegister = container.querySelector('#btn-register');
+            const btnComplete = container.querySelector('#btn-complete');
+            const btnBackLand = container.querySelector('#btn-back-landing');
+
+            if (btnBackLand) btnBackLand.onclick = () => setView('landing');
+
+            if (currentStep === 'identifier') {
+                btnCreate.onclick = () => { currentStep = 'signup'; renderAuth(); };
+                btnNext.onclick = async () => {
+                    const input = container.querySelector('#input-identifier');
+                    if (!input.value) return showError("Email or ID required");
+
+                    // Loading State
+                    btnNext.disabled = true;
+                    btnNext.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>`;
+                    lucide.createIcons();
+
+                    const exists = await window.App.DB.checkEmailExists(input.value);
+
+                    if (exists.success === false && exists.error) {
+                        showError(exists.error);
+                        btnNext.disabled = false;
+                        btnNext.innerHTML = 'Next';
+                        lucide.createIcons();
+                        return;
+                    }
+
+                    if (!exists.success) {
+                        showError("Account not found. Please sign up.");
+                        btnNext.disabled = false;
+                        btnNext.innerHTML = 'Next';
+                        lucide.createIcons();
+                        return;
+                    }
+
+                    identifier = input.value;
+                    currentStep = 'password';
+                    renderAuth();
+                };
             }
 
-            // Fetch and Update Cities
-            citySelect.innerHTML = `<option>Loading...</option>`;
-            citySelect.disabled = true;
-            const cities = await fetchCities(country, state);
-            if (cities.length) {
-                citySelect.innerHTML = `<option value="" disabled>Select City</option>` +
-                    cities.map(c => `<option value="${c}">${c}</option>`).join('');
-                citySelect.value = city;
-                citySelect.disabled = false;
-                citySelect.classList.remove('bg-slate-100/50', 'text-slate-300');
-                citySelect.classList.add('bg-white', 'text-slate-900');
+            if (currentStep === 'password') {
+                btnBackStep.onclick = () => { currentStep = 'identifier'; renderAuth(); };
+                container.querySelector('#btn-forgot-password').onclick = () => {
+                    currentStep = 'recovery';
+                    recoverySubStep = 'hint';
+                    renderAuth();
+                };
+                btnNext.onclick = async () => {
+                    const input = container.querySelector('#input-password');
+                    if (!input.value) return showError("Password required");
+                    password = input.value;
+
+                    // Loading State
+                    btnNext.disabled = true;
+                    btnNext.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>`;
+                    lucide.createIcons();
+
+                    const res = await window.App.DB.checkCredentials('', identifier, password, role);
+                    if (res.success) {
+                        hospital = res.user.hospital;
+                        email = res.user.email;
+                        currentStep = 'location';
+                        renderAuth();
+                    } else {
+                        showError(res.error);
+                        btnNext.disabled = false;
+                        btnNext.innerHTML = 'Sign In';
+                        lucide.createIcons();
+                    }
+                };
+            }
+
+            if (currentStep === 'recovery') {
+                container.querySelector('#btn-back-pass').onclick = () => { currentStep = 'password'; renderAuth(); };
+                const btnRecNext = container.querySelector('#btn-recover-next');
+
+                btnRecNext.onclick = async () => {
+                    if (recoverySubStep === 'hint') {
+                        const hint = container.querySelector('#input-hint').value;
+                        if (hint.length < 2) return showError("Enter 2 letters");
+
+                        btnRecNext.disabled = true;
+                        const res = await window.App.DB.verifyPasswordHint(identifier, hint);
+                        if (res.success) {
+                            recoverySubStep = 'reset';
+                            renderAuth();
+                        } else {
+                            showError(res.error);
+                            btnRecNext.disabled = false;
+                        }
+                    } else {
+                        const n1 = container.querySelector('#input-new-pass').value;
+                        const n2 = container.querySelector('#input-confirm-pass').value;
+
+                        if (!n1 || n1.length < 8) return showError("Min 8 characters");
+                        if (n1 !== n2) return showError("Passwords match error");
+
+                        btnRecNext.disabled = true;
+                        const res = await window.App.DB.resetPassword(identifier, n1);
+                        if (res.success) {
+                            alert("Password updated. Please sign in.");
+                            currentStep = 'password';
+                            renderAuth();
+                        } else {
+                            showError(res.error);
+                            btnRecNext.disabled = false;
+                        }
+                    }
+                };
+            }
+
+            if (currentStep === 'signup') {
+                container.querySelector('#btn-back-identifier').onclick = () => { currentStep = 'identifier'; renderAuth(); };
+                btnRegister.onclick = async () => {
+                    const h = container.querySelector('#reg-hospital').value;
+                    const e = container.querySelector('#reg-email').value;
+                    const p = container.querySelector('#reg-password').value;
+
+                    if (!h || !e || !p) return showError("Fill all fields");
+                    if (p.length < 8) return showError("Password too short");
+
+                    const res = await window.App.DB.registerProfessional({ hospital: h, email: e, password: p, role: role });
+                    if (res.success) {
+                        alert("Account created successfully. Please sign in.");
+                        currentStep = 'identifier';
+                        renderAuth();
+                    } else {
+                        showError(res.error);
+                    }
+                };
+            }
+
+            if (currentStep === 'location') {
+                const cSel = container.querySelector('#sel-country');
+                const sSel = container.querySelector('#sel-state');
+                const tSel = container.querySelector('#sel-city');
+
+                // Fill Countries
+                fetchCountries().then(list => {
+                    const sorted = list.sort((a, b) => a.name.localeCompare(b.name));
+                    cSel.innerHTML = '<option disabled selected>Country</option>' + sorted.map(c => `<option value="${c.name}">${c.name}</option>`).join('');
+                });
+
+                cSel.onchange = async () => {
+                    sSel.disabled = true; sSel.innerHTML = '<option>Loading...</option>';
+                    const states = await fetchStates(cSel.value);
+                    sSel.innerHTML = '<option disabled selected>State</option>' + states.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+                    sSel.disabled = false;
+                    sSel.classList.remove('bg-slate-100/50', 'text-slate-300');
+                    sSel.classList.add('bg-white', 'text-slate-900');
+                };
+
+                sSel.onchange = async () => {
+                    tSel.disabled = true; tSel.innerHTML = '<option>Loading...</option>';
+                    const cities = await fetchCities(cSel.value, sSel.value);
+                    tSel.innerHTML = '<option disabled selected>City</option>' + cities.map(c => `<option value="${c}">${c}</option>`).join('');
+                    tSel.disabled = false;
+                    tSel.classList.remove('bg-slate-100/50', 'text-slate-300');
+                    tSel.classList.add('bg-white', 'text-slate-900');
+                };
+
+                container.querySelector('#btn-live-gps').onclick = () => {
+                    navigator.geolocation.getCurrentPosition(async (pos) => {
+                        const loc = await window.App.API.reverseGeocode(pos.coords.latitude, pos.coords.longitude);
+                        if (loc) {
+                            cSel.value = loc.country;
+                            await cSel.onchange();
+                            sSel.value = loc.state;
+                            await sSel.onchange();
+                            tSel.value = loc.city;
+                        }
+                    });
+                };
+
+                btnComplete.onclick = () => {
+                    if (!cSel.value || !sSel.value || !tSel.value) return alert("Please confirm location");
+                    setLogin(email);
+                    setLoggedLocation(cSel.value, sSel.value, tSel.value, hospital);
+                    setView(role);
+                };
             }
         };
 
-        container.querySelector('#btn-live').onclick = () => {
-            const btn = container.querySelector('#btn-live');
-            const originalHTML = btn.innerHTML;
+        const showError = (msg) => {
+            const err = container.querySelector('#error-msg');
+            if (err) {
+                err.textContent = msg;
+                err.classList.remove('hidden');
+                err.classList.add('animate-shake');
+            }
+        };
 
-            btn.disabled = true;
-            btn.innerHTML = `
-                <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mr-4 shadow-sm">
-                    <i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i>
-                </div>
-                <div class="text-left">
-                    <h3 class="font-bold text-slate-800">Acquiring...</h3>
-                    <p class="text-slate-500 text-xs">Finding your GPS position</p>
-                </div>
+        // Add Animations to Head
+        if (!document.getElementById('auth-animations')) {
+            const style = document.createElement('style');
+            style.id = 'auth-animations';
+            style.textContent = `
+                @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+                .animate-float { animation: float 6s ease-in-out infinite; }
+                @keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+                .animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
+                @keyframes slide-in-right { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+                .animate-slide-in-right { animation: slide-in-right 0.4s ease-out forwards; }
+                @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+                .animate-shake { animation: shake 0.2s ease-in-out 3; }
             `;
-            lucide.createIcons();
+            document.head.appendChild(style);
+        }
 
-            navigator.geolocation.getCurrentPosition(async (pos) => {
-                const { latitude, longitude } = pos.coords;
-                const loc = await window.App.API.reverseGeocode(latitude, longitude);
-
-                if (loc) {
-                    await updateLocationSelectors(loc.country, loc.state, loc.city);
-                } else {
-                    alert("Could not determine your exact location. Please select manually.");
-                }
-
-                btn.disabled = false;
-                btn.innerHTML = originalHTML;
-                lucide.createIcons();
-            }, (err) => {
-                alert("GPS error: " + err.message);
-                btn.disabled = false;
-                btn.innerHTML = originalHTML;
-                lucide.createIcons();
-            }, { enableHighAccuracy: true });
-        };
-
-        countrySelect.onchange = async () => {
-            stateSelect.innerHTML = `<option>Loading...</option>`;
-            stateSelect.disabled = true;
-            const states = await fetchStates(countrySelect.value);
-            if (states.length) {
-                stateSelect.innerHTML = `<option value="" disabled selected>Select State</option>` +
-                    states.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
-                stateSelect.disabled = false;
-                stateSelect.classList.remove('bg-slate-100', 'text-slate-400');
-                stateSelect.classList.add('bg-white', 'text-slate-900');
-            } else {
-                stateSelect.innerHTML = `<option>No States</option>`;
-            }
-        };
-
-        stateSelect.onchange = async () => {
-            citySelect.innerHTML = `<option>Loading...</option>`;
-            citySelect.disabled = true;
-            const cities = await fetchCities(countrySelect.value, stateSelect.value);
-            if (cities.length) {
-                citySelect.innerHTML = `<option value="" disabled selected>Select City</option>` +
-                    cities.map(c => `<option value="${c}">${c}</option>`).join('');
-                citySelect.disabled = false;
-                citySelect.classList.remove('bg-slate-100', 'text-slate-400');
-                citySelect.classList.add('bg-white', 'text-slate-900');
-            } else {
-                citySelect.innerHTML = `<option>No Cities</option>`;
-            }
-        };
-
-        loginBtn.onclick = async () => {
-            // Basic Validation
-            if (!countrySelect.value || !hospitalInput.value || !emailInput.value || !passInput.value) {
-                errorMsg.textContent = "Please fill all fields";
-                errorMsg.classList.remove('hidden');
-                return;
-            }
-
-            // Database Credential Check
-            loginBtn.disabled = true;
-            loginBtn.innerHTML = `<i data-lucide="loader-2" class="animate-spin w-6 h-6 mr-2"></i> Verifying...`;
-            lucide.createIcons();
-
-            const result = await window.App.DB.checkCredentials(hospitalInput.value, emailInput.value, passInput.value, role);
-
-            if (result.success) {
-                // Set authenticated state
-                window.App.Store.setLogin(emailInput.value);
-
-                // Save hospital for filtering (Country, State, City, Hospital)
-                window.App.Store.setLoggedLocation(
-                    countrySelect.value,
-                    stateSelect.value,
-                    citySelect.value,
-                    hospitalInput.value
-                );
-                setView(role);
-            } else {
-                errorMsg.textContent = result.error;
-                errorMsg.classList.remove('hidden');
-                loginBtn.disabled = false;
-                loginBtn.innerHTML = `Sign In <i data-lucide="log-in" class="w-6 h-6 ml-2"></i>`;
-                lucide.createIcons();
-            }
-        };
-
-        container.querySelector('#btn-back').onclick = () => setView('landing');
-
+        renderAuth();
         return container;
     };
 })();

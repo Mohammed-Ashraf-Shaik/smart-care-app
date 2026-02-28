@@ -1,38 +1,101 @@
 (function () {
-    // Supabase Configuration - Placeholder
-    // REPLACE these values with your actual Supabase project URL and Anon Key
+    // Supabase Configuration
     const SUPABASE_URL = "https://lwltivsudapbpobfdwwp.supabase.co";
     const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3bHRpdnN1ZGFwYnBvYmZkd3dwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE2Njk3MTQsImV4cCI6MjA4NzI0NTcxNH0.0ZoDTM79VfdHIhF0sJDvOdH3lu1oBm3uy4Cxykac3xA";
 
     // Initialize Supabase Client
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Mock Professional Database (Simulating a protected table)
-    const DOCTORS_DB = [
-        { email: "doctor@smartcare.com", hospital: "City Hospital", password: "doctor123", role: "doctor" },
-        { email: "admin@smartcare.com", hospital: "City Hospital", password: "admin123", role: "staff" },
-        { email: "apollo@smartcare.com", hospital: "Apollo Clinic", password: "doctor123", role: "doctor" },
-        { email: "global@smartcare.com", hospital: "Global Health", password: "doctor123", role: "doctor" }
-    ];
-
     const DB = {
         /**
-         * Verify credentials against the professional database
+         * Check if a professional email exists in Supabase
+         */
+        checkEmailExists: async (email) => {
+            const { data, error } = await supabase
+                .from('professionals')
+                .select('email')
+                .eq('email', email.toLowerCase())
+                .maybeSingle();
+
+            if (error) return { success: false, error: error.message };
+            return { success: !!data };
+        },
+
+        /**
+         * Verify credentials against the Supabase professionals table
          */
         checkCredentials: async (hospital, email, password, role) => {
-            // In a real app, this would be a supabase.from('professionals').select()...
-            const user = DOCTORS_DB.find(u =>
-                u.hospital.toLowerCase() === hospital.toLowerCase() &&
-                u.email.toLowerCase() === email.toLowerCase() &&
-                u.password === password &&
-                u.role === role
-            );
+            const { data, error } = await supabase
+                .from('professionals')
+                .select('*')
+                .eq('email', email.toLowerCase())
+                .eq('password', password)
+                .eq('role', role)
+                .single();
+
+            if (error || !data) {
+                return {
+                    success: false,
+                    error: "Invalid credentials. Please check your email, password, and portal role."
+                };
+            }
 
             return {
-                success: !!user,
-                user: user,
-                error: user ? null : "Invalid credentials. Please check your hospital name, email, and password."
+                success: true,
+                user: data
             };
+        },
+
+        /**
+         * Register a new professional in Supabase
+         */
+        registerProfessional: async (profData) => {
+            const { data, error } = await supabase
+                .from('professionals')
+                .insert([{
+                    email: profData.email.toLowerCase(),
+                    hospital: profData.hospital,
+                    password: profData.password,
+                    role: profData.role
+                }])
+                .select();
+
+            if (error) {
+                if (error.code === '23505') return { success: false, error: "An account with this email already exists." };
+                return { success: false, error: error.message };
+            }
+
+            return { success: true, user: data[0] };
+        },
+
+        /**
+         * Verify recovery hint (First 2 letters of previous password)
+         */
+        verifyPasswordHint: async (email, hint) => {
+            const { data, error } = await supabase
+                .from('professionals')
+                .select('password')
+                .eq('email', email.toLowerCase())
+                .single();
+
+            if (error || !data) return { success: false, error: "Identifier not found." };
+
+            const firstTwo = data.password.substring(0, 2);
+            if (firstTwo === hint) return { success: true };
+            return { success: false, error: "Verification hint incorrect." };
+        },
+
+        /**
+         * Update professional password
+         */
+        resetPassword: async (email, newPassword) => {
+            const { error } = await supabase
+                .from('professionals')
+                .update({ password: newPassword })
+                .eq('email', email.toLowerCase());
+
+            if (error) return { success: false, error: error.message };
+            return { success: true };
         },
 
         /**
@@ -53,7 +116,6 @@
 
         /**
          * Listen for real-time updates to the patient queue
-         * @param {Function} onUpdate - Function to call when queue changes
          */
         listenToQueue: (onUpdate) => {
             const channel = supabase.channel('public:queue')
@@ -63,7 +125,6 @@
                     table: 'queue'
                 }, async (payload) => {
                     console.log('Change received!', payload);
-                    // Fetch full queue to maintain consistency and order
                     const queue = await DB.fetchQueue();
                     onUpdate(queue);
                 })
@@ -76,11 +137,9 @@
 
         /**
          * Add a patient to the queue
-         * @param {Object} patientData - The patient data to store
          */
         addPatient: async (patientData) => {
             try {
-                // Prepare data for storage
                 const data = {
                     name: patientData.name,
                     age: parseInt(patientData.age),
@@ -102,29 +161,16 @@
                     .insert([data])
                     .select();
 
-                if (error) {
-                    console.error("Supabase Insert Error Detail:", error);
-                    if (error.code === "42703") {
-                        throw new Error("Missing database columns (country/state/city). Please run the SQL setup script in your Supabase dashboard.");
-                    }
-                    throw error;
-                }
-                console.log("Patient added:", insertedData);
+                if (error) throw error;
                 return insertedData[0].id;
             } catch (e) {
                 console.error("Error adding patient: ", e);
-                // Enhance error message for the UI
-                if (e.message.includes("42703") || e.message.includes("Missing database columns")) {
-                    throw new Error("Database update required. Please check the implementation plan for the SQL script to add Country, State, and City columns.");
-                }
-                throw e; // Rethrow to be caught by the UI
+                throw e;
             }
         },
 
         /**
          * Update an existing patient in the queue
-         * @param {string|number} id - Record ID
-         * @param {Object} updates - Data to update
          */
         updatePatient: async (id, updates) => {
             try {
@@ -141,7 +187,6 @@
 
         /**
          * Remove a patient from the queue
-         * @param {string|number} id - Record ID
          */
         removePatient: async (id) => {
             try {
