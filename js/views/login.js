@@ -76,6 +76,13 @@
 
                             <div class="group">
                                 <div class="relative">
+                                    <i data-lucide="mail" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-brand-500 transition-colors"></i>
+                                    <input id="login-email" type="email" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all text-lg font-medium" placeholder="Professional Email">
+                                </div>
+                            </div>
+
+                            <div class="group">
+                                <div class="relative">
                                     <i data-lucide="lock" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-brand-500 transition-colors"></i>
                                     <input id="login-password" type="password" class="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:bg-white focus:ring-4 focus:ring-brand-500/10 focus:border-brand-500 outline-none transition-all text-lg font-medium" placeholder="Access Password">
                                 </div>
@@ -214,7 +221,7 @@
 
         loginBtn.onclick = async () => {
             // Basic Validation
-            if (!countrySelect.value || !hospitalInput.value || !passInput.value) {
+            if (!countrySelect.value || !hospitalInput.value || !emailInput.value || !passInput.value) {
                 errorMsg.textContent = "Please fill all fields";
                 errorMsg.classList.remove('hidden');
                 return;
@@ -225,9 +232,12 @@
             loginBtn.innerHTML = `<i data-lucide="loader-2" class="animate-spin w-6 h-6 mr-2"></i> Verifying...`;
             lucide.createIcons();
 
-            const result = await window.App.DB.checkCredentials(hospitalInput.value, passInput.value, role);
+            const result = await window.App.DB.checkCredentials(hospitalInput.value, emailInput.value, passInput.value, role);
 
             if (result.success) {
+                // Set authenticated state
+                window.App.Store.setLogin(emailInput.value);
+
                 // Save hospital for filtering (Country, State, City, Hospital)
                 window.App.Store.setLoggedLocation(
                     countrySelect.value,

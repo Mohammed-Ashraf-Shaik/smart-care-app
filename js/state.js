@@ -18,7 +18,9 @@
         loggedHospital: '', // Track which hospital the professional belongs to
         loggedCountry: '',
         loggedState: '',
-        loggedCity: ''
+        loggedCity: '',
+        isLogged: false,
+        loggedEmail: ''
     };
 
     const listeners = [];
@@ -34,6 +36,14 @@
 
     // Actions
     function setView(newView) {
+        // Auth Guard
+        if ((newView === 'doctor' || newView === 'staff') && !state.isLogged) {
+            setAuthTarget(newView); // Save intended role
+            state.view = 'login';
+            notify();
+            return;
+        }
+
         state.view = newView;
         if (newView === 'landing') {
             state.step = 1;
@@ -42,10 +52,7 @@
                 name: '', age: '', gender: '', doctorPref: '', area: '', symptoms: '', hospital: '',
                 country: '', state: '', city: ''
             };
-            state.loggedHospital = '';
-            state.loggedCountry = '';
-            state.loggedState = '';
-            state.loggedCity = '';
+            // Note: We don't clear professional session here unless it's a "Logout"
         }
         notify();
     }
@@ -95,6 +102,19 @@
         updateQueue(fullQueue);
     }
 
+    function setLogin(email) {
+        state.isLogged = true;
+        state.loggedEmail = email;
+        notify();
+    }
+
+    function logout() {
+        state.isLogged = false;
+        state.loggedEmail = '';
+        state.view = 'landing';
+        notify();
+    }
+
     function getRevenue() {
         return state.queue.reduce((acc, curr) => acc + (curr.fee || 0), 0);
     }
@@ -130,6 +150,8 @@
         setAuthTarget,
         updatePatientData,
         setLoggedLocation,
+        setLogin,
+        logout,
         getRevenue
     };
 })();
