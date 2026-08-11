@@ -1,7 +1,47 @@
 ﻿(function () {
     
-    const SUPABASE_URL = "https://lwltivsudapbpobfdwwp.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx3bHRpdnN1ZGFwYnBvYmZkd3dwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE2Njk3MTQsImV4cCI6MjA4NzI0NTcxNH0.0ZoDTM79VfdHIhF0sJDvOdH3lu1oBm3uy4Cxykac3xA";
+    const config = window.App?.Config || {};
+    const supabaseEnabled = config.supabaseEnabled === true && !!config.supabaseUrl && !!config.supabaseAnonKey && !!window.supabase;
+
+    if (!supabaseEnabled) {
+        const demoQueue = [];
+        const demoUsers = {
+            'hospital@smartcare.demo': { email: 'hospital@smartcare.demo', password: 'demo1234', role: 'doctor', hospital: 'SmartCare Community Hospital', country: 'India', state: 'Telangana', city: 'Hyderabad' },
+            'admin@smartcare.demo': { email: 'admin@smartcare.demo', password: 'demo1234', role: 'staff', hospital: 'SmartCare Operations Centre', country: 'India', state: 'Telangana', city: 'Hyderabad' }
+        };
+
+        window.App.DB = {
+            checkEmailExists: async email => ({ success: !!demoUsers[String(email).toLowerCase()] }),
+            checkCredentials: async (hospital, email, password, role) => {
+                const user = demoUsers[String(email).toLowerCase()];
+                return user && user.password === password && user.role === role
+                    ? { success: true, user: { ...user, hospital: hospital || user.hospital } }
+                    : { success: false, error: 'Demo mode: use one of the supplied demo accounts.' };
+            },
+            registerProfessional: async profData => ({ success: true, user: { ...profData, email: profData.email.toLowerCase() } }),
+            verifyPasswordHint: async () => ({ success: false, error: 'Password recovery is unavailable in local demo mode.' }),
+            resetPassword: async () => ({ success: false, error: 'Password recovery is unavailable in local demo mode.' }),
+            fetchQueue: async () => [...demoQueue],
+            listenToQueue: () => () => {},
+            addPatient: async patientData => {
+                const id = `SC-${Date.now().toString(36).toUpperCase()}`;
+                demoQueue.push({ id, ...patientData, created_at: new Date().toISOString(), status: 'waiting' });
+                return id;
+            },
+            updatePatient: async (id, updates) => {
+                const record = demoQueue.find(item => item.id === id);
+                if (record) Object.assign(record, updates);
+            },
+            removePatient: async id => {
+                const index = demoQueue.findIndex(item => item.id === id);
+                if (index >= 0) demoQueue.splice(index, 1);
+            }
+        };
+        return;
+    }
+
+    const SUPABASE_URL = config.supabaseUrl;
+    const SUPABASE_KEY = config.supabaseAnonKey;
 
     
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
