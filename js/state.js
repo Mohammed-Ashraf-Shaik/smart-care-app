@@ -1,6 +1,7 @@
 (function () {
     const routeMap = { landing: '/', patientDashboard: '/dashboard/patient', patient: '/apply', login: '/login', doctor: '/dashboard/doctor', queue: '/dashboard/queue', staff: '/dashboard/admin', analytics: '/dashboard/analytics', about: '/about', terms: '/terms', privacy: '/privacy', notFound: '/404' };
     const pathMap = { '/': 'landing', '/apply': 'patient', '/login': 'login', '/dashboard/patient': 'patientDashboard', '/dashboard/doctor': 'doctor', '/dashboard/hospital': 'doctor', '/dashboard/queue': 'queue', '/dashboard/admin': 'staff', '/dashboard/analytics': 'analytics', '/about': 'about', '/terms': 'terms', '/privacy': 'privacy', '/404': 'notFound' };
+    const basePath = window.SMARTCARE_BASE_PATH || '';
     const draftKey = 'smartcare.patientDraft';
     const sessionKey = 'smartcare.session';
     const emptyPatientData = () => ({ name: '', age: '', gender: '', doctorPref: '', area: '', symptoms: '', hospital: '', country: '', state: '', city: '' });
@@ -21,7 +22,14 @@
 
     function subscribe(callback) { listeners.push(callback); }
     function notify() { listeners.forEach(callback => callback(state)); }
-    function viewForPath(pathname) { return pathMap[pathname] || 'notFound'; }
+    function stripBasePath(pathname) { if (basePath && (pathname === basePath || pathname.startsWith(`${basePath}/`))) return pathname.slice(basePath.length) || '/'; return pathname || '/'; }
+    function withBasePath(pathname) { const logicalPath = stripBasePath(pathname); return `${basePath}${logicalPath === '/' ? '/' : logicalPath}`; }
+    function hrefFor(path) {
+        const url = new URL(path, `${window.location.origin}${basePath}/`);
+        url.pathname = withBasePath(url.pathname);
+        return `${url.pathname}${url.search}${url.hash}`;
+    }
+    function viewForPath(pathname) { return pathMap[stripBasePath(pathname)] || 'notFound'; }
     function routeForView(view) { return routeMap[view] || '/'; }
     function requiredRole(view) { return view === 'patientDashboard' ? ['patient'] : ['doctor', 'queue'].includes(view) ? ['doctor', 'staff'] : view === 'analytics' ? ['doctor', 'staff'] : view === 'staff' ? ['staff'] : ''; }
     function roleAllowed(required, actual) { return !required || required.includes(actual); }
@@ -39,17 +47,17 @@
         state.isLogged = true; state.loggedEmail = session.email || ''; state.loggedRole = session.role || 'patient'; state.loggedHospital = session.hospital || ''; state.loggedCountry = session.country || ''; state.loggedState = session.state || ''; state.loggedCity = session.city || ''; state.sessionExpiresAt = session.expiresAt;
     }
     function syncRoute(replace = false, shouldNotify = true) {
-        const pathname = window.location.pathname || '/';
+        const pathname = stripBasePath(window.location.pathname || '/');
         let view = viewForPath(pathname);
         const neededRole = requiredRole(view);
         if (neededRole && !state.isLogged) {
             setAuthTarget(neededRole[0]);
-            const loginPath = `/login?role=${state.auth.targetRole}`;
+            const loginPath = hrefFor(`/login?role=${state.auth.targetRole}`);
             window.history.replaceState({}, '', loginPath);
             view = 'login'; state.route = '/login';
         } else if (neededRole && state.loggedRole && !roleAllowed(neededRole, state.loggedRole)) {
             setAuthTarget(neededRole[0]);
-            window.history.replaceState({}, '', `/login?role=${neededRole[0]}`);
+            window.history.replaceState({}, '', hrefFor(`/login?role=${neededRole[0]}`));
             view = 'login'; state.route = '/login';
         } else state.route = pathname;
         state.view = view;
@@ -59,12 +67,13 @@
         if (shouldNotify) notify();
     }
     function navigate(path, replace = false) {
-        const url = new URL(path, window.location.origin);
+        const url = new URL(path, `${window.location.origin}${basePath}/`);
         const view = viewForPath(url.pathname);
         const neededRole = requiredRole(view);
-        if (neededRole && !state.isLogged) { setAuthTarget(neededRole[0]); url.pathname = '/login'; url.searchParams.set('role', neededRole[0]); }
-        else if (neededRole && state.loggedRole && !roleAllowed(neededRole, state.loggedRole)) { setAuthTarget(neededRole[0]); url.pathname = '/login'; url.searchParams.set('role', neededRole[0]); }
-        window.history[replace ? 'replaceState' : 'pushState']({}, '', url.pathname + url.search);
+        if (neededRole && !state.isLogged) { setAuthTarget(neededRole[0]); url.pathname = withBasePath('/login'); url.searchParams.set('role', neededRole[0]); }
+        else if (neededRole && state.loggedRole && !roleAllowed(neededRole, state.loggedRole)) { setAuthTarget(neededRole[0]); url.pathname = withBasePath('/login'); url.searchParams.set('role', neededRole[0]); }
+        else url.pathname = withBasePath(url.pathname);
+        window.history[replace ? 'replaceState' : 'pushState']({}, '', url.pathname + url.search + url.hash);
         syncRoute(false, false);
         if (view === 'landing') resetPatient();
         notify();
@@ -86,5 +95,5 @@
     syncRoute(true, false);
     window.setInterval(() => { if (state.isLogged && state.sessionExpiresAt && state.sessionExpiresAt <= Date.now()) logout(); }, 60000);
     if (window.App.DB) initSync(); else window.addEventListener('load', () => { if (window.App.DB) initSync(); });
-    window.App.Store = { state, subscribe, setView, navigate, syncRoute, setStep, setAuthTarget, updatePatientData, updateQueue, setLoggedLocation, setLogin, recordPatientVisit, logout, getRevenue, persistDraft };
+    window.App.Store = { state, subscribe, setView, navigate, syncRoute, setStep, setAuthTarget, updatePatientData, updateQueue, setLoggedLocation, setLogin, recordPatientVisit, logout, getRevenue, persistDraft, hrefFor };
 })();
