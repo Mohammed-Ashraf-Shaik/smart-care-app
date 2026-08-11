@@ -1,197 +1,33 @@
-﻿(function () {
+(function () {
+    const icon = (name, size = 18) => `<i data-lucide="${name}" width="${size}" height="${size}"></i>`;
     window.App.Views.Landing = function () {
-        const { setView } = window.App.Store;
-
+        const { setView, setAuthTarget } = window.App.Store;
         const container = document.createElement('div');
-        container.className = "min-h-screen flex flex-col animate-fade-in font-sans";
-
+        container.className = 'app-shell';
         container.innerHTML = `
-            <!-- Hero Section -->
-            <div class="w-full bg-[#002b5c] text-white pt-28 pb-40 px-6 flex flex-col items-center justify-center relative overflow-hidden">
-                <!-- Medical Plus (+) Background Pattern -->
-                <div class="absolute inset-0 opacity-40 overflow-hidden pointer-events-none">
-                    <svg class="absolute inset-0 w-full h-full" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                            <pattern id="medical-grid" width="60" height="60" patternUnits="userSpaceOnUse">
-                                <!-- Medical Cross (Static Grid + Internal Flow) -->
-                                <g stroke-width="1.8" class="animate-medical-pulse">
-                                    <path d="M 30 22 L 30 38" stroke="#22d3ee" class="animate-run-dash-plus" />
-                                    <path d="M 22 30 L 38 30" stroke="#22d3ee" class="animate-run-dash-plus" />
-                                </g>
-                            </pattern>
-                        </defs>
-                        <rect width="100%" height="100%" fill="url(#medical-grid)" />
-                    </svg>
-                </div>
-                
-                <!-- Floating Decorative Elements -->
-                <div class="absolute top-20 left-20 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl animate-float"></div>
-                <div class="absolute bottom-20 right-20 w-48 h-48 bg-indigo-500/20 rounded-full blur-3xl animate-float" style="animation-delay: -2s"></div>
-
-                <!-- Logo Box -->
-                <div class="mb-10 relative z-10 animate-slide-up">
-                    <div class="w-24 h-24 bg-white/10 backdrop-blur-sm rounded-3xl flex items-center justify-center shadow-2xl border border-white/20">
-                        <i data-lucide="heart" class="w-12 h-12 text-white fill-current"></i>
-                    </div>
-                </div>
-
-                <!-- Hero Text -->
-                <h1 class="text-6xl md:text-8xl font-black mb-6 tracking-tight text-center relative z-10 animate-slide-up" style="animation-delay: 0.1s">
-                    Smart<span class="text-blue-400">Care</span>
-                </h1>
-                <p class="text-xl md:text-3xl text-blue-100/80 font-medium mb-16 relative z-10 max-w-2xl text-center leading-relaxed animate-slide-up" style="animation-delay: 0.2s">
-                    Experience the future of hospital queue management with intelligent infrastructure.
-                </p>
-
-                <!-- Micro-Features -->
-                <div class="flex flex-wrap justify-center gap-6 md:gap-12 text-xs font-bold tracking-[0.2em] uppercase text-blue-200/60 relative z-10 animate-slide-up" style="animation-delay: 0.3s">
-                    <div class="flex items-center gap-3">
-                        <span class="w-2 h-2 bg-blue-500 rounded-full"></span> Zero Wait Time
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span class="w-2 h-2 bg-cyan-500 rounded-full"></span> Secure Vault
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span class="w-2 h-2 bg-indigo-500 rounded-full"></span> Smart Triage
-                    </div>
-                </div>
-            </div>
-
-            <!-- Portal Selection -->
-            <div class="flex-1 bg-white -mt-20 rounded-t-[4rem] relative z-20 px-6 pb-24 shadow-[0_-20px_50px_-20px_rgba(0,0,0,0.1)]">
-                <div class="max-w-7xl mx-auto pt-20">
-                    <div class="text-center mb-16 animate-slide-up">
-                        <h2 class="text-4xl md:text-5xl font-black text-slate-900 mb-4">Select Your Portal</h2>
-                        <div class="w-20 h-1.5 bg-blue-600 mx-auto rounded-full"></div>
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-10 w-full">
-                        <!-- Patient Portal -->
-                        <div id="btn-patient" class="group glass-card p-12 rounded-[3rem] shadow-xl hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 cursor-pointer border border-slate-100 flex flex-col items-center text-center animate-slide-up" style="animation-delay: 0.1s">
-                            <div class="w-20 h-20 bg-blue-50 text-blue-600 rounded-3xl flex items-center justify-center mb-8 group-hover:bg-blue-600 group-hover:text-white group-hover:rotate-6 transition-all duration-500 shadow-lg">
-                                <i data-lucide="user" class="w-10 h-10"></i>
-                            </div>
-                            <h3 class="text-2xl font-black text-slate-900 mb-4">Patient Portal</h3>
-                            <p class="text-slate-500 leading-relaxed">Book visits, find the best hospitals near you, and check live status in seconds.</p>
-                        </div>
-
-                        <!-- Doctor Login -->
-                        <div id="btn-doctor" class="group glass-card p-12 rounded-[3rem] shadow-xl hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 cursor-pointer border border-slate-100 flex flex-col items-center text-center animate-slide-up" style="animation-delay: 0.2s">
-                            <div class="w-20 h-20 bg-cyan-50 text-cyan-600 rounded-3xl flex items-center justify-center mb-8 group-hover:bg-cyan-600 group-hover:text-white group-hover:-rotate-6 transition-all duration-500 shadow-lg">
-                                <i data-lucide="stethoscope" class="w-10 h-10"></i>
-                            </div>
-                            <h3 class="text-2xl font-black text-slate-900 mb-4">Doctor Login</h3>
-                            <p class="text-slate-500 leading-relaxed">Streamline your practice, manage patient queues, and perform efficient triage.</p>
-                        </div>
-
-                        <!-- Staff/Admin -->
-                        <div id="btn-staff" class="group glass-card p-12 rounded-[3rem] shadow-xl hover:shadow-2xl hover:-translate-y-3 transition-all duration-500 cursor-pointer border border-slate-100 flex flex-col items-center text-center animate-slide-up" style="animation-delay: 0.3s">
-                            <div class="w-20 h-20 bg-slate-50 text-slate-600 rounded-3xl flex items-center justify-center mb-8 group-hover:bg-slate-900 group-hover:text-white group-hover:rotate-12 transition-all duration-500 shadow-lg">
-                                <i data-lucide="bar-chart-2" class="w-10 h-10"></i>
-                            </div>
-                            <h3 class="text-2xl font-black text-slate-900 mb-4">Staff/Admin</h3>
-                            <p class="text-slate-500 leading-relaxed">Optimize hospital operations, monitor analytics, and manage facility resources.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <footer class="bg-[#fdfbf7] text-slate-800 py-20 px-8 border-t border-slate-100 relative overflow-hidden">
-                <!-- Subtle decorative background elements -->
-                <div class="absolute top-0 right-0 w-96 h-96 bg-blue-100/30 rounded-full blur-[120px] -z-0"></div>
-                <div class="absolute bottom-0 left-0 w-64 h-64 bg-orange-50/50 rounded-full blur-[100px] -z-0"></div>
-
-                <div class="max-w-7xl mx-auto relative z-10">
-                    <div class="grid grid-cols-1 lg:grid-cols-12 gap-16">
-                        
-                        <!-- Col 1: Brand & Vision -->
-                        <div class="lg:col-span-5 space-y-8">
-                            <div class="flex items-center gap-3">
-                                <div class="w-12 h-12 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/10">
-                                    <i data-lucide="heart" class="w-6 h-6 text-white fill-current"></i>
-                                </div>
-                                <div>
-                                    <h3 class="text-3xl font-black tracking-tighter uppercase leading-none text-[#003580]">SmartCare</h3>
-                                    <p class="text-blue-500 font-bold text-[10px] tracking-[0.2em] uppercase mt-1">Hospital Queue Management</p>
-                                </div>
-                            </div>
-                            <p class="text-slate-500 text-lg leading-relaxed max-w-md">
-                                Setting new standards in patient care through intelligent infrastructure. We build tools that save time and save lives.
-                            </p>
-                        </div>
-
-                        <!-- Col 2: The Founder / Owner Card -->
-                        <div class="lg:col-span-7">
-                            <div class="bg-white border border-slate-100 p-8 rounded-[2.5rem] grid grid-cols-1 md:grid-cols-2 gap-8 shadow-xl shadow-slate-200/50">
-                                
-                                <div class="space-y-6">
-                                    <div>
-                                        <p class="text-blue-600 font-bold uppercase tracking-widest text-[10px] mb-2">Developed & Owned by</p>
-                                        <h4 class="text-2xl font-bold text-slate-900">Ashraf Shaik</h4>
-                                        <p class="text-slate-500 text-sm mt-1 font-medium">Founder, SmartCare Systems</p>
-                                    </div>
-                                    
-                                    <div class="space-y-3">
-                                        <a href="tel:8500543154" class="flex items-center gap-3 text-slate-600 hover:text-blue-600 transition-colors group">
-                                            <i data-lucide="phone" class="w-4 h-4 text-blue-500 smooth-magnetic"></i>
-                                            <span class="text-sm font-bold">8500543154</span>
-                                        </a>
-                                        <a href="mailto:ashubasha52@gmail.com" class="flex items-center gap-3 text-slate-600 hover:text-blue-600 transition-colors group">
-                                            <i data-lucide="mail" class="w-4 h-4 text-blue-500 smooth-magnetic"></i>
-                                            <span class="text-sm font-bold">ashubasha52@gmail.com</span>
-                                        </a>
-                                    </div>
-                                </div>
-
-                                <div class="space-y-6">
-                                    <p class="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Follow on Socials</p>
-                                    <div class="grid grid-cols-1 gap-3">
-                                        <a href="https://instagram.com/shaik.m_ashraf" target="_blank" class="flex items-center justify-between p-4 bg-slate-50 hover:bg-pink-50/50 border border-slate-100 rounded-2xl transition-all group">
-                                            <div class="flex items-center gap-3">
-                                                <i data-lucide="instagram" class="w-5 h-5 text-pink-500 math-bounce"></i>
-                                                <span class="text-sm font-bold text-slate-700">@shaik.m_ashraf</span>
-                                            </div>
-                                            <i data-lucide="external-link" class="w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                                        </a>
-                                        <a href="https://twitter.com/ashushaikz" target="_blank" class="flex items-center justify-between p-4 bg-slate-50 hover:bg-blue-50/50 border border-slate-100 rounded-2xl transition-all group">
-                                            <div class="flex items-center gap-3">
-                                                <i data-lucide="twitter" class="w-5 h-5 text-blue-400 math-bounce"></i>
-                                                <span class="text-sm font-bold text-slate-700">@ashushaikz</span>
-                                            </div>
-                                            <i data-lucide="external-link" class="w-4 h-4 text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity"></i>
-                                        </a>
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Bottom Bar -->
-                    <div class="mt-20 pt-8 border-t border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4 text-slate-400 text-[10px] font-bold uppercase tracking-widest">
-                        <p>&copy; 2026 SmartCare HQMS. All rights reserved.</p>
-                        <div class="flex gap-8">
-                            <span class="hover:text-slate-600 cursor-pointer transition-colors">Privacy Policy</span>
-                            <span class="hover:text-slate-600 cursor-pointer transition-colors">Terms of Service</span>
-                        </div>
-                    </div>
-                </div>
-            </footer>
-        `;
-
-        
-        container.querySelector('#btn-patient').onclick = () => setView('patient');
-
-        container.querySelector('#btn-doctor').onclick = () => {
-            window.App.Store.setAuthTarget('doctor');
-            setView('login');
-        };
-
-        container.querySelector('#btn-staff').onclick = () => {
-            window.App.Store.setAuthTarget('staff');
-            setView('login');
-        };
-
+            <header class="shell-nav" data-section="site-header">
+                <a class="brand-lockup" data-route="/" href="/" aria-label="SmartCare home"><span class="brand-mark">${icon('heart-pulse', 21)}</span><span><span class="brand-name">SmartCare</span><span class="brand-caption">Care access, simplified</span></span></a>
+                <nav class="nav-links" aria-label="Primary navigation"><a href="#how-it-works">How it works</a><a href="#for-providers">For providers</a><a href="#trust">Why SmartCare</a></nav>
+                <div class="nav-actions"><button class="btn-secondary" id="nav-provider">Provider portal</button><button class="btn-primary btn-icon" id="nav-apply">Start an application ${icon('arrow-up-right', 16)}</button></div>
+            </header>
+            <main id="top" class="landing-main section-landing" data-section="landing-page">
+                <section class="hero-frame section-hero" data-section="hero" aria-labelledby="hero-title">
+                    <div class="hero-copy"><div><div class="eyebrow"><span class="eyebrow-dot"></span> Digital health access network</div><h1 id="hero-title">Care that starts <span>before</span> you arrive.</h1><p>Find the right care nearby, see the queue before you leave home, and reserve your place in a few calm, clear steps.</p><div class="hero-ctas"><button class="btn-saffron btn-icon" id="hero-apply">Find care near me ${icon('arrow-up-right', 16)}</button><button class="text-link btn-icon" id="hero-track">Track an appointment <span aria-hidden="true">&#8594;</span></button></div><div class="hero-meta"><span>${icon('shield-check', 15)} Verified care centres</span><span>${icon('clock-3', 15)} Live queue visibility</span><span>${icon('accessibility', 15)} Built for everyone</span></div></div><div class="hero-facts" aria-label="SmartCare facts"><div><strong>3 min</strong><span>typical application</span></div><div><strong>18 min</strong><span>average wait today</span></div><div><strong>24/7</strong><span>status visibility</span></div></div></div>
+                    <div class="hero-side" aria-label="Nearby care preview"><div class="care-panel"><div class="care-panel-head"><div><p class="care-panel-title">Care near you</p><p class="care-panel-subtitle">A calmer way to choose where to go.</p></div><span class="status-eyebrow"><i></i> Live</span></div><div class="mini-map" role="img" aria-label="Illustrated map showing your location and nearby hospitals"><span class="mini-route"></span><span class="mini-pin user"></span><span class="mini-pin hospital-1"></span><span class="mini-pin hospital-2"></span><span class="mini-map-label">2 centres within 5 km</span></div><div class="care-panel-foot"><small>Average wait today</small><strong>18 minutes <span aria-hidden="true">&#8594;</span></strong></div></div></div>
+                </section>
+                <section class="landing-stat-strip section-stats" data-section="programme-facts" aria-label="SmartCare programme facts"><div><strong>01</strong><span>Use your location or search manually</span></div><div><strong>02</strong><span>Choose a centre with queue visibility</span></div><div><strong>03</strong><span>Keep the next step in one place</span></div></section>
+                <section id="how-it-works" class="journey-section section-journey" data-section="how-it-works"><div class="section-heading"><div class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> A clear path to care</div><h2>Less time searching. More time getting seen.</h2><p>SmartCare connects your location, care centre, application, and queue status in one calm flow.</p></div><div class="journey-grid"><article><span class="journey-number">01</span><span class="journey-icon">${icon('locate-fixed', 20)}</span><h3>Locate</h3><p>Use device location or search by city, neighbourhood, or PIN code.</p><a href="#top" class="text-link text-link-dark btn-icon">Find care <span aria-hidden="true">&#8594;</span></a></article><article><span class="journey-number">02</span><span class="journey-icon">${icon('list-checks', 20)}</span><h3>Apply</h3><p>Share only the details your care team needs before you arrive.</p><a href="#top" class="text-link text-link-dark btn-icon">Start simply <span aria-hidden="true">&#8594;</span></a></article><article><span class="journey-number">03</span><span class="journey-icon">${icon('activity', 20)}</span><h3>Follow through</h3><p>Keep your reservation reference, queue window, and centre details visible.</p><a href="#for-providers" class="text-link text-link-dark btn-icon">See the portal <span aria-hidden="true">&#8594;</span></a></article></div></section>
+                <section id="for-providers" class="portal-split section-portals" data-section="portals"><div class="portal-panel portal-patient"><div class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> For patients</div><h2>Arrive with a clearer plan.</h2><p>Search nearby care, compare the queue, and reserve your place without repeating the same details at the front desk.</p><button id="portal-patient" class="btn-primary btn-icon">Open patient portal ${icon('arrow-right', 16)}</button></div><div class="portal-panel portal-provider"><div class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> For hospitals</div><h2>Keep the next handoff visible.</h2><p>Give your team a shared view of arrivals, priority cases, room readiness, and daily performance.</p><button id="portal-provider" class="btn-secondary btn-icon">Open provider portal ${icon('arrow-right', 16)}</button></div></section>
+                <section id="trust" class="trust-row section-trust" data-section="trust" aria-label="Why SmartCare"><div class="trust-card"><span class="trust-icon">${icon('shield-check', 17)}</span><span><strong>Clear by design</strong><span>Readable states and calm next actions.</span></span></div><div class="trust-card"><span class="trust-icon">${icon('map-pin', 17)}</span><span><strong>Location aware</strong><span>Use precise device coordinates when you choose.</span></span></div><div class="trust-card"><span class="trust-icon">${icon('lock-keyhole', 17)}</span><span><strong>Privacy minded</strong><span>Location is requested only for the care search.</span></span></div></section>
+            </main>
+            ${window.App.UI.footer()}`;
+        const openPatientPortal = () => { setAuthTarget('patient'); setView('login'); };
+        container.querySelector('#nav-apply').onclick = openPatientPortal;
+        container.querySelector('#hero-apply').onclick = openPatientPortal;
+        container.querySelector('#hero-track').onclick = openPatientPortal;
+        container.querySelector('#portal-patient').onclick = openPatientPortal;
+        container.querySelector('#nav-provider').onclick = () => { setAuthTarget('doctor'); setView('login'); };
+        container.querySelector('#portal-provider').onclick = () => { setAuthTarget('doctor'); setView('login'); };
         return container;
     };
 })();
