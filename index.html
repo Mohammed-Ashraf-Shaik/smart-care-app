@@ -1,183 +1,39 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SmartCare | Hospital Queue Management System</title>
+    <meta name="theme-color" content="#0a3b69">
+    <meta name="description" content="SmartCare makes finding care and joining a hospital queue simpler.">
+    <title>SmartCare | Care, without the waiting room</title>
 
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-
-    
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.css">
+    <script src="https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.js"></script>
+    <link rel="stylesheet" href="/css/styles.css">
 
-    
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-    
-    <link rel="stylesheet" href="css/styles.css">
-    <style>
-        :root {
-            --glass-bg: rgba(255, 255, 255, 0.7);
-            --glass-border: rgba(255, 255, 255, 0.3);
-            --glass-blur: 12px;
-        }
-
-        .glass-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(var(--glass-blur));
-            -webkit-backdrop-filter: blur(var(--glass-blur));
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
-        }
-
-        .animate-float {
-            animation: float 6s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0% {
-                transform: translateY(0px);
-            }
-
-            50% {
-                transform: translateY(-20px);
-            }
-
-            100% {
-                transform: translateY(0px);
-            }
-        }
-
-        .gradient-text {
-            background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        /* Advanced Math-Based Transitions */
-        .smooth-magnetic {
-            transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
-        }
-
-        .group:hover .smooth-magnetic {
-            transform: translateZ(20px) rotateX(10deg) rotateY(10deg) scale(1.2);
-            filter: drop-shadow(0 10px 15px rgba(59, 130, 246, 0.3));
-        }
-
-        .math-bounce {
-            transition: transform 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-
-        .group:hover .math-bounce {
-            transform: translateY(-8px) scale(1.15) rotate(5deg);
-        }
-
-        /* Breathing Medical Pulse (Static Grid) */
-        .animate-medical-pulse {
-            animation: medicalPulse 4s ease-in-out infinite;
-        }
-
-        /* Internal "Running Dash" Flow */
-        .animate-run-dash-plus {
-            stroke-dasharray: 4, 12;
-            animation: runDashPlus 1.5s linear infinite;
-        }
-
-        @keyframes medicalPulse {
-
-            0%,
-            100% {
-                opacity: 0.15;
-                filter: drop-shadow(0 0 2px rgba(34, 211, 238, 0.2));
-            }
-
-            50% {
-                opacity: 0.7;
-                filter: drop-shadow(0 0 8px rgba(34, 211, 238, 0.6));
-            }
-        }
-
-        @keyframes runDashPlus {
-            from {
-                stroke-dashoffset: 16;
-            }
-
-            to {
-                stroke-dashoffset: 0;
-            }
-        }
-    </style>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        display: ['Outfit', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#f0f7ff',
-                            100: '#e0effe',
-                            200: '#bae0fd',
-                            300: '#7cc9fb',
-                            400: '#38aff8',
-                            500: '#0e94e9',
-                            600: '#0277bd',
-                            700: '#035f9a',
-                            800: '#07507f',
-                            900: '#0c436a',
-                            950: '#082b46',
-                        }
-                    },
-                    animation: {
-                        'fade-in': 'fadeIn 0.5s ease-out forwards',
-                        'slide-up': 'slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards',
-                    },
-                    keyframes: {
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        },
-                        slideUp: {
-                            '0%': { transform: 'translateY(20px)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' },
-                        }
-                    }
-                }
-            }
-        }
-        // Initialize Global Namespace
-        window.App = {
-            Views: {}
-        };
-    </script>
+    <script src="/js/config.js?v=5.0"></script>
 </head>
 
-<body class="bg-slate-50 text-slate-900 antialiased selection:bg-brand-100 selection:text-brand-900">
-    <div id="app" class="min-h-screen transition-opacity duration-300"></div>
+<body>
+    <a href="#app" class="skip-link">Skip to main content</a>
+    <div id="app" aria-live="polite"></div>
 
-    
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-    
-    <script src="js/api.js?v=1.1"></script>
-    <script src="js/db.js?v=1.1"></script>
-    <script src="js/state.js?v=1.1"></script>
-    <script src="js/views/landing.js?v=1.1"></script>
-    <script src="js/views/login.js?v=1.1"></script>
-    <script src="js/views/patient.js?v=1.1"></script>
-    <script src="js/views/doctor.js?v=1.1"></script>
-    <script src="js/views/staff.js?v=1.1"></script>
-    <script src="js/app.js?v=1.1"></script>
+    <script src="/js/api.js?v=5.0"></script>
+    <script src="/js/db.js?v=5.0"></script>
+    <script src="/js/state.js?v=5.0"></script>
+    <script src="/js/ui.js?v=5.0"></script>
+    <script src="/js/views/landing.js?v=5.0"></script>
+    <script src="/js/views/login.js?v=5.0"></script>
+    <script src="/js/views/patient.js?v=5.0"></script>
+    <script src="/js/views/doctor.js?v=5.0"></script>
+    <script src="/js/views/staff.js?v=5.0"></script>
+    <script src="/js/views/analytics.js?v=5.0"></script>
+    <script src="/js/views/info.js?v=5.0"></script>
+    <script src="/js/views/not-found.js?v=5.0"></script>
+    <script src="/js/app.js?v=2.0"></script>
 </body>
 
 </html>
