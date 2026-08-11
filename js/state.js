@@ -1,14 +1,18 @@
 (function () {
-    const routeMap = { landing: '/', patient: '/apply', login: '/login', doctor: '/dashboard/doctor', queue: '/dashboard/queue', staff: '/dashboard/admin', analytics: '/dashboard/analytics', about: '/about', terms: '/terms', privacy: '/privacy', notFound: '/404' };
-    const pathMap = { '/': 'landing', '/apply': 'patient', '/login': 'login', '/dashboard/doctor': 'doctor', '/dashboard/hospital': 'doctor', '/dashboard/queue': 'queue', '/dashboard/admin': 'staff', '/dashboard/analytics': 'analytics', '/about': 'about', '/terms': 'terms', '/privacy': 'privacy', '/404': 'notFound' };
+    const routeMap = { landing: '/', patientDashboard: '/dashboard/patient', patient: '/apply', login: '/login', doctor: '/dashboard/doctor', queue: '/dashboard/queue', staff: '/dashboard/admin', analytics: '/dashboard/analytics', about: '/about', terms: '/terms', privacy: '/privacy', notFound: '/404' };
+    const pathMap = { '/': 'landing', '/apply': 'patient', '/login': 'login', '/dashboard/patient': 'patientDashboard', '/dashboard/doctor': 'doctor', '/dashboard/hospital': 'doctor', '/dashboard/queue': 'queue', '/dashboard/admin': 'staff', '/dashboard/analytics': 'analytics', '/about': 'about', '/terms': 'terms', '/privacy': 'privacy', '/404': 'notFound' };
     const draftKey = 'smartcare.patientDraft';
     const sessionKey = 'smartcare.session';
     const emptyPatientData = () => ({ name: '', age: '', gender: '', doctorPref: '', area: '', symptoms: '', hospital: '', country: '', state: '', city: '' });
     const readStorage = key => { try { return JSON.parse(window.localStorage.getItem(key) || 'null'); } catch { return null; } };
     const savedDraft = readStorage(draftKey);
+    const patientVisitKey = 'smartcare.patientVisits';
+    const savedVisits = readStorage(patientVisitKey);
+    const defaultVisits = [{ id: 'visit-demo-001', hospital: 'SmartCare Community Hospital', city: 'Hyderabad', reason: 'General consultation', date: '18 Jul 2026', status: 'Completed', reference: 'SC-DEMO18' }, { id: 'visit-demo-002', hospital: 'Green Cross Medical Centre', city: 'Hyderabad', reason: 'Follow-up consultation', date: '04 Jun 2026', status: 'Completed', reference: 'SC-DEMO04' }];
     const state = {
         view: 'landing', route: '/', step: Number(savedDraft?.step) || 1, infoPage: 'about',
         patientData: { ...emptyPatientData(), ...(savedDraft?.patientData || {}) },
+        patientVisits: Array.isArray(savedVisits) && savedVisits.length ? savedVisits : defaultVisits,
         userCoords: savedDraft?.userCoords || null, tempHospitals: savedDraft?.tempHospitals || [], searchRadius: savedDraft?.searchRadius || 0,
         queue: [], loggedHospital: '', loggedCountry: '', loggedState: '', loggedCity: '', isLogged: false, loggedEmail: '', loggedRole: '', auth: { targetRole: 'patient' }
     };
@@ -19,7 +23,7 @@
     function notify() { listeners.forEach(callback => callback(state)); }
     function viewForPath(pathname) { return pathMap[pathname] || 'notFound'; }
     function routeForView(view) { return routeMap[view] || '/'; }
-    function requiredRole(view) { return ['doctor', 'queue'].includes(view) ? ['doctor', 'staff'] : view === 'analytics' ? ['doctor', 'staff'] : view === 'staff' ? ['staff'] : ''; }
+    function requiredRole(view) { return view === 'patientDashboard' ? ['patient'] : ['doctor', 'queue'].includes(view) ? ['doctor', 'staff'] : view === 'analytics' ? ['doctor', 'staff'] : view === 'staff' ? ['staff'] : ''; }
     function roleAllowed(required, actual) { return !required || required.includes(actual); }
     function persistDraft() {
         try { window.localStorage.setItem(draftKey, JSON.stringify({ step: state.step, patientData: state.patientData, userCoords: state.userCoords, tempHospitals: state.tempHospitals, searchRadius: state.searchRadius })); } catch { /* local persistence is optional */ }
@@ -69,6 +73,7 @@
     function setStep(newStep) { state.step = Math.max(1, Math.min(4, Number(newStep) || 1)); if (state.step < 4) persistDraft(); else clearDraft(); notify(); }
     function setAuthTarget(role) { state.auth.targetRole = ['patient', 'doctor', 'staff'].includes(role) ? role : 'patient'; }
     function updatePatientData(key, value, shouldNotify = false) { state.patientData[key] = value; persistDraft(); if (shouldNotify) notify(); }
+    function recordPatientVisit(visit) { state.patientVisits = [visit, ...state.patientVisits.filter(item => item.id !== visit.id)].slice(0, 12); try { window.localStorage.setItem(patientVisitKey, JSON.stringify(state.patientVisits)); } catch { /* local history is optional */ } }
     function updateQueue(newQueue) { fullQueue = Array.isArray(newQueue) ? newQueue : []; if (state.loggedHospital && state.loggedCity && state.loggedState && state.loggedCountry) state.queue = fullQueue.filter(patient => patient.hospital === state.loggedHospital && patient.city === state.loggedCity && patient.state === state.loggedState && patient.country === state.loggedCountry); else state.queue = fullQueue; if (['doctor', 'staff', 'analytics'].includes(state.view)) notify(); }
     function setLoggedLocation(country, stateName, city, hospital) { state.loggedCountry = country; state.loggedState = stateName; state.loggedCity = city; state.loggedHospital = hospital; updateQueue(fullQueue); persistSession(); }
     function setLogin(email, role = 'patient') { state.isLogged = true; state.loggedEmail = email; state.loggedRole = role; state.sessionExpiresAt = Date.now() + (window.App.Config?.sessionTtlMs || 28800000); persistSession(); notify(); }
@@ -81,5 +86,5 @@
     syncRoute(true, false);
     window.setInterval(() => { if (state.isLogged && state.sessionExpiresAt && state.sessionExpiresAt <= Date.now()) logout(); }, 60000);
     if (window.App.DB) initSync(); else window.addEventListener('load', () => { if (window.App.DB) initSync(); });
-    window.App.Store = { state, subscribe, setView, navigate, syncRoute, setStep, setAuthTarget, updatePatientData, updateQueue, setLoggedLocation, setLogin, logout, getRevenue, persistDraft };
+    window.App.Store = { state, subscribe, setView, navigate, syncRoute, setStep, setAuthTarget, updatePatientData, updateQueue, setLoggedLocation, setLogin, recordPatientVisit, logout, getRevenue, persistDraft };
 })();
