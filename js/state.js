@@ -1,6 +1,6 @@
 (function () {
-    const routeMap = { landing: '/', patient: '/apply', login: '/login', doctor: '/dashboard/doctor', staff: '/dashboard/admin', analytics: '/dashboard/analytics', about: '/about', terms: '/terms', privacy: '/privacy', notFound: '/404' };
-    const pathMap = { '/': 'landing', '/apply': 'patient', '/login': 'login', '/dashboard/doctor': 'doctor', '/dashboard/hospital': 'doctor', '/dashboard/admin': 'staff', '/dashboard/analytics': 'analytics', '/about': 'about', '/terms': 'terms', '/privacy': 'privacy', '/404': 'notFound' };
+    const routeMap = { landing: '/', patient: '/apply', login: '/login', doctor: '/dashboard/doctor', queue: '/dashboard/queue', staff: '/dashboard/admin', analytics: '/dashboard/analytics', about: '/about', terms: '/terms', privacy: '/privacy', notFound: '/404' };
+    const pathMap = { '/': 'landing', '/apply': 'patient', '/login': 'login', '/dashboard/doctor': 'doctor', '/dashboard/hospital': 'doctor', '/dashboard/queue': 'queue', '/dashboard/admin': 'staff', '/dashboard/analytics': 'analytics', '/about': 'about', '/terms': 'terms', '/privacy': 'privacy', '/404': 'notFound' };
     const draftKey = 'smartcare.patientDraft';
     const sessionKey = 'smartcare.session';
     const emptyPatientData = () => ({ name: '', age: '', gender: '', doctorPref: '', area: '', symptoms: '', hospital: '', country: '', state: '', city: '' });
@@ -19,7 +19,8 @@
     function notify() { listeners.forEach(callback => callback(state)); }
     function viewForPath(pathname) { return pathMap[pathname] || 'notFound'; }
     function routeForView(view) { return routeMap[view] || '/'; }
-    function requiredRole(view) { return view === 'doctor' ? 'doctor' : ['staff', 'analytics'].includes(view) ? 'staff' : ''; }
+    function requiredRole(view) { return ['doctor', 'queue'].includes(view) ? ['doctor', 'staff'] : view === 'analytics' ? ['doctor', 'staff'] : view === 'staff' ? ['staff'] : ''; }
+    function roleAllowed(required, actual) { return !required || required.includes(actual); }
     function persistDraft() {
         try { window.localStorage.setItem(draftKey, JSON.stringify({ step: state.step, patientData: state.patientData, userCoords: state.userCoords, tempHospitals: state.tempHospitals, searchRadius: state.searchRadius })); } catch { /* local persistence is optional */ }
     }
@@ -38,13 +39,13 @@
         let view = viewForPath(pathname);
         const neededRole = requiredRole(view);
         if (neededRole && !state.isLogged) {
-            setAuthTarget(neededRole);
+            setAuthTarget(neededRole[0]);
             const loginPath = `/login?role=${state.auth.targetRole}`;
             window.history.replaceState({}, '', loginPath);
             view = 'login'; state.route = '/login';
-        } else if (neededRole && state.loggedRole && state.loggedRole !== neededRole) {
-            setAuthTarget(neededRole);
-            window.history.replaceState({}, '', `/login?role=${neededRole}`);
+        } else if (neededRole && state.loggedRole && !roleAllowed(neededRole, state.loggedRole)) {
+            setAuthTarget(neededRole[0]);
+            window.history.replaceState({}, '', `/login?role=${neededRole[0]}`);
             view = 'login'; state.route = '/login';
         } else state.route = pathname;
         state.view = view;
@@ -57,8 +58,8 @@
         const url = new URL(path, window.location.origin);
         const view = viewForPath(url.pathname);
         const neededRole = requiredRole(view);
-        if (neededRole && !state.isLogged) { setAuthTarget(neededRole); url.pathname = '/login'; url.searchParams.set('role', neededRole); }
-        else if (neededRole && state.loggedRole && state.loggedRole !== neededRole) { setAuthTarget(neededRole); url.pathname = '/login'; url.searchParams.set('role', neededRole); }
+        if (neededRole && !state.isLogged) { setAuthTarget(neededRole[0]); url.pathname = '/login'; url.searchParams.set('role', neededRole[0]); }
+        else if (neededRole && state.loggedRole && !roleAllowed(neededRole, state.loggedRole)) { setAuthTarget(neededRole[0]); url.pathname = '/login'; url.searchParams.set('role', neededRole[0]); }
         window.history[replace ? 'replaceState' : 'pushState']({}, '', url.pathname + url.search);
         syncRoute(false, false);
         if (view === 'landing') resetPatient();
