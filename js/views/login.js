@@ -81,7 +81,7 @@
                     if (role === 'patient') {
                         setLoggedLocation('India', 'Telangana', 'Hyderabad', facility);
                         setLogin(email, 'patient');
-                        setView('patient');
+                        setView('patientDashboard');
                         return;
                     }
                     const result = await window.App.DB.checkCredentials(facility, email, password, role);
