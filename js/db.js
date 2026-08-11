@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
     
     const config = window.App?.Config || {};
     const supabaseEnabled = config.supabaseEnabled === true && !!config.supabaseUrl && !!config.supabaseAnonKey && !!window.supabase;
