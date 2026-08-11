@@ -4,7 +4,24 @@
     const supabaseEnabled = config.supabaseEnabled === true && !!config.supabaseUrl && !!config.supabaseAnonKey && !!window.supabase;
 
     if (!supabaseEnabled) {
-        const demoQueue = [];
+        const demoQueue = [{
+            id: 'demo-queue-001',
+            name: 'Maya Singh',
+            age: 29,
+            gender: 'Female',
+            doctorPref: 'General consultation',
+            area: 'Hyderabad',
+            symptoms: 'Follow-up consultation',
+            problem: 'Follow-up consultation',
+            hospital: 'SmartCare Community Hospital',
+            country: 'India',
+            state: 'Telangana',
+            city: 'Hyderabad',
+            triage: 'Green',
+            fee: 125,
+            status: 'waiting',
+            created_at: new Date(Date.now() - 18 * 60000).toISOString()
+        }];
         const demoUsers = {
             'hospital@smartcare.demo': { email: 'hospital@smartcare.demo', password: 'demo1234', role: 'doctor', hospital: 'SmartCare Community Hospital', country: 'India', state: 'Telangana', city: 'Hyderabad' },
             'admin@smartcare.demo': { email: 'admin@smartcare.demo', password: 'demo1234', role: 'staff', hospital: 'SmartCare Operations Centre', country: 'India', state: 'Telangana', city: 'Hyderabad' }
@@ -176,7 +193,7 @@
                     state: patientData.state,
                     city: patientData.city,
                     triage: patientData.triage || "Green",
-                    fee: patientData.fee || 75,
+                    fee: patientData.fee || 125,
                     problem: patientData.symptoms || "Unknown"
                 };
 
