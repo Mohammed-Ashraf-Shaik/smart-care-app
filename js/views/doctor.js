@@ -4,7 +4,7 @@
     window.App.Views.Doctor = function () {
         const { state, setView, logout } = window.App.Store;
         const container = document.createElement('div');
-        container.className = 'flow-shell';
+        container.className = 'flow-shell workspace-shell';
         const current = state.queue[0] || null;
         const priorityClass = value => value === 'Red' ? 'priority-red' : value === 'Yellow' ? 'priority-yellow' : 'priority-green';
         const rows = state.queue.map((patient, index) => `<tr><td><strong>${index + 1}. ${esc(patient.name)}</strong><small>${esc(patient.age)} years · ${esc(patient.gender || 'Not specified')}</small></td><td>${esc(patient.problem || patient.symptoms || 'General consultation')}</td><td><span class="priority-chip ${priorityClass(patient.triage)}">${esc(patient.triage || 'Green')}</span></td><td>${esc(patient.hospital || state.loggedHospital || 'Care centre')}<small>${esc(patient.city || state.loggedCity || 'Location pending')}</small></td></tr>`).join('');
@@ -12,13 +12,17 @@
         const workspaceNav = document.createElement('nav');
         workspaceNav.className = 'workspace-tabs';
         workspaceNav.setAttribute('aria-label', 'Hospital workspace navigation');
-        workspaceNav.innerHTML = `<a class="active" href="/dashboard/doctor" data-route="/dashboard/doctor">Overview</a><a href="#queue">Queue</a><a href="/dashboard/analytics" data-route="/dashboard/analytics">Analytics</a><a href="/about" data-route="/about">Help</a><button type="button" id="workspace-logout">Sign out</button>`;
-        container.querySelector('main').insertBefore(workspaceNav, container.querySelector('main').firstChild);
+        workspaceNav.innerHTML = `<a class="active" href="/dashboard/doctor" data-route="/dashboard/doctor">${icon('layout-dashboard', 16)}<span>Overview</span></a><a href="/dashboard/queue" data-route="/dashboard/queue">${icon('list-ordered', 16)}<span>Queue</span></a><a href="/dashboard/analytics" data-route="/dashboard/analytics">${icon('bar-chart-3', 16)}<span>Analytics</span></a><a href="/about" data-route="/about">${icon('circle-help', 16)}<span>Help</span></a><button type="button" id="workspace-logout">${icon('log-out', 16)}<span>Sign out</span></button>`;
+        const workspaceMain = container.querySelector('main');
+        const workspaceContent = document.createElement('div');
+        workspaceContent.className = 'workspace-content';
+        Array.from(workspaceMain.children).forEach(child => workspaceContent.appendChild(child));
+        workspaceMain.append(workspaceNav, workspaceContent);
         const quickActions = document.createElement('section');
         quickActions.className = 'dashboard-quick-actions';
         quickActions.setAttribute('aria-label', 'Hospital quick actions');
         quickActions.innerHTML = `<div><span class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> Next actions</span><strong>${current ? 'Review the next patient' : 'Keep the queue ready'}</strong><small>${current ? 'Confirm priority and complete the visit when finished.' : 'New reservations will appear here automatically.'}</small></div><button id="quick-call-next" class="btn-primary btn-icon" ${current ? '' : 'disabled'}>${icon('megaphone', 16)} Call next</button><a class="btn-secondary btn-icon" data-route="/dashboard/analytics" href="/dashboard/analytics">Review analytics ${icon('arrow-right', 16)}</a>`;
-        container.querySelector('main').insertBefore(quickActions, container.querySelector('.provider-grid'));
+        workspaceContent.insertBefore(quickActions, workspaceContent.querySelector('.provider-grid'));
         container.querySelector('.provider-card').id = 'queue';
         container.querySelector('#workspace-logout').onclick = logout;
         container.querySelector('#quick-call-next').onclick = () => showMessage(current ? `Calling ${current.name} to the consultation room.` : 'The queue is clear.');
