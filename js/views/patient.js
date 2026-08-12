@@ -29,7 +29,7 @@
         const { state, setStep, updatePatientData, updateQueue, recordPatientVisit, setView, persistDraft } = window.App.Store;
         const { step, patientData } = state;
         const container = document.createElement('div');
-        container.className = 'flow-shell';
+        container.className = 'flow-shell patient-application-shell';
         let map;
         let markerNodes = [];
         const steps = ['Your profile', 'Find care', 'Visit details', 'Confirmed'];
