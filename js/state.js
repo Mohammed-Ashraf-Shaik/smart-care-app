@@ -11,7 +11,7 @@
     const savedVisits = readStorage(patientVisitKey);
     const defaultVisits = [{ id: 'visit-demo-001', hospital: 'SmartCare Community Hospital', city: 'Hyderabad', reason: 'General consultation', date: '18 Jul 2026', status: 'Completed', reference: 'SC-DEMO18' }, { id: 'visit-demo-002', hospital: 'Green Cross Medical Centre', city: 'Hyderabad', reason: 'Follow-up consultation', date: '04 Jun 2026', status: 'Completed', reference: 'SC-DEMO04' }];
     const state = {
-        view: 'landing', route: '/', step: Number(savedDraft?.step) || 1, infoPage: 'about',
+        view: 'landing', route: '/', activeTab: '', step: Number(savedDraft?.step) || 1, infoPage: 'about',
         patientData: { ...emptyPatientData(), ...(savedDraft?.patientData || {}) },
         patientVisits: Array.isArray(savedVisits) && savedVisits.length ? savedVisits : defaultVisits,
         userCoords: savedDraft?.userCoords || null, tempHospitals: savedDraft?.tempHospitals || [], searchRadius: savedDraft?.searchRadius || 0,
@@ -29,6 +29,11 @@
         url.pathname = withBasePath(url.pathname);
         return `${url.pathname}${url.search}${url.hash}`;
     }
+    function hrefForTab(path, tab = '') {
+        const url = new URL(hrefFor(path), window.location.origin);
+        if (tab) url.searchParams.set('tab', tab); else url.searchParams.delete('tab');
+        return `${url.pathname}${url.search}${url.hash}`;
+    }
     function viewForPath(pathname) { return pathMap[stripBasePath(pathname)] || 'notFound'; }
     function routeForView(view) { return routeMap[view] || '/'; }
     function requiredRole(view) { return view === 'patientDashboard' ? ['patient'] : ['doctor', 'queue'].includes(view) ? ['doctor', 'staff'] : view === 'analytics' ? ['doctor', 'staff'] : view === 'staff' ? ['staff'] : ''; }
@@ -44,7 +49,8 @@
     function hydrateSession() {
         const session = readStorage(sessionKey);
         if (!session || !session.expiresAt || session.expiresAt <= Date.now()) { try { window.localStorage.removeItem(sessionKey); } catch {} return; }
-        state.isLogged = true; state.loggedEmail = session.email || ''; state.loggedRole = session.role || 'patient'; state.loggedHospital = session.hospital || ''; state.loggedCountry = session.country || ''; state.loggedState = session.state || ''; state.loggedCity = session.city || ''; state.sessionExpiresAt = session.expiresAt;
+        if (!['patient', 'doctor', 'staff'].includes(session.role)) { try { window.localStorage.removeItem(sessionKey); } catch {} return; }
+        state.isLogged = true; state.loggedEmail = session.email || ''; state.loggedRole = session.role; state.loggedHospital = session.hospital || ''; state.loggedCountry = session.country || ''; state.loggedState = session.state || ''; state.loggedCity = session.city || ''; state.sessionExpiresAt = session.expiresAt;
     }
     function syncRoute(replace = false, shouldNotify = true) {
         const pathname = stripBasePath(window.location.pathname || '/');
@@ -60,6 +66,7 @@
             window.history.replaceState({}, '', hrefFor(`/login?role=${neededRole[0]}`));
             view = 'login'; state.route = '/login';
         } else state.route = pathname;
+        state.activeTab = new URLSearchParams(window.location.search).get('tab') || '';
         state.view = view;
         if (view === 'about' || view === 'terms' || view === 'privacy') state.infoPage = view;
         const role = new URLSearchParams(window.location.search).get('role');
@@ -78,6 +85,13 @@
         if (view === 'landing') resetPatient();
         notify();
     }
+    function navigateTab(tab, route = state.route) {
+        const safeRoute = route && route.startsWith('/') ? route : '/';
+        const nextUrl = new URL(hrefForTab(safeRoute, tab), window.location.origin);
+        window.history.pushState({}, '', nextUrl.pathname + nextUrl.search);
+        syncRoute(false, false);
+        notify();
+    }
     function setView(newView) { navigate(routeForView(newView)); }
     function setStep(newStep) { state.step = Math.max(1, Math.min(4, Number(newStep) || 1)); if (state.step < 4) persistDraft(); else clearDraft(); notify(); }
     function setAuthTarget(role) { state.auth.targetRole = ['patient', 'doctor', 'staff'].includes(role) ? role : 'patient'; }
@@ -86,14 +100,20 @@
     function updateQueue(newQueue) { fullQueue = Array.isArray(newQueue) ? newQueue : []; if (state.loggedHospital && state.loggedCity && state.loggedState && state.loggedCountry) state.queue = fullQueue.filter(patient => patient.hospital === state.loggedHospital && patient.city === state.loggedCity && patient.state === state.loggedState && patient.country === state.loggedCountry); else state.queue = fullQueue; if (['doctor', 'staff', 'analytics'].includes(state.view)) notify(); }
     function setLoggedLocation(country, stateName, city, hospital) { state.loggedCountry = country; state.loggedState = stateName; state.loggedCity = city; state.loggedHospital = hospital; updateQueue(fullQueue); persistSession(); }
     function setLogin(email, role = 'patient') { state.isLogged = true; state.loggedEmail = email; state.loggedRole = role; state.sessionExpiresAt = Date.now() + (window.App.Config?.sessionTtlMs || 28800000); persistSession(); notify(); }
-    function logout() { state.isLogged = false; state.loggedEmail = ''; state.loggedRole = ''; state.loggedHospital = ''; state.loggedCountry = ''; state.loggedState = ''; state.loggedCity = ''; state.sessionExpiresAt = 0; try { window.localStorage.removeItem(sessionKey); } catch {} navigate('/'); }
+    function logout() { window.App.DB?.signOut?.(); state.isLogged = false; state.loggedEmail = ''; state.loggedRole = ''; state.loggedHospital = ''; state.loggedCountry = ''; state.loggedState = ''; state.loggedCity = ''; state.sessionExpiresAt = 0; try { window.localStorage.removeItem(sessionKey); } catch {} navigate('/'); }
     function resetPatient() { state.step = 1; state.patientData = emptyPatientData(); state.userCoords = null; state.tempHospitals = []; state.searchRadius = 0; clearDraft(); }
     function getRevenue() { return state.queue.reduce((total, patient) => total + (Number(patient.fee) || 0), 0); }
+    function getQueueMetrics() {
+        const waiting = state.queue.filter(patient => !['completed', 'cancelled', 'no-show'].includes(String(patient.status || '').toLowerCase()));
+        const waits = waiting.map(patient => Math.max(0, Math.round((Date.now() - new Date(patient.created_at || Date.now()).getTime()) / 60000))).filter(Number.isFinite);
+        const averageWait = waits.length ? Math.round(waits.reduce((sum, value) => sum + value, 0) / waits.length) : 0;
+        return { waiting: waiting.length, priority: waiting.filter(patient => patient.triage === 'Red').length, averageWait, revenue: waiting.reduce((sum, patient) => sum + (Number(patient.fee) || 0), 0) };
+    }
     function initSync() { window.App.DB.fetchQueue().then(updateQueue).catch(() => updateQueue([])); window.App.DB.listenToQueue(updateQueue); }
 
     hydrateSession();
     syncRoute(true, false);
     window.setInterval(() => { if (state.isLogged && state.sessionExpiresAt && state.sessionExpiresAt <= Date.now()) logout(); }, 60000);
     if (window.App.DB) initSync(); else window.addEventListener('load', () => { if (window.App.DB) initSync(); });
-    window.App.Store = { state, subscribe, setView, navigate, syncRoute, setStep, setAuthTarget, updatePatientData, updateQueue, setLoggedLocation, setLogin, recordPatientVisit, logout, getRevenue, persistDraft, hrefFor };
+    window.App.Store = { state, subscribe, setView, navigate, navigateTab, syncRoute, setStep, setAuthTarget, updatePatientData, updateQueue, setLoggedLocation, setLogin, recordPatientVisit, logout, getRevenue, getQueueMetrics, persistDraft, hrefFor, hrefForTab };
 })();
