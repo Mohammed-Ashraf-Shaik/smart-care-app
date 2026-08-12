@@ -15,7 +15,10 @@ dist/
 .env
 .npm
 *.log
+__pycache__/
 
-# IDEs
-.vscode/
-.idea/
+# Local scratch & artifacts
+smart-care-app/
+snow_source.js
+context.md
+
