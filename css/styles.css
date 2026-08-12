@@ -34,6 +34,8 @@ a { color: inherit; }
 .nav-links a:hover { color: var(--teal); }
 .text-link { border: 0; padding: .2rem 0; color: #d9ebfb; background: transparent; font-size: .86rem; font-weight: 800; text-decoration: underline; text-decoration-color: rgba(217,235,251,.45); text-underline-offset: .25rem; }
 .text-link:hover { color: #fff; text-decoration-color: #fff; }
+.demo-buttons .text-link { color: var(--teal-dark); }
+.demo-buttons .text-link:hover { color: var(--teal); text-decoration-color: var(--teal); }
 .nav-actions { display: flex; align-items: center; gap: .65rem; }
 
 .btn-primary, .btn-secondary, .btn-ghost, .btn-saffron { min-height: 2.8rem; border: 1px solid transparent; border-radius: .65rem; padding: .76rem 1rem; font-weight: 800; transition: transform .2s ease, box-shadow .2s ease, background .2s ease, border-color .2s ease; }
@@ -171,6 +173,7 @@ a { color: inherit; }
 .workspace-shell { padding-left: 0; padding-right: 0; }
 .workspace-shell .flow-topbar { max-width: none; margin-left: 1.5rem; margin-right: 1.5rem; }
 .flow-topbar { max-width: 1080px; margin: 0 auto 1.25rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.patient-application-shell > .flow-topbar { position: sticky; top: 0; z-index: 30; padding: .65rem .25rem; background: rgba(245,248,251,.94); backdrop-filter: blur(12px); }
 .flow-topbar-actions { display: flex; align-items: center; justify-content: flex-end; gap: .75rem; }
 .flow-topbar .brand-lockup { color: var(--ink); }
 .back-link { display: inline-flex; align-items: center; gap: .45rem; color: var(--muted); border: 0; background: transparent; font-weight: 800; font-size: .82rem; }
@@ -388,3 +391,5 @@ a { color: inherit; }
 @media (max-width: 640px) { .dashboard-quick-actions { align-items: stretch; flex-direction: column; } .dashboard-quick-actions > a, .dashboard-quick-actions > button { width: 100%; } }
 @media (max-width: 900px) { .site-footer-compact { grid-template-columns: 1fr auto; margin: 1rem .75rem 0; } .site-footer-compact nav { grid-column: 1 / -1; grid-row: 2; gap: .75rem; } .footer-compact-meta { text-align: right; } .patient-next-action { align-items: stretch; flex-direction: column; } .patient-next-action .btn-primary { width: 100%; } }
 @media (max-width: 520px) { .patient-visit { grid-template-columns: 2.2rem minmax(0, 1fr); } .visit-status { grid-column: 2; } }
+@media (max-width: 640px) { .workspace-content { padding-bottom: .5rem; } .workspace-shell .provider-header { margin-top: .5rem; margin-bottom: .75rem; } .provider-header h1 { font-size: clamp(1.75rem, 9vw, 2.35rem); } .provider-card { margin-top: .75rem; padding: 1rem; } .dashboard-quick-actions { margin-bottom: .75rem; } }
+@media (max-width: 640px) { .patient-application-shell > .flow-topbar { margin-bottom: .65rem; padding: .5rem 0; } .patient-application-shell .flow-card { padding: 1rem; border-radius: .95rem; } }
