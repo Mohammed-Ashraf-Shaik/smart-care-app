@@ -264,6 +264,12 @@ a { color: inherit; }
 .queue-table tr:last-child td { border-bottom: 0; }
 .queue-table td strong { display: block; color: var(--ink); font-size: .82rem; }
 .queue-table td small { display: block; margin-top: .18rem; color: var(--muted); }
+.queue-table td:last-child { white-space: nowrap; }
+.queue-action { margin-right: .7rem; font-size: .68rem; }
+.queue-tools { display: flex; gap: 1rem; align-items: end; margin: 1rem 0; padding: .8rem; border: 1px solid var(--line); background: var(--mint); }
+.queue-tools .field { margin: 0; }
+.queue-search { flex: 1 1 auto; }
+.queue-filter { flex: 0 0 180px; }
 .priority-chip { display: inline-flex; align-items: center; gap: .35rem; padding: 0; font-size: .65rem; font-weight: 800; text-transform: uppercase; letter-spacing: .1em; }
 .priority-chip::before { content: ''; width: .4rem; height: .4rem; border-radius: 50%; background: currentColor; }
 .priority-red { color: #a4422d; }
@@ -273,6 +279,13 @@ a { color: inherit; }
 .provider-empty { padding: 2.5rem 1rem; text-align: center; color: var(--muted); }
 .provider-empty svg { color: #79acd7; }
 .room-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: .65rem; }
+.room-item { width: 100%; text-align: left; cursor: pointer; }
+.room-item[aria-pressed="true"] { border-color: #8bbbe2; background: #f3f9ff; }
+.toast-region { position: fixed; right: 1rem; bottom: 1rem; z-index: 1000; display: grid; gap: .5rem; max-width: min(22rem, calc(100vw - 2rem)); }
+.toast { padding: .75rem .9rem; border: 1px solid #b9d7ee; color: var(--teal-dark); background: #fff; box-shadow: 0 12px 30px rgba(10,59,105,.16); font-size: .75rem; font-weight: 700; }
+.toast-success { border-left: 3px solid var(--teal); }
+.toast-error { border-left: 3px solid #bf4d56; }
+.toast-leaving { opacity: 0; transform: translateY(.3rem); transition: opacity .2s ease, transform .2s ease; }
 .room-item { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: .8rem; border: 1px solid var(--line); }
 .room-item strong { display: block; font-size: .78rem; }
 .room-item small { display: block; margin-top: .2rem; color: var(--muted); font-size: .68rem; }
@@ -389,6 +402,7 @@ a { color: inherit; }
 @media (max-width: 760px) { .map-view-toggle { display: flex; } .map-layout.map-show-list .map-panel { display: none; } .map-layout.map-show-list .hospital-results { display: flex; } .map-layout.map-show-map .hospital-results { display: none; } .map-toolbar { align-items: flex-start; flex-direction: column; } .map-toolbar-actions { width: 100%; justify-content: space-between; } .flow-actions { position: sticky; bottom: .65rem; z-index: 20; margin-left: -1rem; margin-right: -1rem; padding: .75rem 1rem; border: 1px solid var(--line); background: rgba(255,255,255,.96); box-shadow: 0 10px 30px rgba(10,59,105,.12); } .flow-actions > * { min-height: 2.7rem; } }
 @media (max-width: 560px) { .landing-stat-strip { grid-template-columns: 1fr; } .landing-stat-strip > div { border-right: 0; border-bottom: 1px solid var(--line); } .landing-stat-strip > div:last-child { border-bottom: 0; } .section-heading h2 { max-width: 12ch; } .portal-panel { min-height: 0; } .map-accuracy { font-size: .63rem; } .filter-control { align-self: end; } }
 @media (max-width: 640px) { .dashboard-quick-actions { align-items: stretch; flex-direction: column; } .dashboard-quick-actions > a, .dashboard-quick-actions > button { width: 100%; } }
+@media (max-width: 640px) { .queue-tools { align-items: stretch; flex-direction: column; } .queue-filter { flex-basis: auto; } .queue-table td:last-child { white-space: normal; } .queue-action { display: block; margin: .2rem 0; } .toast-region { right: .75rem; bottom: .75rem; } }
 @media (max-width: 900px) { .site-footer-compact { grid-template-columns: 1fr auto; margin: 1rem .75rem 0; } .site-footer-compact nav { grid-column: 1 / -1; grid-row: 2; gap: .75rem; } .footer-compact-meta { text-align: right; } .patient-next-action { align-items: stretch; flex-direction: column; } .patient-next-action .btn-primary { width: 100%; } }
 @media (max-width: 520px) { .patient-visit { grid-template-columns: 2.2rem minmax(0, 1fr); } .visit-status { grid-column: 2; } }
 @media (max-width: 640px) { .workspace-content { padding-bottom: .5rem; } .workspace-shell .provider-header { margin-top: .5rem; margin-bottom: .75rem; } .provider-header h1 { font-size: clamp(1.75rem, 9vw, 2.35rem); } .provider-card { margin-top: .75rem; padding: 1rem; } .dashboard-quick-actions { margin-bottom: .75rem; } }
