@@ -1,29 +1,38 @@
 # SmartCare production readiness
 
-The current build is a local demo: Supabase is disabled in `js/config.js`, and the app uses local demo accounts plus browser persistence. Use this checklist before enabling a real backend.
+The current build is a local demo: Supabase is disabled in `js/config.js`, and the app uses local demo accounts plus browser persistence. Demo mode must remain available for review. Use this checklist before enabling a real backend or accepting real patient data.
+
+## Current implementation
+
+- Workspace tabs are URL-backed with `?tab=` and survive direct reloads.
+- Patient, hospital, and admin demo accounts remain available.
+- Queue metrics are calculated from current queue records.
+- Queue search, priority filters, queue actions, room toggles, toast states, and secure recovery UI are included.
+- Supabase mode uses Supabase Auth for provider passwords; see `supa base query.md`.
 
 ## Configuration
 
-- Set `environment` to `production`.
-- Provide `supabaseUrl` and `supabaseAnonKey` through the deployment environment or a generated runtime config file.
+- Set `environment` to `production` only after backend verification.
+- Provide `supabaseUrl` and the publishable anon key through deployment configuration.
 - Keep `supabaseEnabled` false until Auth, RLS, and realtime have been tested together.
-- Keep `apiTimeoutMs` finite so map failures never block the application.
+- Keep API timeouts finite so map failures never block the application.
 
-## Authentication
+## Authentication and authorization
 
-- Replace the demo `professionals` password lookup with Supabase Auth.
-- Store only provider profile data and roles in the database.
-- Enforce roles server-side; client-side route guards are only a UX layer.
-- Add email verification, password reset, session refresh, and account lockout/rate limiting.
-- Confirm that patient, hospital, and admin sessions cannot open another role's dashboard.
+- Use Supabase Auth; never store plaintext passwords in application tables.
+- Store only provider profile data and roles in `professionals`.
+- Enforce role and hospital ownership server-side; client route guards are UX protection only.
+- Add email verification, password reset, refresh handling, account lockout, and rate limiting.
+- Verify that patient, hospital, and admin sessions cannot open another role’s dashboard.
 
 ## Data protection
 
-- Enable RLS on every table.
-- Allow patients to create only their own queue request.
-- Allow hospitals to read and update only their assigned care-centre queue.
-- Allow admins to read operational aggregates, not provider passwords.
-- Minimize stored location precision and document the retention period.
+- Enable RLS on every table and test policies with separate roles.
+- Allow patients to read only their own visits.
+- Allow hospitals to read/update only their assigned care-centre queue.
+- Allow admins to read operational data without exposing credentials.
+- Minimize stored location precision and document retention/deletion.
+- Never put service-role keys, real medical data, or secrets in this repository or static frontend.
 
 ## Maps and external services
 
@@ -32,10 +41,10 @@ The current build is a local demo: Supabase is disabled in `js/config.js`, and t
 - Cache common location searches server-side.
 - Test permission denied, timeout, offline, inaccurate GPS, and no-results states.
 
-## Delivery
+## Delivery and verification
 
 - Serve over HTTPS so device geolocation is available.
 - Add a Content Security Policy for scripts, tiles, fonts, and API endpoints.
-- Add automated checks for routes, auth guards, form validation, queue creation, and mobile layout.
+- Add automated checks for routes, URL tabs, auth guards, form validation, queue creation, and mobile layout.
 - Add error monitoring and a privacy-safe audit trail.
-- Keep `context.md` local-only and review all untracked files before committing.
+- Review ignored and untracked files before every commit; keep `context.md` local-only.

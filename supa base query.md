@@ -1,23 +1,18 @@
-# SmartCare master Supabase query
+# SmartCare master Supabase handoff
 
-This document is the backend handoff for the current SmartCare app. The public GitHub Pages demo keeps Supabase disabled and uses the local adapter in `js/db.js`. Run the SQL only after creating a Supabase project and reviewing the security section.
+The public demo currently runs with `supabaseEnabled: false` and the local adapter in `js/db.js`. Keep that demo fallback working while wiring a real Supabase project.
 
-## 0. Extensions
+## 1. Auth and profiles
+
+Use Supabase Auth for passwords and sessions. Do not store password columns in application tables.
 
 ```sql
 create extension if not exists pgcrypto;
-```
 
-## 1. Provider profiles
-
-The current adapter reads provider profiles by email, role, and care-centre location. The `password` column exists only for compatibility with the demo adapter; do not use it for production authentication.
-
-```sql
 create table if not exists public.professionals (
-  id uuid primary key default gen_random_uuid(),
+  id uuid primary key references auth.users(id) on delete cascade,
   email text not null unique,
   hospital text not null,
-  password text,
   role text not null check (role in ('doctor', 'staff')),
   country text not null default 'India',
   state text,
@@ -25,13 +20,12 @@ create table if not exists public.professionals (
   created_at timestamptz not null default now()
 );
 
-create index if not exists professionals_role_idx
-  on public.professionals (role);
+create index if not exists professionals_role_idx on public.professionals(role);
 ```
 
-## 2. Patient queue
+The client signs in with `supabase.auth.signInWithPassword`, then reads the profile row. Password reset uses `resetPasswordForEmail`; no password hint or plaintext password flow should be reintroduced.
 
-This matches the fields written by `DB.addPatient` and read by the doctor, queue, admin, and analytics views.
+## 2. Queue and appointments
 
 ```sql
 create table if not exists public.queue (
@@ -41,126 +35,76 @@ create table if not exists public.queue (
   gender text,
   doctor_pref text,
   area text,
-  symptoms text,
+  symptoms text not null check (char_length(symptoms) between 1 and 500),
   problem text,
   hospital text not null,
   country text not null default 'India',
   state text,
   city text,
-  triage text not null default 'Green'
-    check (triage in ('Green', 'Yellow', 'Red')),
-  fee numeric(10,2) not null default 125,
-  status text not null default 'waiting'
-    check (status in ('waiting', 'in_progress', 'completed', 'cancelled')),
+  triage text not null default 'Green' check (triage in ('Green', 'Yellow', 'Red')),
+  fee numeric(10,2) not null default 125 check (fee >= 0),
+  status text not null default 'waiting' check (status in ('waiting', 'called', 'in_progress', 'completed', 'cancelled', 'no-show')),
+  patient_auth_id uuid references auth.users(id) on delete set null,
+  assigned_professional_id uuid references public.professionals(id) on delete set null,
   created_at timestamptz not null default now(),
-  completed_at timestamptz
+  updated_at timestamptz not null default now()
 );
 
-create index if not exists queue_created_at_idx
-  on public.queue (created_at asc);
-
-create index if not exists queue_centre_status_idx
-  on public.queue (hospital, country, state, city, status, created_at asc);
+create index if not exists queue_created_at_idx on public.queue(created_at);
+create index if not exists queue_hospital_status_idx on public.queue(hospital, status);
+create index if not exists queue_triage_idx on public.queue(triage);
 ```
 
-## 3. Demo provider records
+The current adapter reads the queue in arrival order, inserts a visit, updates status, and removes legacy demo records. The preferred production path is status updates rather than deletion so history remains auditable.
 
-Use these only in a development project. The public demo itself uses the same values in the local adapter and does not require these rows.
+## 3. Row Level Security
 
-```sql
-insert into public.professionals
-  (email, hospital, password, role, country, state, city)
-values
-  ('hospital@smartcare.demo', 'SmartCare Community Hospital', 'demo1234', 'doctor', 'India', 'Telangana', 'Hyderabad'),
-  ('admin@smartcare.demo', 'SmartCare Operations Centre', 'demo1234', 'staff', 'India', 'Telangana', 'Hyderabad')
-on conflict (email) do update set
-  hospital = excluded.hospital,
-  password = excluded.password,
-  role = excluded.role,
-  country = excluded.country,
-  state = excluded.state,
-  city = excluded.city;
-```
-
-## 4. Queries used by the current adapter
+Enable RLS before exposing the project:
 
 ```sql
--- Initial queue load
-select *
-from public.queue
-order by created_at asc;
-
--- Queue for one care centre
-select *
-from public.queue
-where hospital = :hospital
-  and country = :country
-  and state = :state
-  and city = :city
-  and status in ('waiting', 'in_progress')
-order by created_at asc;
-
--- Insert a patient visit
-insert into public.queue
-  (name, age, gender, doctor_pref, area, symptoms, problem,
-   hospital, country, state, city, triage, fee)
-values
-  (:name, :age, :gender, :doctor_pref, :area, :symptoms, :problem,
-   :hospital, :country, :state, :city, :triage, :fee)
-returning id;
-
--- Complete a visit
-update public.queue
-set status = 'completed', completed_at = now()
-where id = :queue_id;
-
--- Cancel a visit without deleting the audit record
-update public.queue
-set status = 'cancelled'
-where id = :queue_id;
-```
-
-## 5. Realtime queue updates
-
-Run once in the Supabase SQL editor after confirming the table is not already in the publication:
-
-```sql
-alter table public.queue replica identity full;
-alter publication supabase_realtime add table public.queue;
-```
-
-The browser adapter subscribes to `public.queue` changes and refetches the ordered queue after an event. If the table is already in `supabase_realtime`, skip the publication statement.
-
-## 6. Production security migration
-
-Do not expose provider passwords through a public table. The production path is:
-
-1. Create Supabase Auth users for providers.
-2. Store only the provider profile and role in `professionals`.
-3. Link `professionals.id` or an `auth.users.id` to the authenticated user.
-4. Move credential checks, role checks, queue mutations, and password recovery behind Auth and server-side policies.
-5. Enable RLS only after the policies have been tested with authenticated users.
-
-Baseline table hardening:
-
-```sql
-alter table public.queue enable row level security;
 alter table public.professionals enable row level security;
+alter table public.queue enable row level security;
+
+create policy "providers read own profile"
+on public.professionals for select to authenticated
+using (id = auth.uid());
+
+create policy "providers read their centre queue"
+on public.queue for select to authenticated
+using (exists (
+  select 1 from public.professionals p
+  where p.id = auth.uid() and (p.role = 'staff' or p.hospital = queue.hospital)
+));
+
+create policy "patients read their own visits"
+on public.queue for select to authenticated
+using (patient_auth_id = auth.uid());
 ```
 
-Do not add an unrestricted `anon` policy. A provider should only read and mutate the queue for the assigned centre, while patients should only be able to create or read their own visits through an authenticated/server-side flow. The exact policy should be added with the final Auth identity model.
+For inserts and status changes, prefer authenticated RPC functions or an API route that validates role and hospital ownership. Do not grant unrestricted anonymous insert/update/delete access. Never expose the Supabase service-role key in static frontend code.
 
-## 7. App configuration
+## 4. Realtime
 
-Keep this disabled until the Supabase URL, anon key, Auth flow, RLS policies, and realtime publication are ready:
+After RLS is correct, add `public.queue` to the realtime publication and keep the existing `listenToQueue` subscription. Realtime should refresh the current filtered queue, not bypass authorization.
+
+## 5. App configuration
 
 ```js
 window.App.Config = {
-  environment: 'demo',
-  supabaseEnabled: false,
-  supabaseUrl: '',
-  supabaseAnonKey: ''
+  environment: 'production',
+  supabaseEnabled: true,
+  supabaseUrl: 'https://YOUR_PROJECT.supabase.co',
+  supabaseAnonKey: 'YOUR_PUBLISHABLE_ANON_KEY'
 };
 ```
 
-Never commit service-role keys, passwords, or a production `.env` file. For GitHub Pages, public client configuration is visible to users, so sensitive operations must run on a trusted backend.
+Use deployment secrets or a generated environment-specific config. Do not commit real project credentials. For GitHub Pages, use the public anon key only after RLS is verified; GitHub Pages cannot safely host server-only secrets.
+
+## 6. Production checklist
+
+- Configure Auth email templates and redirect URLs for `/smart-care-app/login`.
+- Add an `updated_at` trigger for queue rows.
+- Add audit events for call, start, complete, cancel, and no-show.
+- Add rate limits and server-side validation around public geocoding and queue mutations.
+- Test role separation with patient, doctor, and admin accounts.
+- Keep the local demo adapter and all demo credentials available for review builds only.
