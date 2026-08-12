@@ -40,6 +40,7 @@
             resetPassword: async () => ({ success: false, error: 'Password recovery is unavailable in local demo mode.' }),
             fetchQueue: async () => [...demoQueue],
             listenToQueue: () => () => {},
+            signOut: async () => {},
             addPatient: async patientData => {
                 const id = `SC-${Date.now().toString(36).toUpperCase()}`;
                 demoQueue.push({ id, ...patientData, created_at: new Date().toISOString(), status: 'waiting' });
@@ -64,6 +65,7 @@
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const DB = {
+        signOut: async () => { await supabase.auth.signOut(); },
         
         checkEmailExists: async (email) => {
             const { data, error } = await supabase
@@ -78,71 +80,30 @@
 
         
         checkCredentials: async (hospital, email, password, role) => {
-            const { data, error } = await supabase
-                .from('professionals')
-                .select('*')
-                .eq('email', email.toLowerCase())
-                .eq('password', password)
-                .eq('role', role)
-                .single();
-
-            if (error || !data) {
-                return {
-                    success: false,
-                    error: "Invalid credentials. Please check your email, password, and portal role."
-                };
-            }
-
-            return {
-                success: true,
-                user: data
-            };
+            const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email: email.toLowerCase(), password });
+            if (authError || !authData.user) return { success: false, error: 'Invalid credentials. Please check your email and password.' };
+            const { data: profile, error: profileError } = await supabase.from('professionals').select('id,email,hospital,role,country,state,city').eq('id', authData.user.id).maybeSingle();
+            if (profileError || !profile || profile.role !== role) { await supabase.auth.signOut(); return { success: false, error: 'This account is not enabled for the selected portal.' }; }
+            return { success: true, user: { ...profile, hospital: hospital || profile.hospital } };
         },
 
         
         registerProfessional: async (profData) => {
-            const { data, error } = await supabase
-                .from('professionals')
-                .insert([{
-                    email: profData.email.toLowerCase(),
-                    hospital: profData.hospital,
-                    password: profData.password,
-                    role: profData.role
-                }])
-                .select();
-
-            if (error) {
-                if (error.code === '23505') return { success: false, error: "An account with this email already exists." };
-                return { success: false, error: error.message };
-            }
-
+            const { data: authData, error: authError } = await supabase.auth.signUp({ email: profData.email.toLowerCase(), password: profData.password });
+            if (authError || !authData.user) return { success: false, error: authError?.message || 'Account creation failed.' };
+            const { data, error } = await supabase.from('professionals').insert([{ id: authData.user.id, email: profData.email.toLowerCase(), hospital: profData.hospital, role: profData.role }]).select('id,email,hospital,role');
+            if (error) { await supabase.auth.signOut(); if (error.code === '23505') return { success: false, error: 'An account with this email already exists.' }; return { success: false, error: error.message }; }
+            await supabase.auth.signOut();
             return { success: true, user: data[0] };
         },
 
         
-        verifyPasswordHint: async (email, hint) => {
-            const { data, error } = await supabase
-                .from('professionals')
-                .select('password')
-                .eq('email', email.toLowerCase())
-                .single();
-
-            if (error || !data) return { success: false, error: "Identifier not found." };
-
-            const firstTwo = data.password.substring(0, 2);
-            if (firstTwo === hint) return { success: true };
-            return { success: false, error: "Verification hint incorrect." };
-        },
+        verifyPasswordHint: async () => ({ success: false, error: 'Use the secure email recovery link instead.' }),
 
         
-        resetPassword: async (email, newPassword) => {
-            const { error } = await supabase
-                .from('professionals')
-                .update({ password: newPassword })
-                .eq('email', email.toLowerCase());
-
-            if (error) return { success: false, error: error.message };
-            return { success: true };
+        resetPassword: async email => {
+            const { error } = await supabase.auth.resetPasswordForEmail(email.toLowerCase(), { redirectTo: `${window.location.origin}${window.SMARTCARE_BASE_PATH || ''}/login` });
+            return error ? { success: false, error: error.message } : { success: true };
         },
 
         

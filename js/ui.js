@@ -14,5 +14,11 @@
             </div>
             <div class="footer-bottom"><span>© 2026 SmartCare Systems · Demo environment</span><span>Last updated: 11 August 2026</span></div>
         </footer>`;
-    window.App.UI = { icon, footer };
+    function toast(message, type = 'info') {
+        let region = document.querySelector('[data-toast-region]');
+        if (!region) { region = document.createElement('div'); region.dataset.toastRegion = 'true'; region.className = 'toast-region'; region.setAttribute('aria-live', 'polite'); document.body.appendChild(region); }
+        const item = document.createElement('div'); item.className = `toast toast-${type}`; item.textContent = message; region.appendChild(item);
+        window.setTimeout(() => { item.classList.add('toast-leaving'); window.setTimeout(() => item.remove(), 220); }, 3200);
+    }
+    window.App.UI = { icon, footer, toast };
 })();

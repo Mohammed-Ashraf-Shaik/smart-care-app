@@ -1,147 +1,41 @@
 (function () {
     const icon = (name, size = 18) => `<i data-lucide="${name}" width="${size}" height="${size}"></i>`;
     const esc = (value = '') => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
-
     window.App.Views.Login = function () {
         const { state, setView, setAuthTarget, setLogin, setLoggedLocation } = window.App.Store;
-        const container = document.createElement('div');
-        container.className = 'flow-shell';
-        let role = state.auth?.targetRole || 'patient';
-        let mode = 'signin';
-        let email = '';
-        let password = '';
-        let facility = '';
-        let newPassword = '';
-        let message = '';
-        let messageType = '';
-        let passwordVisible = false;
-
-        render();
-        return container;
-
+        const container = document.createElement('div'); container.className = 'flow-shell';
+        let role = state.auth?.targetRole || 'patient', mode = 'signin', email = '', password = '', facility = '', message = '', messageType = '', passwordVisible = false;
+        render(); return container;
         function render() {
-            const roleName = role === 'patient' ? 'Patient portal' : role === 'doctor' ? 'Hospital portal' : 'Admin portal';
-            const modeTitle = mode === 'signin' ? 'Sign in to your workspace' : mode === 'signup' ? 'Create a provider account' : 'Recover your access';
-            const modeDescription = mode === 'signin' ? 'Use your work email and care centre details to continue.' : mode === 'signup' ? 'Register your care centre once, then manage the live queue.' : 'Verify your email and password hint to set a new password.';
-            container.innerHTML = `
-                <div class="flow-topbar"><a class="brand-lockup" data-route="/" href="/"><span class="brand-mark">${icon('heart-pulse', 20)}</span><span><span class="brand-name">SmartCare</span><span class="brand-caption">Provider access</span></span></a><button id="auth-back" class="back-link">${icon('arrow-left', 16)} Back to home</button></div>
-                <main class="auth-layout section-auth" data-section="portal-login" aria-labelledby="auth-title">
-                    <aside class="auth-aside"><div class="eyebrow"><span class="eyebrow-dot"></span> Secure provider access</div><h1>Keep care moving.</h1><p>Use SmartCare to see the queue clearly, prepare the next visit, and keep patients informed.</p><ul><li>${icon('list-checks', 16)} Live queue visibility</li><li>${icon('shield-check', 16)} Role-based access</li><li>${icon('clock-3', 16)} Fewer desk handoffs</li></ul></aside>
-                    <section class="auth-panel"><div class="auth-role-switch" aria-label="Choose portal"><button class="auth-role ${role === 'patient' ? 'active' : ''}" data-role="patient">${icon('user-round', 15)} Patient</button><button class="auth-role ${role === 'doctor' ? 'active' : ''}" data-role="doctor">${icon('stethoscope', 15)} Hospital</button><button class="auth-role ${role === 'staff' ? 'active' : ''}" data-role="staff">${icon('clipboard-list', 15)} Admin</button></div><div class="eyebrow" style="color:var(--teal)"><span class="eyebrow-dot"></span> ${roleName}</div><h2 id="auth-title">${modeTitle}</h2><p>${modeDescription}</p>${message ? `<div class="auth-message ${messageType}" role="alert">${esc(message)}</div>` : ''}${mode === 'signin' ? signInForm() : mode === 'signup' ? signUpForm() : recoveryForm()}</section>
-                </main>`;
-            bindCommon();
-            if (mode === 'signin') bindSignIn();
-            if (mode === 'signup') bindSignUp();
-            if (mode === 'recovery') bindRecovery();
-            if (window.lucide) window.lucide.createIcons();
+            const patient = role === 'patient';
+            const roleName = patient ? 'Patient portal' : role === 'doctor' ? 'Hospital portal' : 'Admin portal';
+            const title = mode === 'signin' ? 'Sign in to your workspace' : mode === 'signup' ? 'Create a provider account' : 'Recover your access';
+            const description = mode === 'signin' ? (patient ? 'Use your email and password to continue.' : 'Use your work email and care centre details to continue.') : mode === 'signup' ? 'Register your care centre once, then manage the live queue.' : 'We will email a secure password reset link.';
+            container.innerHTML = `<div class="flow-topbar"><a class="brand-lockup" data-route="/" href="/"><span class="brand-mark">${icon('heart-pulse', 20)}</span><span><span class="brand-name">SmartCare</span><span class="brand-caption">Secure access</span></span></a><button id="auth-back" class="back-link">${icon('arrow-left', 16)} Back to home</button></div><main class="auth-layout section-auth" data-section="portal-login" aria-labelledby="auth-title"><aside class="auth-aside"><div class="eyebrow"><span class="eyebrow-dot"></span> Role-based access</div><h1>Keep care moving.</h1><p>Use SmartCare to see the queue clearly, prepare the next visit, and keep patients informed.</p><ul><li>${icon('list-checks', 16)} Live queue visibility</li><li>${icon('shield-check', 16)} Secure role separation</li><li>${icon('clock-3', 16)} Fewer desk handoffs</li></ul></aside><section class="auth-panel"><div class="auth-role-switch" aria-label="Choose portal"><button class="auth-role ${role === 'patient' ? 'active' : ''}" data-role="patient">${icon('user-round', 15)} Patient</button><button class="auth-role ${role === 'doctor' ? 'active' : ''}" data-role="doctor">${icon('stethoscope', 15)} Hospital</button><button class="auth-role ${role === 'staff' ? 'active' : ''}" data-role="staff">${icon('clipboard-list', 15)} Admin</button></div><div class="eyebrow" style="color:var(--teal)"><span class="eyebrow-dot"></span> ${roleName}</div><h2 id="auth-title">${title}</h2><p>${description}</p>${message ? `<div class="auth-message ${messageType}" role="alert">${esc(message)}</div>` : ''}${mode === 'signin' ? signInForm() : mode === 'signup' ? signUpForm() : recoveryForm()}</section></main>`;
+            bindCommon(); if (mode === 'signin') bindSignIn(); if (mode === 'signup') bindSignUp(); if (mode === 'recovery') bindRecovery(); if (window.lucide) window.lucide.createIcons();
         }
-
         function signInForm() {
             const patient = role === 'patient';
-            return `<form id="auth-form" class="auth-form" novalidate><div class="field"><label for="auth-email">${patient ? 'Email address' : 'Work email'} <span>*</span></label><input id="auth-email" type="email" autocomplete="username" value="${esc(email)}" placeholder="${patient ? 'you@example.com' : 'name@carecentre.org'}" required></div><div class="field"><label for="auth-facility">${patient ? 'Care centre' : 'Care centre'} <span>*</span></label><input id="auth-facility" value="${esc(facility)}" placeholder="e.g. SmartCare Community Hospital" required></div><div class="field"><label for="auth-password">Password <span>*</span></label><div class="password-field"><input id="auth-password" type="${passwordVisible ? 'text' : 'password'}" autocomplete="current-password" value="${esc(password)}" placeholder="Enter your password" required><button class="field-action" id="toggle-password" type="button" aria-label="${passwordVisible ? 'Hide password' : 'Show password'}">${icon(passwordVisible ? 'eye-off' : 'eye', 17)}</button></div></div><div class="auth-help"><button type="button" id="show-recovery">Forgot password?</button></div><button class="btn-primary auth-submit btn-icon" type="submit">${patient ? 'Continue to patient portal' : `Sign in to ${role === 'doctor' ? 'hospital' : 'admin'} portal`} ${icon('arrow-right', 16)}</button><div class="auth-switch"><span>${patient ? 'Are you a provider?' : 'New provider?'}</span><button type="button" id="show-signup">${patient ? 'Open provider access' : 'Create an account'}</button></div></form>${demoAccess()}`;
+            return `<form id="auth-form" class="auth-form" novalidate><div class="field"><label for="auth-email">${patient ? 'Email address' : 'Work email'} <span>*</span></label><input id="auth-email" type="email" autocomplete="username" value="${esc(email)}" placeholder="${patient ? 'you@example.com' : 'name@carecentre.org'}" required></div>${patient ? '' : `<div class="field"><label for="auth-facility">Care centre <span>*</span></label><input id="auth-facility" value="${esc(facility)}" placeholder="e.g. SmartCare Community Hospital" required></div>`}<div class="field"><label for="auth-password">Password <span>*</span></label><div class="password-field"><input id="auth-password" type="${passwordVisible ? 'text' : 'password'}" autocomplete="current-password" value="${esc(password)}" placeholder="Enter your password" required><button class="field-action" id="toggle-password" type="button" aria-label="${passwordVisible ? 'Hide password' : 'Show password'}">${icon(passwordVisible ? 'eye-off' : 'eye', 17)}</button></div></div><div class="auth-help"><button type="button" id="show-recovery">Forgot password?</button></div><button class="btn-primary auth-submit btn-icon" type="submit">${patient ? 'Continue to patient portal' : `Sign in to ${role === 'doctor' ? 'hospital' : 'admin'} portal`} ${icon('arrow-right', 16)}</button><div class="auth-switch"><span>${patient ? 'Are you a provider?' : 'New provider?'}</span><button type="button" id="show-signup">${patient ? 'Open provider access' : 'Create an account'}</button></div></form>${demoAccess()}`;
         }
-
-        function demoAccess() {
-            return `<div class="demo-access"><p class="eyebrow" style="color:var(--teal)"><span class="eyebrow-dot"></span> Demo access</p><p class="hint">Select a role to load a ready-to-use account. You still control the final sign-in.</p><div class="demo-buttons"><button type="button" class="text-link demo-button" data-demo-role="patient">${icon('user-round', 15)} Patient demo</button><button type="button" class="text-link demo-button" data-demo-role="doctor">${icon('stethoscope', 15)} Hospital demo</button><button type="button" class="text-link demo-button" data-demo-role="staff">${icon('clipboard-list', 15)} Admin demo</button></div></div>`;
-        }
-
-        function signUpForm() {
-            return `<form id="auth-form" class="auth-form" novalidate><div class="field"><label for="auth-email">Work email <span>*</span></label><input id="auth-email" type="email" autocomplete="email" value="${esc(email)}" placeholder="name@carecentre.org" required></div><div class="field"><label for="auth-facility">Care centre name <span>*</span></label><input id="auth-facility" value="${esc(facility)}" placeholder="Your registered care centre" required></div><div class="field"><label for="auth-password">Create password <span>*</span></label><div class="password-field"><input id="auth-password" type="${passwordVisible ? 'text' : 'password'}" autocomplete="new-password" value="${esc(password)}" placeholder="At least 8 characters" required><button class="field-action" id="toggle-password" type="button" aria-label="${passwordVisible ? 'Hide password' : 'Show password'}">${icon(passwordVisible ? 'eye-off' : 'eye', 17)}</button></div></div><div class="field"><label for="auth-confirm">Confirm password <span>*</span></label><input id="auth-confirm" type="password" autocomplete="new-password" placeholder="Repeat your password" required></div><button class="btn-primary auth-submit btn-icon" type="submit">Create provider account ${icon('arrow-right', 16)}</button><div class="auth-switch"><span>Already registered?</span><button type="button" id="show-signin">Return to sign in</button></div></form>`;
-        }
-
-        function recoveryForm() {
-            return `<form id="auth-form" class="auth-form" novalidate><div class="field"><label for="auth-email">Work email <span>*</span></label><input id="auth-email" type="email" autocomplete="username" value="${esc(email)}" placeholder="name@carecentre.org" required></div><div class="field"><label for="auth-hint">First two password characters <span>*</span></label><input id="auth-hint" maxlength="2" autocapitalize="none" placeholder="••" required><span class="hint">This checks the recovery hint stored for your provider account.</span></div><div class="field"><label for="auth-password">New password <span>*</span></label><input id="auth-password" type="password" autocomplete="new-password" value="${esc(newPassword)}" placeholder="At least 8 characters" required></div><button class="btn-primary auth-submit btn-icon" type="submit">Reset password ${icon('key-round', 16)}</button><div class="auth-switch"><span>Remembered it?</span><button type="button" id="show-signin">Return to sign in</button></div></form>`;
-        }
-
+        function demoAccess() { return `<div class="demo-access"><p class="eyebrow" style="color:var(--teal)"><span class="eyebrow-dot"></span> Demo access</p><p class="hint">Select a role to load a ready-to-use account. You still control the final sign-in.</p><div class="demo-buttons"><button type="button" class="text-link demo-button" data-demo-role="patient">${icon('user-round', 15)} Patient demo</button><button type="button" class="text-link demo-button" data-demo-role="doctor">${icon('stethoscope', 15)} Hospital demo</button><button type="button" class="text-link demo-button" data-demo-role="staff">${icon('clipboard-list', 15)} Admin demo</button></div></div>`; }
+        function signUpForm() { return `<form id="auth-form" class="auth-form" novalidate><div class="field"><label for="auth-email">Work email <span>*</span></label><input id="auth-email" type="email" autocomplete="email" value="${esc(email)}" placeholder="name@carecentre.org" required></div><div class="field"><label for="auth-facility">Care centre name <span>*</span></label><input id="auth-facility" value="${esc(facility)}" placeholder="Your registered care centre" required></div><div class="field"><label for="auth-password">Create password <span>*</span></label><div class="password-field"><input id="auth-password" type="${passwordVisible ? 'text' : 'password'}" autocomplete="new-password" value="${esc(password)}" placeholder="At least 8 characters" required><button class="field-action" id="toggle-password" type="button" aria-label="${passwordVisible ? 'Hide password' : 'Show password'}">${icon(passwordVisible ? 'eye-off' : 'eye', 17)}</button></div></div><div class="field"><label for="auth-confirm">Confirm password <span>*</span></label><input id="auth-confirm" type="password" autocomplete="new-password" placeholder="Repeat your password" required></div><button class="btn-primary auth-submit btn-icon" type="submit">Create provider account ${icon('arrow-right', 16)}</button><div class="auth-switch"><span>Already registered?</span><button type="button" id="show-signin">Return to sign in</button></div></form>`; }
+        function recoveryForm() { return `<form id="auth-form" class="auth-form" novalidate><div class="field"><label for="auth-email">Account email <span>*</span></label><input id="auth-email" type="email" autocomplete="username" value="${esc(email)}" placeholder="name@carecentre.org" required></div><p class="hint">We will send a secure reset link to this email address.</p><button class="btn-primary auth-submit btn-icon" type="submit">Send reset link ${icon('mail', 16)}</button><div class="auth-switch"><span>Remembered it?</span><button type="button" id="show-signin">Return to sign in</button></div></form>`; }
         function bindCommon() {
             container.querySelector('#auth-back').onclick = e => { e.preventDefault(); setView('landing'); };
-            container.querySelectorAll('[data-role]').forEach(button => button.onclick = () => { role = button.dataset.role; setAuthTarget(role); message = ''; messageType = ''; render(); });
+            container.querySelectorAll('[data-role]').forEach(button => button.onclick = () => { role = button.dataset.role; setAuthTarget(role); message = ''; render(); });
             container.querySelectorAll('[data-demo-role]').forEach(button => button.onclick = () => startDemo(button.dataset.demoRole));
-            const toggle = container.querySelector('#toggle-password');
-            if (toggle) toggle.onclick = () => { passwordVisible = !passwordVisible; render(); };
-            const showSignIn = container.querySelector('#show-signin');
-            if (showSignIn) showSignIn.onclick = () => { mode = 'signin'; message = ''; messageType = ''; render(); };
-            const showSignUp = container.querySelector('#show-signup');
-            if (showSignUp) showSignUp.onclick = () => { if (role === 'patient') { role = 'doctor'; setAuthTarget(role); } mode = 'signup'; message = ''; messageType = ''; render(); };
-            const showRecovery = container.querySelector('#show-recovery');
-            if (showRecovery) showRecovery.onclick = () => { mode = 'recovery'; message = ''; messageType = ''; render(); };
+            const toggle = container.querySelector('#toggle-password'); if (toggle) toggle.onclick = () => { passwordVisible = !passwordVisible; render(); };
+            const signIn = container.querySelector('#show-signin'); if (signIn) signIn.onclick = () => { mode = 'signin'; message = ''; render(); };
+            const signUp = container.querySelector('#show-signup'); if (signUp) signUp.onclick = () => { if (role === 'patient') { role = 'doctor'; setAuthTarget(role); } mode = 'signup'; message = ''; render(); };
+            const recovery = container.querySelector('#show-recovery'); if (recovery) recovery.onclick = () => { mode = 'recovery'; message = ''; render(); };
         }
-
-        function readFields() {
-            email = container.querySelector('#auth-email')?.value.trim() || email;
-            facility = container.querySelector('#auth-facility')?.value.trim() || facility;
-            password = container.querySelector('#auth-password')?.value || password;
-        }
-
-        function bindSignIn() {
-            container.querySelector('#auth-form').onsubmit = async e => {
-                e.preventDefault(); readFields();
-                if (!email || !email.includes('@') || !facility || !password) return showError('Enter your work email, care centre, and password.');
-                await runSubmit(async () => {
-                    if (role === 'patient') {
-                        setLoggedLocation('India', 'Telangana', 'Hyderabad', facility);
-                        setLogin(email, 'patient');
-                        setView('patientDashboard');
-                        return;
-                    }
-                    const result = await window.App.DB.checkCredentials(facility, email, password, role);
-                    if (!result.success) throw new Error(result.error || 'We could not sign you in.');
-                    const user = result.user || {};
-                    setLoggedLocation(user.country || 'India', user.state || '', user.city || '', user.hospital || facility);
-                    setLogin(email, role);
-                    setView(role);
-                }, 'Signing you in…');
-            };
-        }
-
-        function bindSignUp() {
-            container.querySelector('#auth-form').onsubmit = async e => {
-                e.preventDefault(); readFields();
-                const confirm = container.querySelector('#auth-confirm')?.value || '';
-                if (!email || !email.includes('@') || !facility || password.length < 8) return showError('Use a valid work email, care centre, and a password with at least 8 characters.');
-                if (password !== confirm) return showError('Passwords do not match.');
-                await runSubmit(async () => {
-                    const result = await window.App.DB.registerProfessional({ email, hospital: facility, password, role });
-                    if (!result.success) throw new Error(result.error || 'Account creation failed.');
-                    message = 'Account created. You can now sign in.'; messageType = 'success'; mode = 'signin'; password = ''; render();
-                }, 'Creating your account…');
-            };
-        }
-
-        function bindRecovery() {
-            container.querySelector('#auth-form').onsubmit = async e => {
-                e.preventDefault(); readFields();
-                const hint = container.querySelector('#auth-hint')?.value.trim() || '';
-                newPassword = password;
-                if (!email || !email.includes('@') || hint.length !== 2 || newPassword.length < 8) return showError('Enter your email, two-character hint, and a new password with at least 8 characters.');
-                await runSubmit(async () => {
-                    const verified = await window.App.DB.verifyPasswordHint(email, hint);
-                    if (!verified.success) throw new Error(verified.error || 'We could not verify those details.');
-                    const result = await window.App.DB.resetPassword(email, newPassword);
-                    if (!result.success) throw new Error(result.error || 'Password reset failed.');
-                    message = 'Password reset. Sign in with your new password.'; messageType = 'success'; mode = 'signin'; password = ''; render();
-                }, 'Updating your password…');
-            };
-        }
-
-        async function runSubmit(action, loadingText) {
-            const button = container.querySelector('#auth-form button[type="submit"]');
-            if (button) { button.disabled = true; button.textContent = loadingText; }
-            try { await action(); } catch (error) { showError(error.message || 'Something went wrong. Try again.'); }
-        }
-
-        function startDemo(demoRole) {
-            role = demoRole;
-            setAuthTarget(role);
-            mode = 'signin';
-            email = demoRole === 'patient' ? 'patient@smartcare.demo' : demoRole === 'doctor' ? 'hospital@smartcare.demo' : 'admin@smartcare.demo';
-            facility = demoRole === 'patient' ? 'SmartCare Demo Clinic' : demoRole === 'doctor' ? 'SmartCare Community Hospital' : 'SmartCare Operations Centre';
-            password = 'demo1234';
-            message = 'Demo credentials loaded. Click sign in to continue.';
-            messageType = 'success';
-            render();
-        }
-
+        function readFields() { email = container.querySelector('#auth-email')?.value.trim() || email; facility = container.querySelector('#auth-facility')?.value.trim() || facility; password = container.querySelector('#auth-password')?.value || password; }
+        function bindSignIn() { container.querySelector('#auth-form').onsubmit = async event => { event.preventDefault(); readFields(); const patient = role === 'patient'; if (!email || !email.includes('@') || (!patient && !facility) || !password) return showError(patient ? 'Enter your email and password.' : 'Enter your work email, care centre, and password.'); await runSubmit(async () => { if (patient) { setLoggedLocation('India', 'Telangana', 'Hyderabad', 'SmartCare Demo Clinic'); setLogin(email, 'patient'); setView('patientDashboard'); return; } const result = await window.App.DB.checkCredentials(facility, email, password, role); if (!result.success) throw new Error(result.error || 'We could not sign you in.'); const user = result.user || {}; setLoggedLocation(user.country || 'India', user.state || '', user.city || '', user.hospital || facility); setLogin(email, role); setView(role); }, 'Signing you in…'); }; }
+        function bindSignUp() { container.querySelector('#auth-form').onsubmit = async event => { event.preventDefault(); readFields(); const confirm = container.querySelector('#auth-confirm')?.value || ''; if (!email || !email.includes('@') || !facility || password.length < 8) return showError('Use a valid work email, care centre, and a password with at least 8 characters.'); if (password !== confirm) return showError('Passwords do not match.'); await runSubmit(async () => { const result = await window.App.DB.registerProfessional({ email, hospital: facility, password, role }); if (!result.success) throw new Error(result.error || 'Account creation failed.'); message = 'Account created. Check your email if confirmation is enabled, then sign in.'; messageType = 'success'; mode = 'signin'; password = ''; render(); }, 'Creating your account…'); }; }
+        function bindRecovery() { container.querySelector('#auth-form').onsubmit = async event => { event.preventDefault(); readFields(); if (!email || !email.includes('@')) return showError('Enter a valid account email.'); await runSubmit(async () => { const result = await window.App.DB.resetPassword(email); if (!result.success) throw new Error(result.error || 'Password reset failed.'); message = 'If an account exists for this email, a secure reset link has been sent.'; messageType = 'success'; mode = 'signin'; password = ''; render(); }, 'Sending reset link…'); }; }
+        async function runSubmit(action, loadingText) { const button = container.querySelector('#auth-form button[type="submit"]'); if (button) { button.disabled = true; button.textContent = loadingText; } try { await action(); } catch (error) { showError(error.message || 'Something went wrong. Try again.'); } }
+        function startDemo(demoRole) { role = demoRole; setAuthTarget(role); mode = 'signin'; email = demoRole === 'patient' ? 'patient@smartcare.demo' : demoRole === 'doctor' ? 'hospital@smartcare.demo' : 'admin@smartcare.demo'; facility = demoRole === 'patient' ? 'SmartCare Demo Clinic' : demoRole === 'doctor' ? 'SmartCare Community Hospital' : 'SmartCare Operations Centre'; password = 'demo1234'; message = 'Demo credentials loaded. Click sign in to continue.'; messageType = 'success'; render(); }
         function showError(text) { message = text; messageType = 'error'; render(); }
     };
 })();
