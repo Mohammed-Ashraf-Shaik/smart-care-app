@@ -26,7 +26,7 @@
     };
 
     window.App.Views.Patient = function () {
-        const { state, setStep, updatePatientData, updateQueue, recordPatientVisit, setView, persistDraft } = window.App.Store;
+        const { state, setStep, updatePatientData, recordPatientVisit, setView, persistDraft } = window.App.Store;
         const { step, patientData } = state;
         const container = document.createElement('div');
         container.className = 'flow-shell patient-application-shell';
@@ -45,7 +45,8 @@
         if (window.lucide) window.lucide.createIcons();
         return container;
 
-        function topbar() { return `<div class="flow-topbar"><a class="brand-lockup" data-route="/" href="/"><span class="brand-mark">${icon('heart-pulse', 20)}</span><span><span class="brand-name">SmartCare</span><span class="brand-caption">Patient application</span></span></a><div class="flow-topbar-actions"><button id="patient-demo" class="btn-secondary btn-icon" type="button">${icon('sparkles', 16)} Load patient demo</button><button id="btn-back-home" class="back-link" type="button">${icon('arrow-left', 16)} Back</button></div></div>`; }
+        function demoLabel() { if (step === 1) return 'Fill profile demo'; if (step === 2) return 'Fill care demo'; if (step === 3) return patientData.symptoms ? 'Demo visit filled' : 'Fill visit demo'; return 'Demo complete'; }
+        function topbar() { return `<div class="flow-topbar"><a class="brand-lockup" data-route="/" href="/"><span class="brand-mark">${icon('heart-pulse', 20)}</span><span><span class="brand-name">SmartCare</span><span class="brand-caption">Patient application</span></span></a><div class="flow-topbar-actions"><button id="patient-demo" class="btn-secondary btn-icon" type="button" ${step === 4 || (step === 3 && patientData.symptoms) ? 'disabled' : ''}>${icon('sparkles', 16)} ${demoLabel()}</button><button id="btn-back-home" class="back-link" type="button">${icon('arrow-left', 16)} Back</button></div></div>`; }
         function activeFlow() {
             const title = step === 1 ? 'Tell us a little about you.' : step === 2 ? 'Choose care that fits.' : 'Make your visit count.';
             const description = step === 1 ? 'This helps the care team prepare before you arrive.' : step === 2 ? 'We use your location only to show nearby options.' : 'Share the essentials and we will prepare your queue place.';
@@ -125,7 +126,24 @@
         function confirmation() { const booking = state.lastBookingId || `SC-${Math.random().toString(36).slice(2, 8).toUpperCase()}`; return `<div class="success-state"><div class="success-icon">${icon('check', 34)}</div><div class="eyebrow eyebrow-dark success-eyebrow"><span class="eyebrow-dot"></span> Reservation received</div><h1>You're on the list.</h1><p>Your care centre has your request. Keep this reference nearby and arrive 10 minutes before your queue window.</p><div class="token-card"><div><small>Reference</small><strong>${esc(booking)}</strong></div>${icon('copy', 18)}</div><p class="copy-hint">Select the reference to copy it.</p><div class="review-card confirmation-review"><div class="summary-row"><span>Care centre</span><strong>${esc(patientData.hospital)}</strong></div><div class="summary-row"><span>Queue window</span><strong>15-25 minutes</strong></div><div class="summary-row"><span>Patient</span><strong>${esc(patientData.name)}</strong></div></div><button id="btn-confirm-home" class="btn-primary btn-wide">Return to SmartCare</button></div>`; }
         function bindConfirmation() { const token = container.querySelector('.token-card'); const copyReference = async () => { try { await navigator.clipboard.writeText(state.lastBookingId || ''); token.classList.add('copied'); token.setAttribute('aria-label', 'Reservation reference copied'); } catch { token.setAttribute('aria-label', 'Reservation reference'); } }; token.setAttribute('role', 'button'); token.setAttribute('tabindex', '0'); token.setAttribute('aria-label', 'Copy reservation reference'); token.onclick = copyReference; token.onkeydown = event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); copyReference(); } }; container.querySelector('#btn-confirm-home').onclick = () => setView('landing'); if (window.lucide) window.lucide.createIcons(); }
         async function reserveVisit() { const button = container.querySelector('#details-next'); button.disabled = true; button.innerHTML = `${icon('loader-circle', 16)} Saving your reservation...`; if (window.lucide) window.lucide.createIcons(); try { state.lastBookingId = await window.App.DB.addPatient(patientData); } catch { state.lastBookingId = `SC-${Math.random().toString(36).slice(2, 8).toUpperCase()}`; state.localBooking = true; } rememberVisit(); setStep(4); }
-        async function loadPatientDemo() { const button = container.querySelector('#patient-demo'); button.disabled = true; button.innerHTML = `${icon('loader-circle', 16)} Loading demo...`; if (window.lucide) window.lucide.createIcons(); Object.assign(patientData, { name: 'Asha Rao', age: '32', doctorPref: 'General consultation', area: 'Hyderabad', symptoms: 'Routine fever and fatigue', hospital: 'SmartCare Community Hospital', country: 'India', state: 'Telangana', city: 'Hyderabad', fee: 275, triage: 'Yellow' }); state.tempHospitals = []; state.userCoords = null; try { state.lastBookingId = await window.App.DB.addPatient(patientData); try { updateQueue(await window.App.DB.fetchQueue()); } catch { /* demo queue refresh is optional */ } } catch { state.lastBookingId = `SC-${Math.random().toString(36).slice(2, 8).toUpperCase()}`; state.localBooking = true; } rememberVisit(); setStep(4); }
+        function loadPatientDemo() {
+            if (step === 1) {
+                Object.assign(patientData, { name: 'Asha Rao', age: '32', doctorPref: 'General consultation' });
+                persistDraft(); setStep(2); return;
+            }
+            if (step === 2) {
+                const lat = 17.385, lng = 78.4867;
+                state.userCoords = { lat, lng, accuracy: 10000 };
+                state.searchRadius = 5000;
+                state.tempHospitals = fallbackHospitals(lat, lng).map((hospital, index) => ({ ...hospital, type: hospital.type.toLowerCase(), distance: distanceKm({ lat, lng }, hospital), openingHours: '24/7' }));
+                Object.assign(patientData, { area: 'Hyderabad', hospital: 'SmartCare Community Hospital', country: 'India', state: 'Telangana', city: 'Hyderabad' });
+                persistDraft(); setStep(3); return;
+            }
+            if (step === 3) {
+                Object.assign(patientData, { symptoms: 'Routine fever and fatigue', fee: 275, triage: 'Yellow' });
+                persistDraft(); setStep(3);
+            }
+        }
         function rememberVisit() { recordPatientVisit({ id: state.lastBookingId, hospital: patientData.hospital || 'SmartCare Community Hospital', city: patientData.city || patientData.area || 'Hyderabad', reason: patientData.symptoms || patientData.doctorPref || 'General consultation', date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }), status: 'Booked', reference: state.lastBookingId }); }
         function showInlineError(target, message) { target.querySelector('.inline-error')?.remove(); target.querySelector('.flow-actions')?.insertAdjacentHTML('beforebegin', `<div class="inline-error" role="alert">${icon('triangle-alert', 15)} ${esc(message)}</div>`); }
     };
