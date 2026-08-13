@@ -12,7 +12,7 @@
         const workspaceNav = document.createElement('nav');
         workspaceNav.className = 'workspace-tabs';
         workspaceNav.setAttribute('aria-label', 'Admin workspace navigation');
-        workspaceNav.innerHTML = `<a class="${activeTab === '' ? 'active' : ''}" href="/dashboard/admin" data-route="/dashboard/admin">${icon('layout-dashboard', 16)}<span>Operations</span></a><a class="${activeTab === 'rooms' ? 'active' : ''}" href="/dashboard/admin?tab=rooms" data-tab="rooms" data-tab-route="/dashboard/admin">${icon('door-open', 16)}<span>Rooms</span></a><a href="/dashboard/queue" data-route="/dashboard/queue">${icon('list-ordered', 16)}<span>Queue</span></a><a href="/dashboard/analytics" data-route="/dashboard/analytics">${icon('bar-chart-3', 16)}<span>Analytics</span></a><a href="/apply" data-route="/apply">${icon('user-round', 16)}<span>Patient flow</span></a><button type="button" id="workspace-logout">${icon('log-out', 16)}<span>Sign out</span></button>`;
+        workspaceNav.innerHTML = `<a class="${activeTab === '' ? 'active' : ''}" href="/dashboard/admin" data-route="/dashboard/admin">${icon('layout-dashboard', 16)}<span>Operations</span></a><a class="${activeTab === 'rooms' ? 'active' : ''}" href="/dashboard/admin?tab=rooms" data-tab="rooms" data-tab-route="/dashboard/admin">${icon('door-open', 16)}<span>Rooms</span></a><a href="/dashboard/queue" data-route="/dashboard/queue">${icon('list-ordered', 16)}<span>Queue</span></a><a href="/dashboard/analytics" data-route="/dashboard/analytics">${icon('bar-chart-3', 16)}<span>Analytics</span></a><a href="/dashboard/admin/help" data-route="/dashboard/admin/help">${icon('circle-help', 16)}<span>Help</span></a><button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>`;
         const workspaceMain = container.querySelector('main');
         const workspaceContent = document.createElement('div');
         workspaceContent.className = 'workspace-content';
@@ -21,7 +21,7 @@
         const quickActions = document.createElement('section');
         quickActions.className = 'dashboard-quick-actions';
         quickActions.setAttribute('aria-label', 'Admin quick actions');
-        quickActions.innerHTML = `<div><span class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> Next actions</span><strong>Keep the centre moving</strong><small>Review rooms, queue health, and today’s operating signals.</small></div><a class="btn-primary btn-icon" data-route="/dashboard/analytics" href="/dashboard/analytics">Open analytics ${icon('arrow-right', 16)}</a><a class="btn-secondary btn-icon" data-route="/apply" href="/apply">Preview patient flow ${icon('external-link', 16)}</a>`;
+        quickActions.innerHTML = `<div><span class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> Next actions</span><strong>Keep the centre moving</strong><small>Review rooms, queue health, and today’s operating signals.</small></div><a class="btn-primary btn-icon" data-route="/dashboard/analytics" href="/dashboard/analytics">Open analytics ${icon('arrow-right', 16)}</a><a class="btn-secondary btn-icon" data-route="/dashboard/patient/apply/1" href="/dashboard/patient/apply/1">Preview patient flow ${icon('external-link', 16)}</a>`;
         workspaceContent.insertBefore(quickActions, workspaceContent.querySelector('.provider-stats'));
         container.querySelector('#workspace-logout').onclick = logout;
         container.querySelector('#staff-back').onclick = () => setView('landing');

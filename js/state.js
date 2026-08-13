@@ -1,6 +1,6 @@
 (function () {
-    const routeMap = { landing: '/', patientDashboard: '/dashboard/patient', patient: '/apply', login: '/login', doctor: '/dashboard/doctor', queue: '/dashboard/queue', staff: '/dashboard/admin', analytics: '/dashboard/analytics', about: '/about', terms: '/terms', privacy: '/privacy', notFound: '/404' };
-    const pathMap = { '/': 'landing', '/apply': 'patient', '/login': 'login', '/dashboard/patient': 'patientDashboard', '/dashboard/doctor': 'doctor', '/dashboard/hospital': 'doctor', '/dashboard/queue': 'queue', '/dashboard/admin': 'staff', '/dashboard/analytics': 'analytics', '/about': 'about', '/terms': 'terms', '/privacy': 'privacy', '/404': 'notFound' };
+    const routeMap = { landing: '/', patientDashboard: '/dashboard/patient', patient: '/dashboard/patient/apply/1', login: '/login', doctor: '/dashboard/doctor', queue: '/dashboard/queue', staff: '/dashboard/admin', analytics: '/dashboard/analytics', about: '/about', terms: '/terms', privacy: '/privacy', notFound: '/404' };
+    const pathMap = { '/': 'landing', '/apply': 'patientDashboard', '/dashboard/patient/apply': 'patientDashboard', '/login': 'login', '/dashboard/patient': 'patientDashboard', '/dashboard/patient/help': 'about', '/dashboard/doctor': 'doctor', '/dashboard/doctor/help': 'about', '/dashboard/hospital': 'doctor', '/dashboard/queue': 'queue', '/dashboard/admin': 'staff', '/dashboard/admin/help': 'about', '/dashboard/analytics': 'analytics', '/dashboard/analytics/help': 'about', '/about': 'about', '/terms': 'terms', '/privacy': 'privacy', '/404': 'notFound' };
     const basePath = window.SMARTCARE_BASE_PATH || '';
     const draftKey = 'smartcare.patientDraft';
     const sessionKey = 'smartcare.session';
@@ -34,7 +34,11 @@
         if (tab) url.searchParams.set('tab', tab); else url.searchParams.delete('tab');
         return `${url.pathname}${url.search}${url.hash}`;
     }
-    function viewForPath(pathname) { return pathMap[stripBasePath(pathname)] || 'notFound'; }
+    function viewForPath(pathname) {
+        const stripped = stripBasePath(pathname);
+        if (stripped.startsWith('/dashboard/patient/apply') || stripped === '/apply') return 'patientDashboard';
+        return pathMap[stripped] || 'notFound';
+    }
     function routeForView(view) { return routeMap[view] || '/'; }
     function requiredRole(view) { return view === 'patientDashboard' ? ['patient'] : ['doctor', 'queue'].includes(view) ? ['doctor', 'staff'] : view === 'analytics' ? ['doctor', 'staff'] : view === 'staff' ? ['staff'] : ''; }
     function roleAllowed(required, actual) { return !required || required.includes(actual); }
@@ -66,9 +70,30 @@
             window.history.replaceState({}, '', hrefFor(`/login?role=${neededRole[0]}`));
             view = 'login'; state.route = '/login';
         } else state.route = pathname;
-        state.activeTab = new URLSearchParams(window.location.search).get('tab') || '';
+        if (pathname === '/apply') {
+            const cleanPath = hrefFor('/dashboard/patient/apply/1');
+            window.history.replaceState({}, '', cleanPath);
+            state.route = '/dashboard/patient/apply/1';
+            state.activeTab = 'apply';
+            state.step = 1;
+        } else if (pathname.startsWith('/dashboard/patient/apply')) {
+            state.activeTab = 'apply';
+            const parts = pathname.split('/');
+            const lastPart = parts[parts.length - 1];
+            const stepNum = Number(lastPart);
+            if (Number.isInteger(stepNum) && stepNum >= 1 && stepNum <= 4) {
+                state.step = stepNum;
+            } else {
+                state.step = 1;
+            }
+        } else {
+            state.activeTab = new URLSearchParams(window.location.search).get('tab') || '';
+        }
         state.view = view;
-        if (view === 'about' || view === 'terms' || view === 'privacy') state.infoPage = view;
+        if (view === 'about' || view === 'terms' || view === 'privacy') {
+            const isHelpPath = pathname.endsWith('/help');
+            state.infoPage = isHelpPath ? 'about' : view;
+        }
         const role = new URLSearchParams(window.location.search).get('role');
         if (['patient', 'doctor', 'staff'].includes(role)) setAuthTarget(role);
         if (shouldNotify) notify();
@@ -86,6 +111,10 @@
         notify();
     }
     function navigateTab(tab, route = state.route) {
+        if (tab === 'apply') {
+            navigate(`/dashboard/patient/apply/${state.step || 1}`);
+            return;
+        }
         const safeRoute = route && route.startsWith('/') ? route : '/';
         const nextUrl = new URL(hrefForTab(safeRoute, tab), window.location.origin);
         window.history.pushState({}, '', nextUrl.pathname + nextUrl.search);
@@ -93,7 +122,7 @@
         notify();
     }
     function setView(newView) { navigate(routeForView(newView)); }
-    function setStep(newStep) { state.step = Math.max(1, Math.min(4, Number(newStep) || 1)); if (state.step < 4) persistDraft(); else clearDraft(); notify(); }
+    function setStep(newStep) { state.step = Math.max(1, Math.min(4, Number(newStep) || 1)); if (state.step < 4) persistDraft(); else clearDraft(); if (state.view === 'patientDashboard' || state.activeTab === 'apply') { navigate(`/dashboard/patient/apply/${state.step}`); } else { notify(); } }
     function setAuthTarget(role) { state.auth.targetRole = ['patient', 'doctor', 'staff'].includes(role) ? role : 'patient'; }
     function updatePatientData(key, value, shouldNotify = false) { state.patientData[key] = value; persistDraft(); if (shouldNotify) notify(); }
     function recordPatientVisit(visit) { state.patientVisits = [visit, ...state.patientVisits.filter(item => item.id !== visit.id)].slice(0, 12); try { window.localStorage.setItem(patientVisitKey, JSON.stringify(state.patientVisits)); } catch { /* local history is optional */ } }

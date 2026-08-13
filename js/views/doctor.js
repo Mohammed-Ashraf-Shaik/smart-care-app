@@ -12,7 +12,7 @@
         const workspaceNav = document.createElement('nav');
         workspaceNav.className = 'workspace-tabs';
         workspaceNav.setAttribute('aria-label', 'Hospital workspace navigation');
-        workspaceNav.innerHTML = `<a class="active" href="/dashboard/doctor" data-route="/dashboard/doctor">${icon('layout-dashboard', 16)}<span>Overview</span></a><a href="/dashboard/queue" data-route="/dashboard/queue">${icon('list-ordered', 16)}<span>Queue</span></a><a href="/dashboard/analytics" data-route="/dashboard/analytics">${icon('bar-chart-3', 16)}<span>Analytics</span></a><a href="/about" data-route="/about">${icon('circle-help', 16)}<span>Help</span></a><button type="button" id="workspace-logout">${icon('log-out', 16)}<span>Sign out</span></button>`;
+        workspaceNav.innerHTML = `<a class="active" href="/dashboard/doctor" data-route="/dashboard/doctor">${icon('layout-dashboard', 16)}<span>Overview</span></a><a href="/dashboard/queue" data-route="/dashboard/queue">${icon('list-ordered', 16)}<span>Queue</span></a><a href="/dashboard/analytics" data-route="/dashboard/analytics">${icon('bar-chart-3', 16)}<span>Analytics</span></a><a href="/dashboard/doctor/help" data-route="/dashboard/doctor/help">${icon('circle-help', 16)}<span>Help</span></a><button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>`;
         const workspaceMain = container.querySelector('main');
         const workspaceContent = document.createElement('div');
         workspaceContent.className = 'workspace-content';

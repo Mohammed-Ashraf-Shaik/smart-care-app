@@ -25,18 +25,20 @@
         layers: [{ id: 'osm', type: 'raster', source: 'osm' }]
     };
 
-    window.App.Views.Patient = function () {
+    window.App.Views.Patient = function (isEmbedded = false) {
         const { state, setStep, updatePatientData, recordPatientVisit, setView, persistDraft } = window.App.Store;
         const { step, patientData } = state;
         const container = document.createElement('div');
-        container.className = 'flow-shell patient-application-shell';
+        container.className = isEmbedded ? 'patient-application-shell embedded-application-shell' : 'flow-shell patient-application-shell';
         let map;
         let markerNodes = [];
         const steps = ['Your profile', 'Find care', 'Visit details', 'Confirmed'];
 
-        container.innerHTML = `${topbar()}<section class="flow-card section-application" data-section="patient-application">${step === 4 ? confirmation() : activeFlow()}</section>${window.App.UI.footer()}`;
-        container.querySelector('#btn-back-home').onclick = event => { event.preventDefault(); if (step === 1 || step === 4) setView('landing'); else setStep(step - 1); };
-        container.querySelector('#patient-demo').onclick = loadPatientDemo;
+        container.innerHTML = isEmbedded ? `<div class="embedded-app-top"><button id="patient-demo" class="btn-secondary btn-icon" type="button" ${step === 4 || (step === 3 && patientData.symptoms) ? 'disabled' : ''}>${icon('sparkles', 16)} ${demoLabel()}</button></div><section class="flow-card section-application" data-section="patient-application">${step === 4 ? confirmation() : activeFlow()}</section>` : `${topbar()}<section class="flow-card section-application" data-section="patient-application">${step === 4 ? confirmation() : activeFlow()}</section>${window.App.UI.footer()}`;
+        const backBtn = container.querySelector('#btn-back-home');
+        if (backBtn) backBtn.onclick = event => { event.preventDefault(); if (step === 1 || step === 4) setView('landing'); else setStep(step - 1); };
+        const demoBtn = container.querySelector('#patient-demo');
+        if (demoBtn) demoBtn.onclick = loadPatientDemo;
         if (step === 4) { bindConfirmation(); return container; }
         const target = container.querySelector('#step-content');
         if (step === 1) renderProfile(target);
@@ -46,7 +48,7 @@
         return container;
 
         function demoLabel() { if (step === 1) return 'Fill profile demo'; if (step === 2) return 'Fill care demo'; if (step === 3) return patientData.symptoms ? 'Demo visit filled' : 'Fill visit demo'; return 'Demo complete'; }
-        function topbar() { return `<div class="flow-topbar"><a class="brand-lockup" data-route="/" href="/"><span class="brand-mark">${icon('heart-pulse', 20)}</span><span><span class="brand-name">SmartCare</span><span class="brand-caption">Patient application</span></span></a><div class="flow-topbar-actions"><button id="patient-demo" class="btn-secondary btn-icon" type="button" ${step === 4 || (step === 3 && patientData.symptoms) ? 'disabled' : ''}>${icon('sparkles', 16)} ${demoLabel()}</button><button id="btn-back-home" class="back-link" type="button">${icon('arrow-left', 16)} Back</button></div></div>`; }
+        function topbar() { return `<div class="flow-topbar patient-topbar"><a class="brand-lockup" data-route="/" href="/"><span class="brand-mark">${icon('heart-pulse', 20)}</span><span><span class="brand-name">SmartCare</span><span class="brand-caption">Patient application</span></span></a><nav class="flow-topbar-nav" aria-label="Application navigation"><a data-route="/" href="/">Home</a><a data-route="/dashboard/patient/apply/1" href="/dashboard/patient/apply/1" class="active">Patient application</a><a data-route="/login" href="/login">Provider portal</a><a data-route="/about" href="/about">About</a></nav><div class="flow-topbar-actions"><button id="patient-demo" class="btn-secondary btn-icon" type="button" ${step === 4 || (step === 3 && patientData.symptoms) ? 'disabled' : ''}>${icon('sparkles', 16)} ${demoLabel()}</button><button id="btn-back-home" class="back-link" type="button">${icon('arrow-left', 16)} ${step === 1 || step === 4 ? 'Home' : 'Back'}</button></div></div>`; }
         function activeFlow() {
             const title = step === 1 ? 'Tell us a little about you.' : step === 2 ? 'Choose care that fits.' : 'Make your visit count.';
             const description = step === 1 ? 'This helps the care team prepare before you arrive.' : step === 2 ? 'We use your location only to show nearby options.' : 'Share the essentials and we will prepare your queue place.';
