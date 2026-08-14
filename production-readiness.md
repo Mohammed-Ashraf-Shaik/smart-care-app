@@ -8,6 +8,7 @@ The current build is a local demo: Supabase is disabled in `js/config.js`, and t
 - Patient, hospital, and admin demo accounts remain available.
 - Queue metrics are calculated from current queue records.
 - Queue search, priority filters, queue actions, room toggles, toast states, and secure recovery UI are included.
+- Blood-group/city donation-centre lookup and a clearly non-binding organ-donation interest flow are included in demo mode.
 - Supabase mode uses Supabase Auth for provider passwords; see `supa base query.md`.
 
 ## Configuration
@@ -31,6 +32,7 @@ The current build is a local demo: Supabase is disabled in `js/config.js`, and t
 - Allow patients to read only their own visits.
 - Allow hospitals to read/update only their assigned care-centre queue.
 - Allow admins to read operational data without exposing credentials.
+- Keep blood-centre discovery public only for active rows; protect donation-interest submissions and attach an authenticated user or server-side request identity.
 - Minimize stored location precision and document retention/deletion.
 - Never put service-role keys, real medical data, or secrets in this repository or static frontend.
 
@@ -47,4 +49,6 @@ The current build is a local demo: Supabase is disabled in `js/config.js`, and t
 - Add a Content Security Policy for scripts, tiles, fonts, and API endpoints.
 - Add automated checks for routes, URL tabs, auth guards, form validation, queue creation, and mobile layout.
 - Add error monitoring and a privacy-safe audit trail.
+- Link organ donation users to the official registry for their jurisdiction; SmartCare must never represent the demo interest form as legal consent.
+- Run `npm run lint` on each iteration and `npm run build` once before release to verify GitHub Pages asset output.
 - Review ignored and untracked files before every commit; keep `context.md` local-only.

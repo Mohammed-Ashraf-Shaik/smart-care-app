@@ -83,6 +83,60 @@ using (patient_auth_id = auth.uid());
 
 For inserts and status changes, prefer authenticated RPC functions or an API route that validates role and hospital ownership. Do not grant unrestricted anonymous insert/update/delete access. Never expose the Supabase service-role key in static frontend code.
 
+## 3a. Donation support
+
+Blood-centre lookup is public discovery data; donation interest is personal intent data. Keep the two tables separate and do not store medical eligibility decisions in either table.
+
+```sql
+create table if not exists public.blood_donation_centres (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  area text not null,
+  city text not null,
+  hours text,
+  note text,
+  supported_groups text[] not null default '{}',
+  is_active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists blood_centres_city_idx on public.blood_donation_centres(city);
+create index if not exists blood_centres_groups_idx on public.blood_donation_centres using gin(supported_groups);
+
+create table if not exists public.donation_interests (
+  id uuid primary key default gen_random_uuid(),
+  type text not null check (type in ('organ', 'blood')),
+  name text not null check (char_length(name) between 2 and 120),
+  city text not null check (char_length(city) between 2 and 120),
+  preference text,
+  auth_user_id uuid references auth.users(id) on delete set null,
+  status text not null default 'new' check (status in ('new', 'contacted', 'closed')),
+  created_at timestamptz not null default now()
+);
+
+alter table public.blood_donation_centres enable row level security;
+alter table public.donation_interests enable row level security;
+
+create policy "anyone can read active blood centres"
+on public.blood_donation_centres for select
+to anon, authenticated
+using (is_active = true);
+
+-- Prefer an Edge Function/RPC for this insert in production. If direct inserts
+-- are temporarily enabled for the demo, validate fields and rate-limit it.
+create policy "authenticated users can create their donation interest"
+on public.donation_interests for insert
+to authenticated
+with check (auth_user_id = auth.uid());
+
+create policy "users can read their own donation interest"
+on public.donation_interests for select
+to authenticated
+using (auth_user_id = auth.uid());
+```
+
+The static demo currently submits a non-binding organ interest without a real account. Keep that behavior only while Supabase is disabled. When enabling Supabase, route the form through an Edge Function or require a patient Auth session, attach `auth_user_id`, and never expose an unrestricted anonymous insert policy. Blood-group filtering in the client maps to `contains(supported_groups, [selected_group])`.
+
 ## 4. Realtime
 
 After RLS is correct, add `public.queue` to the realtime publication and keep the existing `listenToQueue` subscription. Realtime should refresh the current filtered queue, not bypass authorization.
@@ -103,8 +157,10 @@ Use deployment secrets or a generated environment-specific config. Do not commit
 ## 6. Production checklist
 
 - Configure Auth email templates and redirect URLs for `/smart-care-app/login`.
+- Configure Auth email templates and redirect URLs for `/smart-care-app/login`; the client uses `getSession`, `onAuthStateChange`, `signInWithPassword`, `resetPasswordForEmail`, and `updateUser`.
 - Add an `updated_at` trigger for queue rows.
 - Add audit events for call, start, complete, cancel, and no-show.
+- Seed and protect active blood donation centres; connect organ interest to the country’s official registry workflow rather than treating SmartCare as legal consent.
 - Add rate limits and server-side validation around public geocoding and queue mutations.
 - Test role separation with patient, doctor, and admin accounts.
 - Keep the local demo adapter and all demo credentials available for review builds only.
