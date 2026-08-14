@@ -31,7 +31,7 @@
     }
     function tabPath(pathname, tab = '') {
         const path = stripBasePath(pathname);
-        if (tab === 'apply') return `/dashboard/patient/apply/${state.step || 1}`;
+        if (tab === 'apply' && (path === '/apply' || path === '/dashboard/patient' || path.startsWith('/dashboard/patient/apply'))) return `/dashboard/patient/apply/${state.step || 1}`;
         if (path === '/dashboard/patient' && ['visits', 'profile'].includes(tab)) return `/dashboard/patient/${tab}`;
         if (path === '/dashboard/admin' && tab === 'rooms') return '/dashboard/admin/rooms';
         if (path === '/donate' && ['blood', 'organ'].includes(tab)) return `/donate/${tab}`;
@@ -51,7 +51,11 @@
         if (path === '/dashboard/admin/rooms') return 'rooms';
         if (path === '/donate/blood') return 'blood';
         if (path === '/donate/organ') return 'organ';
-        return new URLSearchParams(window.location.search).get('tab') || '';
+        const queryTab = new URLSearchParams(window.location.search).get('tab') || '';
+        if (path === '/dashboard/patient' && ['apply', 'visits', 'profile'].includes(queryTab)) return queryTab;
+        if (path === '/dashboard/admin' && queryTab === 'rooms') return queryTab;
+        if (path === '/donate' && ['blood', 'organ'].includes(queryTab)) return queryTab;
+        return '';
     }
     function viewForPath(pathname) {
         const stripped = stripBasePath(pathname);
