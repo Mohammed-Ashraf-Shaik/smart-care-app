@@ -26,6 +26,11 @@
             'hospital@smartcare.demo': { email: 'hospital@smartcare.demo', password: 'demo1234', role: 'doctor', hospital: 'SmartCare Community Hospital', country: 'India', state: 'Telangana', city: 'Hyderabad' },
             'admin@smartcare.demo': { email: 'admin@smartcare.demo', password: 'demo1234', role: 'staff', hospital: 'SmartCare Operations Centre', country: 'India', state: 'Telangana', city: 'Hyderabad' }
         };
+        const demoBloodCentres = [
+            { id: 'blood-demo-1', name: 'SmartCare Community Hospital Blood Bank', area: 'Banjara Hills, Hyderabad', city: 'hyderabad', supported_groups: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'], hours: 'Open today · 09:00–17:00', note: 'Supports all common blood groups.' },
+            { id: 'blood-demo-2', name: 'Red Cross Donation Centre', area: 'Secunderabad, Hyderabad', city: 'hyderabad', supported_groups: ['A+', 'B+', 'AB+', 'O+'], hours: 'Open today · 10:00–18:00', note: 'Call ahead for group-specific availability.' },
+            { id: 'blood-demo-3', name: 'CityCare Blood Services', area: 'Kukatpally, Hyderabad', city: 'hyderabad', supported_groups: ['A-', 'B-', 'AB-', 'O-'], hours: 'Open today · 08:00–16:00', note: 'Bring a valid photo ID for screening.' }
+        ];
 
         window.App.DB = {
             checkEmailExists: async email => ({ success: !!demoUsers[String(email).toLowerCase()] }),
@@ -38,9 +43,14 @@
             registerProfessional: async profData => ({ success: true, user: { ...profData, email: profData.email.toLowerCase() } }),
             verifyPasswordHint: async () => ({ success: false, error: 'Password recovery is unavailable in local demo mode.' }),
             resetPassword: async () => ({ success: false, error: 'Password recovery is unavailable in local demo mode.' }),
+            updatePassword: async () => ({ success: false, error: 'Password recovery is unavailable in local demo mode.' }),
             fetchQueue: async () => [...demoQueue],
             listenToQueue: () => () => {},
             signOut: async () => {},
+            getCurrentUser: async () => null,
+            listenToAuth: () => () => {},
+            findBloodCentres: async ({ group, city }) => demoBloodCentres.filter(centre => (!group || centre.supported_groups.includes(group)) && (!city || centre.city.includes(String(city).toLowerCase()) || centre.area.toLowerCase().includes(String(city).toLowerCase()) || centre.area.includes(String(city)))),
+            submitDonationInterest: async payload => ({ success: true, id: `donation-demo-${Date.now()}`, payload }),
             addPatient: async patientData => {
                 const id = `SC-${Date.now().toString(36).toUpperCase()}`;
                 demoQueue.push({ id, ...patientData, created_at: new Date().toISOString(), status: 'waiting' });
@@ -66,6 +76,29 @@
 
     const DB = {
         signOut: async () => { await supabase.auth.signOut(); },
+        getCurrentUser: async () => {
+            const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+            if (sessionError || !sessionData.session?.user) return null;
+            const { data: profile, error: profileError } = await supabase.from('professionals').select('id,email,hospital,role,country,state,city').eq('id', sessionData.session.user.id).maybeSingle();
+            if (profileError || !profile) return null;
+            return { session: sessionData.session, user: sessionData.session.user, profile };
+        },
+        listenToAuth: callback => {
+            const { data } = supabase.auth.onAuthStateChange((_event, session) => callback(session));
+            return () => data.subscription.unsubscribe();
+        },
+        findBloodCentres: async ({ group, city }) => {
+            const query = supabase.from('blood_donation_centres').select('id,name,area,hours,note,supported_groups').limit(12);
+            if (city) query.ilike('area', `%${city}%`);
+            if (group) query.contains('supported_groups', [group]);
+            const { data, error } = await query;
+            if (error) throw error;
+            return data || [];
+        },
+        submitDonationInterest: async payload => {
+            const { data, error } = await supabase.from('donation_interests').insert([{ type: payload.type, name: payload.name, city: payload.city, preference: payload.preference }]).select('id').single();
+            return error ? { success: false, error: error.message } : { success: true, id: data?.id };
+        },
         
         checkEmailExists: async (email) => {
             const { data, error } = await supabase
@@ -103,6 +136,10 @@
         
         resetPassword: async email => {
             const { error } = await supabase.auth.resetPasswordForEmail(email.toLowerCase(), { redirectTo: `${window.location.origin}${window.SMARTCARE_BASE_PATH || ''}/login` });
+            return error ? { success: false, error: error.message } : { success: true };
+        },
+        updatePassword: async password => {
+            const { error } = await supabase.auth.updateUser({ password });
             return error ? { success: false, error: error.message } : { success: true };
         },
 
