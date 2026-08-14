@@ -1,0 +1,17 @@
+import './config.js';
+import './api.js';
+import './db.js';
+import './state.js';
+import './ui.js';
+import './views/landing.js';
+import './views/login.js';
+import './views/patient-dashboard.js';
+import './views/patient.js';
+import './views/doctor.js';
+import './views/queue.js';
+import './views/staff.js';
+import './views/analytics.js';
+import './views/info.js';
+import './views/not-found.js';
+import './views/donation.js';
+import './app.js';

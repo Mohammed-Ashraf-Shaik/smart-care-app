@@ -13,40 +13,29 @@
             const currentPath = window.location.pathname || '/';
             const isGitHubPages = hostname.endsWith('.github.io') &&
                 (currentPath === repositoryPath || currentPath.startsWith(`${repositoryPath}/`));
+            const basePath = isGitHubPages ? `${repositoryPath}/` : '/';
+            const base = document.createElement('base');
+            base.href = basePath;
+            document.head.prepend(base);
             window.SMARTCARE_BASE_PATH = isGitHubPages ? repositoryPath : '';
         })();
     </script>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <title>SmartCare | Care, without the waiting room</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.css">
     <script src="https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.js"></script>
-    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="css/styles.css">
 
-    <script src="/js/config.js"></script>
 </head>
 
 <body>
     <a href="#app" class="skip-link">Skip to main content</a>
     <div id="app" aria-live="polite"></div>
 
-    <script src="/js/api.js"></script>
-    <script src="/js/db.js"></script>
-    <script src="/js/state.js"></script>
-    <script src="/js/ui.js"></script>
-    <script src="/js/views/landing.js"></script>
-    <script src="/js/views/login.js"></script>
-    <script src="/js/views/patient-dashboard.js"></script>
-    <script src="/js/views/patient.js"></script>
-    <script src="/js/views/doctor.js"></script>
-    <script src="/js/views/queue.js"></script>
-    <script src="/js/views/staff.js"></script>
-    <script src="/js/views/analytics.js"></script>
-    <script src="/js/views/info.js"></script>
-    <script src="/js/views/not-found.js"></script>
-    <script src="/js/app.js"></script>
+    <script type="module" src="js/main.js"></script>
 </body>
 
 </html>
