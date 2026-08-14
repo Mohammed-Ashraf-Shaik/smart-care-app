@@ -8,6 +8,8 @@ The current build is a local demo: Supabase is disabled in `js/config.js`, and t
 - Canonical workspace tab URLs use slash paths, with legacy query links redirected for compatibility; `404.html` recovers direct GitHub Pages deep links into the SPA.
 - Patient, hospital, and admin demo accounts remain available.
 - Queue metrics are calculated from current queue records.
+- Queue handoffs use guarded `waiting → called → in_progress → completed` transitions, with active, waiting, called, and in-consultation counts available to the workspace views.
+- Patient overview exposes the next appointment reference/status and a demo-safe cancellation flow that keeps queue/history state aligned.
 - Hospital queue scope is centre-specific; admin operations see the operational queue across centres.
 - Queue search, priority filters, queue actions, room toggles, toast states, and secure recovery UI are included.
 - Blood-group/city donation-centre lookup and a clearly non-binding organ-donation interest flow are included in demo mode.
