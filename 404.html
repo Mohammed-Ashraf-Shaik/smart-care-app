@@ -2,11 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <script>
+        (() => {
+            const repositoryPath = '/smart-care-app';
+            const isGitHubPages = window.location.hostname.endsWith('.github.io');
+            const base = document.createElement('base');
+            base.href = isGitHubPages ? `${repositoryPath}/` : '/';
+            document.head.appendChild(base);
+        })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#0a3b69">
     <meta name="description" content="Page not found — SmartCare">
     <title>404 | SmartCare</title>
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -200,23 +209,21 @@
         .suggestion-links {
             display: flex;
             flex-wrap: wrap;
-            gap: .55rem;
+            gap: .9rem 1.1rem;
         }
         .suggestion-link {
             display: inline-flex;
             align-items: center;
             gap: .35rem;
-            padding: .45rem .85rem;
-            border: 1px solid var(--line);
-            border-radius: 99px;
-            background: #fff;
             color: var(--muted);
             font-size: .78rem;
             font-weight: 700;
             text-decoration: none;
-            transition: color .18s, border-color .18s, background .18s;
+            transition: color .18s;
         }
-        .suggestion-link:hover { color: var(--teal); border-color: var(--teal); background: var(--mint); }
+        .suggestion-link::after { content: '→'; color: var(--teal); transition: transform .18s; }
+        .suggestion-link:hover { color: var(--teal); }
+        .suggestion-link:hover::after { transform: translateX(3px); }
         .suggestion-link svg { width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
         /* Footer */
@@ -240,7 +247,7 @@
 <body>
     <header>
         <div class="topbar">
-            <a class="brand" href="/">
+                <a class="brand" href="./">
                 <span class="brand-mark">
                     <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                 </span>
@@ -249,7 +256,7 @@
                     <span class="brand-caption">Care access, simplified</span>
                 </span>
             </a>
-            <a class="home-btn" href="/">
+            <a class="home-btn" href="./">
                 <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 Return home
             </a>
@@ -265,7 +272,7 @@
             <h1>That page isn't on the care path.</h1>
             <p class="subtitle">We couldn't find the address you opened. It may have moved, been removed, or never existed. Return home or try one of the links below.</p>
             <div class="actions">
-                <a class="btn-primary" href="/">
+                <a class="btn-primary" href="./">
                     Return home
                     <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                 </a>
@@ -277,21 +284,25 @@
             <hr class="divider">
             <p class="suggestions-label">Try one of these instead</p>
             <div class="suggestion-links">
-                <a class="suggestion-link" href="/">
+                <a class="suggestion-link" href="./">
                     <svg viewBox="0 0 24 24"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                     Home
                 </a>
-                <a class="suggestion-link" href="/login">
+                <a class="suggestion-link" href="login">
                     <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
                     Patient portal
                 </a>
-                <a class="suggestion-link" href="/login?role=doctor">
+                <a class="suggestion-link" href="login?role=doctor">
                     <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
                     Provider portal
                 </a>
-                <a class="suggestion-link" href="/about">
+                <a class="suggestion-link" href="about">
                     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
                     About SmartCare
+                </a>
+                <a class="suggestion-link" href="donate">
+                    <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l7.78-7.78a5.5 5.5 0 0 0 1.06-8.84z"/><path d="M12 8v6"/><path d="M9 11h6"/></svg>
+                    Donation support
                 </a>
             </div>
         </div>
@@ -299,7 +310,7 @@
 
     <footer>
         <span>© 2026 SmartCare Systems · Demo environment · </span>
-        <a href="/about">About</a> · <a href="/terms">Terms</a> · <a href="/privacy">Privacy</a>
+        <a href="about">About</a> · <a href="terms">Terms</a> · <a href="privacy">Privacy</a>
     </footer>
 </body>
 </html>

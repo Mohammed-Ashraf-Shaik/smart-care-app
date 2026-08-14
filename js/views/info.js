@@ -75,11 +75,11 @@
                     <p class="info-intro">${content.intro}</p>
                 </div>
                 <div class="info-cards">${sectionCards}</div>
-                <div class="info-nav-pills">
+                <nav class="info-nav-links" aria-label="Information pages">
                     <a class="${page === 'about' ? 'active' : ''}" data-route="/about" href="/about">${icon('heart-pulse', 14)} About</a>
                     <a class="${page === 'terms' ? 'active' : ''}" data-route="/terms" href="/terms">${icon('scroll-text', 14)} Terms</a>
                     <a class="${page === 'privacy' ? 'active' : ''}" data-route="/privacy" href="/privacy">${icon('shield-check', 14)} Privacy</a>
-                </div>
+                </nav>
             </main>
             ${window.App.UI.footer(state.isLogged)}`;
 
