@@ -18,6 +18,12 @@
             base.href = basePath;
             document.head.prepend(base);
             window.SMARTCARE_BASE_PATH = isGitHubPages ? repositoryPath : '';
+            const recoveredPath = new URLSearchParams(window.location.search).get('smartcare_path');
+            if (isGitHubPages && recoveredPath) {
+                const target = new URL(recoveredPath, window.location.origin);
+                const logicalPath = target.pathname.startsWith(repositoryPath) ? target.pathname.slice(repositoryPath.length) || '/' : target.pathname || '/';
+                window.history.replaceState({}, '', `${repositoryPath}${logicalPath === '/' ? '/' : logicalPath}${target.search}${target.hash}`);
+            }
         })();
     </script>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">

@@ -5,7 +5,14 @@
     <script>
         (() => {
             const repositoryPath = '/smart-care-app';
-            const isGitHubPages = window.location.hostname.endsWith('.github.io');
+            const isGitHubPages = window.location.hostname.endsWith('.github.io') && (window.location.pathname === repositoryPath || window.location.pathname.startsWith(`${repositoryPath}/`));
+            if (isGitHubPages && !new URLSearchParams(window.location.search).has('smartcare_path')) {
+                const logicalPath = window.location.pathname.slice(repositoryPath.length) || '/';
+                const target = new URL(`${repositoryPath}/`, window.location.origin);
+                target.searchParams.set('smartcare_path', `${logicalPath}${window.location.search}${window.location.hash}`);
+                window.location.replace(target.href);
+                return;
+            }
             const base = document.createElement('base');
             base.href = isGitHubPages ? `${repositoryPath}/` : '/';
             document.head.appendChild(base);
