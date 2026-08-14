@@ -1,6 +1,6 @@
 (function () {
     const routeMap = { landing: '/', patientDashboard: '/dashboard/patient', patient: '/dashboard/patient/apply/1', login: '/login', doctor: '/dashboard/doctor', queue: '/dashboard/queue', staff: '/dashboard/admin', analytics: '/dashboard/analytics', donations: '/donate', about: '/about', terms: '/terms', privacy: '/privacy', notFound: '/404' };
-    const pathMap = { '/': 'landing', '/apply': 'patientDashboard', '/dashboard/patient/apply': 'patientDashboard', '/login': 'login', '/dashboard/patient': 'patientDashboard', '/dashboard/patient/help': 'about', '/dashboard/doctor': 'doctor', '/dashboard/doctor/help': 'about', '/dashboard/hospital': 'doctor', '/dashboard/queue': 'queue', '/dashboard/admin': 'staff', '/dashboard/admin/help': 'about', '/dashboard/analytics': 'analytics', '/dashboard/analytics/help': 'about', '/donate': 'donations', '/about': 'about', '/terms': 'terms', '/privacy': 'privacy', '/404': 'notFound' };
+    const pathMap = { '/': 'landing', '/apply': 'patientDashboard', '/dashboard/patient/apply': 'patientDashboard', '/login': 'login', '/dashboard/patient': 'patientDashboard', '/dashboard/patient/visits': 'patientDashboard', '/dashboard/patient/profile': 'patientDashboard', '/dashboard/patient/help': 'about', '/dashboard/doctor': 'doctor', '/dashboard/doctor/help': 'about', '/dashboard/hospital': 'doctor', '/dashboard/queue': 'queue', '/dashboard/admin': 'staff', '/dashboard/admin/rooms': 'staff', '/dashboard/admin/help': 'about', '/dashboard/analytics': 'analytics', '/dashboard/analytics/help': 'about', '/donate': 'donations', '/donate/blood': 'donations', '/donate/organ': 'donations', '/about': 'about', '/terms': 'terms', '/privacy': 'privacy', '/404': 'notFound' };
     const basePath = window.SMARTCARE_BASE_PATH || '';
     const draftKey = 'smartcare.patientDraft';
     const sessionKey = 'smartcare.session';
@@ -29,10 +29,29 @@
         url.pathname = withBasePath(url.pathname);
         return `${url.pathname}${url.search}${url.hash}`;
     }
+    function tabPath(pathname, tab = '') {
+        const path = stripBasePath(pathname);
+        if (tab === 'apply') return `/dashboard/patient/apply/${state.step || 1}`;
+        if (path === '/dashboard/patient' && ['visits', 'profile'].includes(tab)) return `/dashboard/patient/${tab}`;
+        if (path === '/dashboard/admin' && tab === 'rooms') return '/dashboard/admin/rooms';
+        if (path === '/donate' && ['blood', 'organ'].includes(tab)) return `/donate/${tab}`;
+        return path;
+    }
     function hrefForTab(path, tab = '') {
         const url = new URL(hrefFor(path), window.location.origin);
-        if (tab) url.searchParams.set('tab', tab); else url.searchParams.delete('tab');
+        url.pathname = withBasePath(tabPath(url.pathname, tab));
+        url.searchParams.delete('tab');
         return `${url.pathname}${url.search}${url.hash}`;
+    }
+    function tabForPath(pathname) {
+        const path = stripBasePath(pathname);
+        if (path.startsWith('/dashboard/patient/apply')) return 'apply';
+        if (path === '/dashboard/patient/visits') return 'visits';
+        if (path === '/dashboard/patient/profile') return 'profile';
+        if (path === '/dashboard/admin/rooms') return 'rooms';
+        if (path === '/donate/blood') return 'blood';
+        if (path === '/donate/organ') return 'organ';
+        return new URLSearchParams(window.location.search).get('tab') || '';
     }
     function viewForPath(pathname) {
         const stripped = stripBasePath(pathname);
@@ -66,7 +85,16 @@
         state.isLogged = true; state.loggedEmail = session.email || ''; state.loggedRole = session.role; state.loggedHospital = session.hospital || ''; state.loggedCountry = session.country || ''; state.loggedState = session.state || ''; state.loggedCity = session.city || ''; state.sessionExpiresAt = session.expiresAt;
     }
     function syncRoute(replace = false, shouldNotify = true) {
-        const pathname = stripBasePath(window.location.pathname || '/');
+        let pathname = stripBasePath(window.location.pathname || '/');
+        const queryTab = new URLSearchParams(window.location.search).get('tab') || '';
+        const canonicalPath = tabPath(pathname, queryTab);
+        if (queryTab && canonicalPath !== pathname) {
+            const canonicalUrl = new URL(window.location.href);
+            canonicalUrl.pathname = withBasePath(canonicalPath);
+            canonicalUrl.searchParams.delete('tab');
+            window.history.replaceState({}, '', canonicalUrl.pathname + canonicalUrl.search + canonicalUrl.hash);
+            pathname = canonicalPath;
+        }
         let view = viewForPath(pathname);
         const neededRole = requiredRoleForPath(pathname, view);
         if (neededRole && !state.isLogged) {
@@ -96,7 +124,7 @@
                 state.step = 1;
             }
         } else {
-            state.activeTab = new URLSearchParams(window.location.search).get('tab') || '';
+            state.activeTab = tabForPath(pathname);
         }
         state.view = view;
         if (view === 'about' || view === 'terms' || view === 'privacy') {
@@ -135,7 +163,7 @@
     function setAuthTarget(role) { state.auth.targetRole = ['patient', 'doctor', 'staff'].includes(role) ? role : 'patient'; }
     function updatePatientData(key, value, shouldNotify = false) { state.patientData[key] = value; persistDraft(); if (shouldNotify) notify(); }
     function recordPatientVisit(visit) { state.patientVisits = [visit, ...state.patientVisits.filter(item => item.id !== visit.id)].slice(0, 12); try { window.localStorage.setItem(patientVisitKey, JSON.stringify(state.patientVisits)); } catch { /* local history is optional */ } }
-    function updateQueue(newQueue) { fullQueue = Array.isArray(newQueue) ? newQueue : []; const scopedQueue = state.loggedHospital && state.loggedCity && state.loggedState && state.loggedCountry ? fullQueue.filter(patient => patient.hospital === state.loggedHospital && patient.city === state.loggedCity && patient.state === state.loggedState && patient.country === state.loggedCountry) : fullQueue; state.queue = scopedQueue.filter(patient => !['completed', 'cancelled', 'no-show'].includes(String(patient.status || '').toLowerCase())); if (['doctor', 'staff', 'analytics'].includes(state.view)) notify(); }
+    function updateQueue(newQueue) { fullQueue = Array.isArray(newQueue) ? newQueue : []; const isAdmin = state.loggedRole === 'staff'; const scopedQueue = !isAdmin && state.loggedHospital && state.loggedCity && state.loggedState && state.loggedCountry ? fullQueue.filter(patient => patient.hospital === state.loggedHospital && patient.city === state.loggedCity && patient.state === state.loggedState && patient.country === state.loggedCountry) : fullQueue; state.queue = scopedQueue.filter(patient => !['completed', 'cancelled', 'no-show'].includes(String(patient.status || '').toLowerCase())); if (['doctor', 'staff', 'analytics'].includes(state.view)) notify(); }
     function setLoggedLocation(country, stateName, city, hospital) { state.loggedCountry = country; state.loggedState = stateName; state.loggedCity = city; state.loggedHospital = hospital; updateQueue(fullQueue); persistSession(); }
     function setLogin(email, role = 'patient') { state.isLogged = true; state.loggedEmail = email; state.loggedRole = role; state.sessionExpiresAt = Date.now() + (window.App.Config?.sessionTtlMs || 28800000); persistSession(); notify(); }
     function applyRemoteSession(remote) {
