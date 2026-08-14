@@ -167,7 +167,7 @@
     function setAuthTarget(role) { state.auth.targetRole = ['patient', 'doctor', 'staff'].includes(role) ? role : 'patient'; }
     function updatePatientData(key, value, shouldNotify = false) { state.patientData[key] = value; persistDraft(); if (shouldNotify) notify(); }
     function recordPatientVisit(visit) { state.patientVisits = [visit, ...state.patientVisits.filter(item => item.id !== visit.id)].slice(0, 12); try { window.localStorage.setItem(patientVisitKey, JSON.stringify(state.patientVisits)); } catch { /* local history is optional */ } }
-    function updateQueue(newQueue) { fullQueue = Array.isArray(newQueue) ? newQueue : []; const isAdmin = state.loggedRole === 'staff'; const scopedQueue = !isAdmin && state.loggedHospital && state.loggedCity && state.loggedState && state.loggedCountry ? fullQueue.filter(patient => patient.hospital === state.loggedHospital && patient.city === state.loggedCity && patient.state === state.loggedState && patient.country === state.loggedCountry) : fullQueue; state.queue = scopedQueue.filter(patient => !['completed', 'cancelled', 'no-show'].includes(String(patient.status || '').toLowerCase())); if (['doctor', 'staff', 'analytics'].includes(state.view)) notify(); }
+    function updateQueue(newQueue) { fullQueue = Array.isArray(newQueue) ? newQueue : []; const isAdmin = state.loggedRole === 'staff'; const scopedQueue = !isAdmin && state.loggedHospital && state.loggedCity && state.loggedState && state.loggedCountry ? fullQueue.filter(patient => patient.hospital === state.loggedHospital && patient.city === state.loggedCity && patient.state === state.loggedState && patient.country === state.loggedCountry) : fullQueue; state.queue = scopedQueue.filter(patient => !['completed', 'cancelled', 'no-show'].includes(String(patient.status || '').toLowerCase())); if (['doctor', 'staff', 'queue', 'analytics'].includes(state.view)) notify(); }
     function setLoggedLocation(country, stateName, city, hospital) { state.loggedCountry = country; state.loggedState = stateName; state.loggedCity = city; state.loggedHospital = hospital; updateQueue(fullQueue); persistSession(); }
     function setLogin(email, role = 'patient') { state.isLogged = true; state.loggedEmail = email; state.loggedRole = role; state.sessionExpiresAt = Date.now() + (window.App.Config?.sessionTtlMs || 28800000); persistSession(); notify(); }
     function applyRemoteSession(remote) {
@@ -178,11 +178,38 @@
     function logout() { window.App.DB?.signOut?.(); state.isLogged = false; state.loggedEmail = ''; state.loggedRole = ''; state.loggedHospital = ''; state.loggedCountry = ''; state.loggedState = ''; state.loggedCity = ''; state.sessionExpiresAt = 0; try { window.localStorage.removeItem(sessionKey); } catch {} navigate('/'); }
     function resetPatient() { state.step = 1; state.patientData = emptyPatientData(); state.userCoords = null; state.tempHospitals = []; state.searchRadius = 0; clearDraft(); }
     function getRevenue() { return state.queue.reduce((total, patient) => total + (Number(patient.fee) || 0), 0); }
+    function queueStatus(patient) { return String(patient?.status || 'waiting').toLowerCase(); }
+    function queuePriority(patient) { return { red: 0, yellow: 1, green: 2 }[String(patient?.triage || 'Green').toLowerCase()] ?? 3; }
+    function sortQueue(items = state.queue) { return [...items].sort((a, b) => { const statusRank = { in_progress: 0, called: 1, waiting: 2 }[queueStatus(a)] ?? 3; const otherStatusRank = { in_progress: 0, called: 1, waiting: 2 }[queueStatus(b)] ?? 3; return statusRank - otherStatusRank || queuePriority(a) - queuePriority(b) || new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime(); }); }
+    function getNextPatient() { return sortQueue().find(patient => ['in_progress', 'called', 'waiting'].includes(queueStatus(patient))) || null; }
+    async function transitionPatient(id, nextStatus) {
+        const patient = state.queue.find(item => String(item.id) === String(id));
+        if (!patient) return { success: false, error: 'This visit is no longer in the active queue.' };
+        const currentStatus = queueStatus(patient);
+        const allowed = { waiting: 'called', called: 'in_progress', in_progress: 'completed' };
+        if (allowed[currentStatus] !== nextStatus) return { success: false, error: `This visit is already ${currentStatus.replace('_', ' ')}.` };
+        if (nextStatus === 'called' && state.queue.some(item => ['called', 'in_progress'].includes(queueStatus(item)))) return { success: false, error: 'Finish the current consultation before calling another patient.' };
+        if (nextStatus === 'in_progress' && state.queue.some(item => String(item.id) !== String(id) && queueStatus(item) === 'in_progress')) return { success: false, error: 'Finish the current consultation before starting another visit.' };
+        try {
+            await window.App.DB.updatePatient(id, { status: nextStatus });
+            const freshQueue = await window.App.DB.fetchQueue();
+            updateQueue(freshQueue);
+            const visitStatus = { called: 'Called', in_progress: 'In consultation', completed: 'Completed' }[nextStatus];
+            const historyVisit = state.patientVisits.find(visit => String(visit.id) === String(id));
+            if (visitStatus && historyVisit) recordPatientVisit({ ...historyVisit, status: visitStatus });
+            return { success: true };
+        } catch (error) {
+            return { success: false, error: error.message || 'The queue update failed.' };
+        }
+    }
     function getQueueMetrics() {
         const waiting = state.queue.filter(patient => !['completed', 'cancelled', 'no-show'].includes(String(patient.status || '').toLowerCase()));
         const waits = waiting.map(patient => Math.max(0, Math.round((Date.now() - new Date(patient.created_at || Date.now()).getTime()) / 60000))).filter(Number.isFinite);
         const averageWait = waits.length ? Math.round(waits.reduce((sum, value) => sum + value, 0) / waits.length) : 0;
-        return { waiting: waiting.length, priority: waiting.filter(patient => patient.triage === 'Red').length, averageWait, revenue: waiting.reduce((sum, patient) => sum + (Number(patient.fee) || 0), 0) };
+        const waitingOnly = waiting.filter(patient => queueStatus(patient) === 'waiting');
+        const called = waiting.filter(patient => queueStatus(patient) === 'called');
+        const inProgress = waiting.filter(patient => queueStatus(patient) === 'in_progress');
+        return { waiting: waiting.length, waitingOnly: waitingOnly.length, called: called.length, inProgress: inProgress.length, priority: waiting.filter(patient => patient.triage === 'Red').length, averageWait, revenue: waiting.reduce((sum, patient) => sum + (Number(patient.fee) || 0), 0) };
     }
     function initSync() { window.App.DB.fetchQueue().then(updateQueue).catch(() => updateQueue([])); window.App.DB.listenToQueue(updateQueue); if (window.App.Config?.supabaseEnabled === true) { window.App.DB.getCurrentUser?.().then(remote => { if (remote && applyRemoteSession(remote)) { syncRoute(false, true); } }).catch(() => {}); window.App.DB.listenToAuth?.(session => { if (!session) { state.isLogged = false; state.loggedRole = ''; state.loggedEmail = ''; notify(); return; } window.App.DB.getCurrentUser?.().then(remote => { if (remote && applyRemoteSession(remote)) { syncRoute(false, true); } }).catch(() => {}); }); } }
 
@@ -190,5 +217,5 @@
     syncRoute(true, false);
     window.setInterval(() => { if (state.isLogged && state.sessionExpiresAt && state.sessionExpiresAt <= Date.now()) logout(); }, 60000);
     if (window.App.DB) initSync(); else window.addEventListener('load', () => { if (window.App.DB) initSync(); });
-    window.App.Store = { state, subscribe, setView, navigate, navigateTab, syncRoute, setStep, setAuthTarget, updatePatientData, updateQueue, setLoggedLocation, setLogin, recordPatientVisit, logout, getRevenue, getQueueMetrics, persistDraft, hrefFor, hrefForTab };
+    window.App.Store = { state, subscribe, setView, navigate, navigateTab, syncRoute, setStep, setAuthTarget, updatePatientData, updateQueue, setLoggedLocation, setLogin, recordPatientVisit, logout, getRevenue, getQueueMetrics, getNextPatient, sortQueue, transitionPatient, persistDraft, hrefFor, hrefForTab };
 })();
