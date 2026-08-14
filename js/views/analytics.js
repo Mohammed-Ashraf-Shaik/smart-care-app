@@ -8,7 +8,6 @@
         const metrics = getQueueMetrics();
         const bars = state.queue.length ? state.queue.map(patient => Math.min(100, 35 + (patient.triage === 'Red' ? 55 : patient.triage === 'Yellow' ? 35 : 15))).slice(0, 8) : [22, 34, 28, 48, 41, 56, 38, 45];
         while (bars.length < 8) bars.push(24 + bars.length * 4);
-        const activeTab = state.activeTab || '';
         const isStaff = state.loggedRole === 'staff';
         const overviewRoute = state.loggedRole === 'doctor' ? '/dashboard/doctor' : '/dashboard/admin';
         const overviewLabel = state.loggedRole === 'doctor' ? 'Overview' : 'Operations';
@@ -17,7 +16,7 @@
         workspaceNav.className = 'workspace-tabs';
         workspaceNav.setAttribute('aria-label', 'Analytics workspace navigation');
         const helpRoute = state.loggedRole === 'doctor' ? '/dashboard/doctor/help' : '/dashboard/admin/help';
-        workspaceNav.innerHTML = `<a href="${overviewRoute}" data-route="${overviewRoute}">${icon('layout-dashboard', 16)}<span>${overviewLabel}</span></a>${isStaff ? `<a href="/dashboard/admin?tab=rooms" data-tab="rooms" data-tab-route="/dashboard/admin">${icon('door-open', 16)}<span>Rooms</span></a>` : ''}<a href="/dashboard/queue" data-route="/dashboard/queue">${icon('list-ordered', 16)}<span>Queue</span></a><a class="active" href="/dashboard/analytics" data-route="/dashboard/analytics">${icon('bar-chart-3', 16)}<span>Analytics</span></a><a href="${helpRoute}" data-route="${helpRoute}">${icon('circle-help', 16)}<span>Help</span></a><button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>`;
+        workspaceNav.innerHTML = `<a href="${overviewRoute}" data-route="${overviewRoute}">${icon('layout-dashboard', 16)}<span>${overviewLabel}</span></a>${isStaff ? `<a href="/dashboard/admin/rooms" data-tab="rooms" data-tab-route="/dashboard/admin">${icon('door-open', 16)}<span>Rooms</span></a>` : ''}<a href="/dashboard/queue" data-route="/dashboard/queue">${icon('list-ordered', 16)}<span>Queue</span></a><a class="active" href="/dashboard/analytics" data-route="/dashboard/analytics">${icon('bar-chart-3', 16)}<span>Analytics</span></a><a href="${helpRoute}" data-route="${helpRoute}">${icon('circle-help', 16)}<span>Help</span></a><button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>`;
         const workspaceMain = container.querySelector('main');
         const workspaceContent = document.createElement('div');
         workspaceContent.className = 'workspace-content';
