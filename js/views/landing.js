@@ -7,7 +7,7 @@
         container.innerHTML = `
             <header class="shell-nav" data-section="site-header">
                 <a class="brand-lockup" data-route="/" href="/" aria-label="SmartCare home"><span class="brand-mark">${icon('heart-pulse', 21)}</span><span><span class="brand-name">SmartCare</span><span class="brand-caption">Care access, simplified</span></span></a>
-                <nav class="nav-links" aria-label="Primary navigation"><a href="#how-it-works">How it works</a><a href="#for-providers">For providers</a><a href="#trust">Why SmartCare</a></nav>
+                <nav class="nav-links" aria-label="Primary navigation"><a href="#how-it-works">How it works</a><a href="#for-providers">For providers</a><a data-route="/donate" href="/donate">Donation</a><a href="#trust">Why SmartCare</a></nav>
                 <div class="nav-actions"><button class="btn-secondary" id="nav-provider">Provider portal</button><button class="btn-primary btn-icon" id="nav-apply">Patient portal ${icon('arrow-right', 16)}</button></div>
             </header>
             <main id="top" class="landing-main section-landing" data-section="landing-page">
