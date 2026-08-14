@@ -290,6 +290,14 @@ a { color: inherit; }
 .patient-next-action { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; padding: 1.15rem 1.25rem; border: 1px solid #b8d6f1; background: #eaf4fd; }
 .patient-next-action h2 { margin: .35rem 0 .25rem; color: var(--teal-dark); font-size: 1.35rem; letter-spacing: -.04em; }
 .patient-next-action p { margin: 0; color: var(--muted); font-size: .78rem; }
+.patient-appointment-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 1rem; margin-bottom: 1rem; padding: 1.15rem 1.25rem; border: 1px solid #8bbbe2; background: #fff; box-shadow: 0 10px 24px rgba(10,59,105,.08); }
+.appointment-icon { width: 2.8rem; height: 2.8rem; display: grid; place-items: center; color: var(--teal); background: var(--mint); }
+.appointment-copy h2 { margin: .25rem 0 .2rem; color: var(--teal-dark); font-size: 1.15rem; letter-spacing: -.04em; }
+.appointment-copy p { margin: 0 0 .45rem; color: var(--muted); font-size: .76rem; }
+.appointment-copy small { color: var(--muted); font-size: .66rem; }
+.appointment-actions { display: flex; flex-direction: column; align-items: flex-end; gap: .45rem; }
+.appointment-actions strong { color: var(--teal-dark); font-size: .7rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.patient-appointment-empty { border-color: var(--line); background: var(--mint); box-shadow: none; }
 .patient-stats { margin-bottom: 1rem; }
 .patient-visits-card, .patient-profile-card { margin-top: 1rem; }
 .patient-visit-list { display: grid; gap: .6rem; }
@@ -337,6 +345,12 @@ a { color: inherit; }
 .priority-red { color: #a4422d; }
 .priority-yellow { color: #8a5a1f; }
 .priority-green { color: #2168a6; }
+.queue-status { display: inline-flex; align-items: center; gap: .35rem; color: var(--muted); font-size: .65rem; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+.queue-status::before { content: ''; width: .4rem; height: .4rem; border-radius: 50%; background: currentColor; }
+.queue-status-waiting { color: #6b7e91; }
+.queue-status-called { color: #a56826; }
+.queue-status-in-progress { color: var(--teal); }
+.queue-status-completed { color: #32805d; }
 .provider-notice { margin-top: 1rem; padding: .8rem .9rem; border: 1px solid #ecd9a6; color: #72541b; background: #fffaf0; font-size: .75rem; }
 .provider-empty { padding: 2.5rem 1rem; text-align: center; color: var(--muted); }
 .provider-empty svg { color: #79acd7; }
@@ -470,3 +484,4 @@ a { color: inherit; }
 @media (max-width: 520px) { .patient-visit { grid-template-columns: 2.2rem minmax(0, 1fr); } .visit-status { grid-column: 2; } }
 @media (max-width: 640px) { .workspace-content { padding-bottom: .5rem; } .workspace-shell .provider-header { margin-top: .5rem; margin-bottom: .75rem; } .provider-header h1 { font-size: clamp(1.75rem, 9vw, 2.35rem); } .provider-card { margin-top: .75rem; padding: 1rem; } .dashboard-quick-actions { margin-bottom: .75rem; } }
 @media (max-width: 640px) { .patient-application-shell > .flow-topbar { margin-bottom: .65rem; padding: .5rem 0; } .patient-application-shell .flow-card { padding: 1rem; border-radius: .95rem; } }
+@media (max-width: 640px) { .patient-appointment-card { grid-template-columns: 2.8rem minmax(0, 1fr); align-items: start; gap: .8rem; padding: 1rem; } .appointment-actions { grid-column: 2; align-items: flex-start; } .patient-appointment-card > .text-link { grid-column: 2; justify-self: start; } .appointment-copy h2 { font-size: 1rem; } .queue-status { white-space: normal; } }
