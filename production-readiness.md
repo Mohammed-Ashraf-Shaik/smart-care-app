@@ -4,11 +4,14 @@ The current build is a local demo: Supabase is disabled in `js/config.js`, and t
 
 ## Current implementation
 
-- Workspace tabs are URL-backed with `?tab=` and survive direct reloads.
+- Workspace tabs are URL-backed with canonical slash routes and survive direct reloads.
+- Canonical workspace tab URLs use slash paths, with legacy query links redirected for compatibility; `404.html` recovers direct GitHub Pages deep links into the SPA.
 - Patient, hospital, and admin demo accounts remain available.
 - Queue metrics are calculated from current queue records.
+- Hospital queue scope is centre-specific; admin operations see the operational queue across centres.
 - Queue search, priority filters, queue actions, room toggles, toast states, and secure recovery UI are included.
 - Blood-group/city donation-centre lookup and a clearly non-binding organ-donation interest flow are included in demo mode.
+- If MapLibre is unavailable, nearby-care selection remains usable through the centre list.
 - Supabase mode uses Supabase Auth for provider passwords; see `supa base query.md`.
 
 ## Configuration
