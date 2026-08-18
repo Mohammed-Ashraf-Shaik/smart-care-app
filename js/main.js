@@ -14,4 +14,6 @@ import './views/analytics.js';
 import './views/info.js';
 import './views/not-found.js';
 import './views/donation.js';
+import './views/patient-donations.js';
+import './views/doctor-donations.js';
 import './app.js';

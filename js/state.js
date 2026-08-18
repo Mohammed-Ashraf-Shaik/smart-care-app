@@ -1,6 +1,6 @@
 (function () {
-    const routeMap = { landing: '/', patientDashboard: '/dashboard/patient', patient: '/dashboard/patient/apply/1', login: '/login', doctor: '/dashboard/doctor', queue: '/dashboard/queue', staff: '/dashboard/admin', analytics: '/dashboard/analytics', donations: '/donate', about: '/about', terms: '/terms', privacy: '/privacy', notFound: '/404' };
-    const pathMap = { '/': 'landing', '/apply': 'patientDashboard', '/dashboard/patient/apply': 'patientDashboard', '/login': 'login', '/dashboard/patient': 'patientDashboard', '/dashboard/patient/visits': 'patientDashboard', '/dashboard/patient/profile': 'patientDashboard', '/dashboard/patient/help': 'about', '/dashboard/doctor': 'doctor', '/dashboard/doctor/help': 'about', '/dashboard/hospital': 'doctor', '/dashboard/queue': 'queue', '/dashboard/admin': 'staff', '/dashboard/admin/rooms': 'staff', '/dashboard/admin/help': 'about', '/dashboard/analytics': 'analytics', '/dashboard/analytics/help': 'about', '/donate': 'donations', '/donate/blood': 'donations', '/donate/organ': 'donations', '/about': 'about', '/terms': 'terms', '/privacy': 'privacy', '/404': 'notFound' };
+    const routeMap = { landing: '/', patientDashboard: '/dashboard/patient', patient: '/dashboard/patient/apply/1', login: '/login', doctor: '/dashboard/doctor', queue: '/dashboard/queue', staff: '/dashboard/admin', analytics: '/dashboard/analytics', patientDonations: '/dashboard/patient/donations', doctorDonations: '/dashboard/doctor/donations', donations: '/donate', about: '/about', terms: '/terms', privacy: '/privacy', notFound: '/404' };
+    const pathMap = { '/': 'landing', '/apply': 'patientDashboard', '/dashboard/patient/apply': 'patientDashboard', '/login': 'login', '/dashboard/patient': 'patientDashboard', '/dashboard/patient/visits': 'patientDashboard', '/dashboard/patient/profile': 'patientDashboard', '/dashboard/patient/donations': 'patientDonations', '/dashboard/patient/help': 'about', '/dashboard/doctor': 'doctor', '/dashboard/doctor/donations': 'doctorDonations', '/dashboard/doctor/help': 'about', '/dashboard/hospital': 'doctor', '/dashboard/queue': 'queue', '/dashboard/admin': 'staff', '/dashboard/admin/rooms': 'staff', '/dashboard/admin/donations': 'doctorDonations', '/dashboard/admin/help': 'about', '/dashboard/analytics': 'analytics', '/dashboard/analytics/help': 'about', '/donate': 'donations', '/donate/blood': 'donations', '/donate/organ': 'donations', '/about': 'about', '/terms': 'terms', '/privacy': 'privacy', '/404': 'notFound' };
     const basePath = window.SMARTCARE_BASE_PATH || '';
     const draftKey = 'smartcare.patientDraft';
     const sessionKey = 'smartcare.session';
@@ -10,6 +10,49 @@
     const patientVisitKey = 'smartcare.patientVisits';
     const savedVisits = readStorage(patientVisitKey);
     const defaultVisits = [{ id: 'visit-demo-001', hospital: 'SmartCare Community Hospital', city: 'Hyderabad', reason: 'General consultation', date: '18 Jul 2026', status: 'Completed', reference: 'SC-DEMO18' }, { id: 'visit-demo-002', hospital: 'Green Cross Medical Centre', city: 'Hyderabad', reason: 'Follow-up consultation', date: '04 Jun 2026', status: 'Completed', reference: 'SC-DEMO04' }];
+    
+    const donationsKey = 'smartcare.donations';
+    const defaultDonations = {
+        hospitalPosts: [
+            { id: 'h-don-1', type: 'blood', mode: 'offer', group: 'O+', units: 4, hospital: 'SmartCare Community Hospital', city: 'Hyderabad', urgency: 'Routine', notes: 'Blood Bank Lab 01', date: 'Today' },
+            { id: 'h-don-2', type: 'blood', mode: 'request', group: 'AB−', units: 2, hospital: 'City General Clinic', city: 'Secunderabad', urgency: 'Urgent', notes: 'Emergency ward requirement', date: 'Today' },
+            { id: 'h-don-3', type: 'organ', mode: 'request', group: 'Kidney', units: 1, hospital: 'SmartCare Community Hospital', city: 'Hyderabad', urgency: 'Urgent', notes: 'Matching O+ / A+ donor', date: 'Yesterday' },
+            { id: 'h-don-4', type: 'organ', mode: 'offer', group: 'Cornea', units: 2, hospital: 'Apollo Care Centre', city: 'Hyderabad', urgency: 'Planned', notes: 'Preserved in Eye Bank', date: '2 days ago' }
+        ],
+        patientPosts: [
+            { id: 'p-don-1', type: 'blood', mode: 'give', name: 'Ravi Kumar', group: 'O+', city: 'Hyderabad', status: 'Available', date: 'Today' },
+            { id: 'p-don-2', type: 'blood', mode: 'give', name: 'Priya M.', group: 'AB−', city: 'Secunderabad', status: 'Available', date: 'Yesterday' },
+            { id: 'p-don-3', type: 'blood', mode: 'receive', name: 'Arun V.', group: 'B+', city: 'Hyderabad', urgency: 'Urgent', status: 'Pending', date: 'Today' },
+            { id: 'p-don-4', type: 'organ', mode: 'give', name: 'K. Sharma (Pledged)', group: 'Kidney', city: 'Hyderabad', status: 'Registered', date: '3 days ago' },
+            { id: 'p-don-5', type: 'organ', mode: 'give', name: 'Anita D. (Pledged)', group: 'Cornea', city: 'Hyderabad', status: 'Registered', date: '1 week ago' },
+            { id: 'p-don-6', type: 'organ', mode: 'receive', name: 'Mohan R.', group: 'Liver', city: 'Secunderabad', urgency: 'Urgent', status: 'Pending', date: 'Yesterday' }
+        ]
+    };
+    function getDonationsData() {
+        const stored = readStorage(donationsKey);
+        if (stored && Array.isArray(stored.hospitalPosts) && Array.isArray(stored.patientPosts)) return stored;
+        try { window.localStorage.setItem(donationsKey, JSON.stringify(defaultDonations)); } catch {}
+        return defaultDonations;
+    }
+    function saveDonationsData(data) {
+        try { window.localStorage.setItem(donationsKey, JSON.stringify(data)); } catch {}
+        notify();
+    }
+    function addHospitalDonation(item) {
+        const data = getDonationsData();
+        const newItem = { id: `h-don-${Date.now()}`, date: 'Just now', ...item };
+        data.hospitalPosts.unshift(newItem);
+        saveDonationsData(data);
+        return newItem;
+    }
+    function addPatientDonation(item) {
+        const data = getDonationsData();
+        const newItem = { id: `p-don-${Date.now()}`, date: 'Just now', status: item.mode === 'give' ? 'Available' : 'Pending', ...item };
+        data.patientPosts.unshift(newItem);
+        saveDonationsData(data);
+        return newItem;
+    }
+
     const state = {
         view: 'landing', route: '/', activeTab: '', step: Number(savedDraft?.step) || 1, infoPage: 'about',
         patientData: { ...emptyPatientData(), ...(savedDraft?.patientData || {}) },
@@ -63,7 +106,7 @@
         return pathMap[stripped] || 'notFound';
     }
     function routeForView(view) { return routeMap[view] || '/'; }
-    function requiredRole(view) { return view === 'patientDashboard' ? ['patient'] : ['doctor', 'queue'].includes(view) ? ['doctor', 'staff'] : view === 'analytics' ? ['doctor', 'staff'] : view === 'staff' ? ['staff'] : ''; }
+    function requiredRole(view) { return view === 'patientDashboard' || view === 'patientDonations' ? ['patient'] : ['doctor', 'queue'].includes(view) || view === 'doctorDonations' ? ['doctor', 'staff'] : view === 'analytics' ? ['doctor', 'staff'] : view === 'staff' ? ['staff'] : ''; }
     function requiredRoleForPath(pathname, view) {
         const path = stripBasePath(pathname);
         if (path === '/dashboard/patient' || path.startsWith('/dashboard/patient/')) return ['patient'];
@@ -72,33 +115,40 @@
         if (path === '/dashboard/queue' || path === '/dashboard/analytics') return ['doctor', 'staff'];
         return requiredRole(view);
     }
-    function roleAllowed(required, actual) { return !required || required.includes(actual); }
-    function persistDraft() {
-        try { window.localStorage.setItem(draftKey, JSON.stringify({ step: state.step, patientData: state.patientData, userCoords: state.userCoords, tempHospitals: state.tempHospitals, searchRadius: state.searchRadius })); } catch { /* local persistence is optional */ }
+    function roleAllowed(neededRole, loggedRole) {
+        if (!neededRole) return true;
+        if (Array.isArray(neededRole)) return neededRole.includes(loggedRole);
+        return neededRole === loggedRole;
     }
-    function clearDraft() { try { window.localStorage.removeItem(draftKey); } catch { /* local persistence is optional */ } }
+    function persistDraft() {
+        try {
+            window.localStorage.setItem(draftKey, JSON.stringify({
+                step: state.step, patientData: state.patientData, userCoords: state.userCoords, tempHospitals: state.tempHospitals, searchRadius: state.searchRadius
+            }));
+        } catch { /* storage optional */ }
+    }
+    function clearDraft() { try { window.localStorage.removeItem(draftKey); } catch {} }
     function persistSession() {
-        if (!state.isLogged || window.App.Config?.supabaseEnabled === true) return;
-        try { window.localStorage.setItem(sessionKey, JSON.stringify({ email: state.loggedEmail, role: state.loggedRole, hospital: state.loggedHospital, country: state.loggedCountry, state: state.loggedState, city: state.loggedCity, expiresAt: state.sessionExpiresAt })); } catch { /* local persistence is optional */ }
+        try {
+            if (state.isLogged) {
+                window.localStorage.setItem(sessionKey, JSON.stringify({
+                    email: state.loggedEmail, role: state.loggedRole, hospital: state.loggedHospital, country: state.loggedCountry, state: state.loggedState, city: state.loggedCity, expiresAt: state.sessionExpiresAt
+                }));
+            } else {
+                window.localStorage.removeItem(sessionKey);
+            }
+        } catch {}
     }
     function hydrateSession() {
-        if (window.App.Config?.supabaseEnabled === true) return;
         const session = readStorage(sessionKey);
-        if (!session || !session.expiresAt || session.expiresAt <= Date.now()) { try { window.localStorage.removeItem(sessionKey); } catch {} return; }
-        if (!['patient', 'doctor', 'staff'].includes(session.role)) { try { window.localStorage.removeItem(sessionKey); } catch {} return; }
-        state.isLogged = true; state.loggedEmail = session.email || ''; state.loggedRole = session.role; state.loggedHospital = session.hospital || ''; state.loggedCountry = session.country || ''; state.loggedState = session.state || ''; state.loggedCity = session.city || ''; state.sessionExpiresAt = session.expiresAt;
+        if (session && session.expiresAt && session.expiresAt > Date.now()) {
+            state.isLogged = true; state.loggedEmail = session.email || ''; state.loggedRole = session.role || ''; state.loggedHospital = session.hospital || ''; state.loggedCountry = session.country || ''; state.loggedState = session.state || ''; state.loggedCity = session.city || ''; state.sessionExpiresAt = session.expiresAt;
+        } else if (session) {
+            try { window.localStorage.removeItem(sessionKey); } catch {}
+        }
     }
     function syncRoute(replace = false, shouldNotify = true) {
-        let pathname = stripBasePath(window.location.pathname || '/');
-        const queryTab = new URLSearchParams(window.location.search).get('tab') || '';
-        const canonicalPath = tabPath(pathname, queryTab);
-        if (queryTab && canonicalPath !== pathname) {
-            const canonicalUrl = new URL(window.location.href);
-            canonicalUrl.pathname = withBasePath(canonicalPath);
-            canonicalUrl.searchParams.delete('tab');
-            window.history.replaceState({}, '', canonicalUrl.pathname + canonicalUrl.search + canonicalUrl.hash);
-            pathname = canonicalPath;
-        }
+        const pathname = stripBasePath(window.location.pathname || '/');
         let view = viewForPath(pathname);
         const neededRole = requiredRoleForPath(pathname, view);
         if (neededRole && !state.isLogged) {
@@ -139,27 +189,59 @@
         if (['patient', 'doctor', 'staff'].includes(role)) setAuthTarget(role);
         if (shouldNotify) notify();
     }
-    function navigate(path, replace = false) {
-        const url = new URL(path, `${window.location.origin}${basePath}/`);
-        const view = viewForPath(url.pathname);
+    function navigate(path) {
+        const url = new URL(hrefFor(path), window.location.origin);
+        window.history.pushState({}, '', `${url.pathname}${url.search}${url.hash}`);
+        const cleanPath = stripBasePath(url.pathname);
+        let view = viewForPath(cleanPath);
         const neededRole = requiredRoleForPath(url.pathname, view);
-        if (neededRole && !state.isLogged) { setAuthTarget(neededRole[0]); url.pathname = withBasePath('/login'); url.searchParams.set('role', neededRole[0]); }
-        else if (neededRole && state.loggedRole && !roleAllowed(neededRole, state.loggedRole)) { setAuthTarget(neededRole[0]); url.pathname = withBasePath('/login'); url.searchParams.set('role', neededRole[0]); }
-        else url.pathname = withBasePath(url.pathname);
-        window.history[replace ? 'replaceState' : 'pushState']({}, '', url.pathname + url.search + url.hash);
-        syncRoute(false, false);
-        if (view === 'landing') resetPatient();
+        if (neededRole && !state.isLogged) {
+            setAuthTarget(neededRole[0]);
+            const loginPath = hrefFor(`/login?role=${state.auth.targetRole}`);
+            window.history.replaceState({}, '', loginPath);
+            view = 'login';
+            state.route = '/login';
+        } else if (neededRole && state.loggedRole && !roleAllowed(neededRole, state.loggedRole)) {
+            setAuthTarget(neededRole[0]);
+            window.history.replaceState({}, '', hrefFor(`/login?role=${neededRole[0]}`));
+            view = 'login';
+            state.route = '/login';
+        } else {
+            state.route = cleanPath;
+        }
+        state.view = view;
+        if (cleanPath === '/apply' || cleanPath.startsWith('/dashboard/patient/apply')) {
+            state.activeTab = 'apply';
+            const parts = cleanPath.split('/');
+            const lastPart = parts[parts.length - 1];
+            const stepNum = Number(lastPart);
+            if (Number.isInteger(stepNum) && stepNum >= 1 && stepNum <= 4) {
+                state.step = stepNum;
+            } else {
+                state.step = 1;
+            }
+        } else {
+            state.activeTab = tabForPath(cleanPath);
+        }
+        if (view === 'about' || view === 'terms' || view === 'privacy') {
+            const isHelpPath = cleanPath.endsWith('/help');
+            state.infoPage = isHelpPath ? 'about' : view;
+        }
+        const role = new URLSearchParams(url.search).get('role');
+        if (['patient', 'doctor', 'staff'].includes(role)) setAuthTarget(role);
         notify();
     }
-    function navigateTab(tab, route = state.route) {
-        if (tab === 'apply') {
-            navigate(`/dashboard/patient/apply/${state.step || 1}`);
+    function navigateTab(tab, basePath = state.route) {
+        const targetPath = tabPath(basePath, tab);
+        if (targetPath && targetPath !== stripBasePath(window.location.pathname)) {
+            navigate(targetPath);
             return;
         }
-        const safeRoute = route && route.startsWith('/') ? route : '/';
-        const nextUrl = new URL(hrefForTab(safeRoute, tab), window.location.origin);
-        window.history.pushState({}, '', nextUrl.pathname + nextUrl.search);
-        syncRoute(false, false);
+        const url = new URL(window.location.href);
+        if (tab) url.searchParams.set('tab', tab);
+        else url.searchParams.delete('tab');
+        window.history.pushState({}, '', url.toString());
+        state.activeTab = tab;
         notify();
     }
     function setView(newView) { navigate(routeForView(newView)); }
@@ -217,5 +299,5 @@
     syncRoute(true, false);
     window.setInterval(() => { if (state.isLogged && state.sessionExpiresAt && state.sessionExpiresAt <= Date.now()) logout(); }, 60000);
     if (window.App.DB) initSync(); else window.addEventListener('load', () => { if (window.App.DB) initSync(); });
-    window.App.Store = { state, subscribe, setView, navigate, navigateTab, syncRoute, setStep, setAuthTarget, updatePatientData, updateQueue, setLoggedLocation, setLogin, recordPatientVisit, logout, getRevenue, getQueueMetrics, getNextPatient, sortQueue, transitionPatient, persistDraft, hrefFor, hrefForTab };
+    window.App.Store = { state, subscribe, setView, navigate, navigateTab, syncRoute, setStep, setAuthTarget, updatePatientData, updateQueue, setLoggedLocation, setLogin, recordPatientVisit, logout, getRevenue, getQueueMetrics, getNextPatient, sortQueue, transitionPatient, persistDraft, hrefFor, hrefForTab, getDonationsData, saveDonationsData, addHospitalDonation, addPatientDonation };
 })();
