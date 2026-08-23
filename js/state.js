@@ -259,7 +259,19 @@
         if (['doctor', 'staff', 'queue', 'analytics'].includes(state.view)) notify();
     }
     function setLoggedLocation(country, stateName, city, hospital) { state.loggedCountry = country; state.loggedState = stateName; state.loggedCity = city; state.loggedHospital = hospital; updateQueue(fullQueue); persistSession(); }
-    function setLogin(email, role = 'patient') { state.isLogged = true; state.loggedEmail = email; state.loggedRole = role; state.sessionExpiresAt = Date.now() + (window.App.Config?.sessionTtlMs || 28800000); persistSession(); notify(); }
+    function setLogin(email, role = 'patient') {
+        state.isLogged = true;
+        state.loggedEmail = email;
+        state.loggedRole = role;
+        state.sessionExpiresAt = Date.now() + (window.App.Config?.sessionTtlMs || 28800000);
+        if (role === 'patient') {
+            const saved = readStorage(`smartcare.patientProfile_${email}`);
+            if (saved) Object.assign(state.patientData, saved);
+            else if (!state.patientData.name) state.patientData.name = email.split('@')[0].replace(/[._-]/g, ' ');
+        }
+        persistSession();
+        notify();
+    }
     function applyRemoteSession(remote) {
         const profile = remote?.profile;
         if (!profile || !['doctor', 'staff'].includes(profile.role)) return false;

@@ -130,14 +130,66 @@
                     <section id="tab-profile" data-tab-panel="profile" class="provider-card patient-profile-card">
                         <div class="provider-card-heading">
                             <div>
-                                <h2>Your care profile</h2>
-                                <p>These details help us prefill your next booking.</p>
+                                <h2>Your Patient Profile</h2>
+                                <p>Set up your details to speed up hospital check-in and booking.</p>
                             </div>
-                            <a class="btn-secondary btn-icon" data-route="/dashboard/patient/apply/1" href="/dashboard/patient/apply/1" data-tab="apply">Update during booking ${icon('arrow-right', 15)}</a>
+                            <span class="status-eyebrow" style="color:var(--teal)">${icon('shield-check', 14)} Private &amp; Secure</span>
                         </div>
-                        <div class="summary-row"><span>Patient Name</span><strong>${esc(patientName)}</strong></div>
-                        <div class="summary-row"><span>Preferred care</span><strong>${esc(state.patientData.doctorPref || 'General Medicine')}</strong></div>
-                        <div class="summary-row"><span>Search area</span><strong>${esc(state.patientData.city || 'Hyderabad')}</strong></div>
+                        <form id="profile-form" class="form-grid" style="gap:1rem;margin-top:1rem">
+                            <div class="field">
+                                <label for="pf-name">Full Name <span>*</span></label>
+                                <input id="pf-name" type="text" value="${esc(patientData.name || patientName)}" placeholder="e.g. Asha Rao" required>
+                            </div>
+                            <div class="field">
+                                <label for="pf-email">Account Email</label>
+                                <input id="pf-email" type="email" value="${esc(state.loggedEmail || 'patient@smartcare.demo')}" disabled style="opacity:.75;background:var(--canvas)">
+                            </div>
+                            <div class="field">
+                                <label for="pf-age">Age <span>*</span></label>
+                                <input id="pf-age" type="number" min="0" max="120" value="${esc(patientData.age || '32')}" placeholder="32" required>
+                            </div>
+                            <div class="field">
+                                <label for="pf-gender">Gender</label>
+                                <select id="pf-gender">
+                                    <option value="Female" ${patientData.gender === 'Female' ? 'selected' : ''}>Female</option>
+                                    <option value="Male" ${patientData.gender === 'Male' ? 'selected' : ''}>Male</option>
+                                    <option value="Other" ${patientData.gender === 'Other' ? 'selected' : ''}>Other</option>
+                                    <option value="Prefer not to say" ${patientData.gender === 'Prefer not to say' ? 'selected' : ''}>Prefer not to say</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label for="pf-blood">Blood Group</label>
+                                <select id="pf-blood">
+                                    <option value="O+" ${patientData.bloodGroup === 'O+' ? 'selected' : ''}>O+ (Universal RBC)</option>
+                                    <option value="O-" ${patientData.bloodGroup === 'O-' ? 'selected' : ''}>O-</option>
+                                    <option value="A+" ${patientData.bloodGroup === 'A+' ? 'selected' : ''}>A+</option>
+                                    <option value="A-" ${patientData.bloodGroup === 'A-' ? 'selected' : ''}>A-</option>
+                                    <option value="B+" ${patientData.bloodGroup === 'B+' ? 'selected' : ''}>B+</option>
+                                    <option value="B-" ${patientData.bloodGroup === 'B-' ? 'selected' : ''}>B-</option>
+                                    <option value="AB+" ${patientData.bloodGroup === 'AB+' ? 'selected' : ''}>AB+</option>
+                                    <option value="AB-" ${patientData.bloodGroup === 'AB-' ? 'selected' : ''}>AB-</option>
+                                </select>
+                            </div>
+                            <div class="field">
+                                <label for="pf-city">City / Region <span>*</span></label>
+                                <input id="pf-city" type="text" value="${esc(patientData.city || 'Hyderabad')}" placeholder="Hyderabad" required>
+                            </div>
+                            <div class="field full">
+                                <label for="pf-pref">Preferred Care Specialty</label>
+                                <select id="pf-pref">
+                                    <option value="General consultation" ${patientData.doctorPref === 'General consultation' ? 'selected' : ''}>General consultation / OPD</option>
+                                    <option value="Women's health" ${patientData.doctorPref === "Women's health" ? 'selected' : ''}>Women's health / Gynaecology</option>
+                                    <option value="Child care" ${patientData.doctorPref === 'Child care' ? 'selected' : ''}>Child care / Paediatrics</option>
+                                    <option value="Emergency & Triage" ${patientData.doctorPref === 'Emergency & Triage' ? 'selected' : ''}>Emergency &amp; Acute Triage</option>
+                                </select>
+                            </div>
+                            <div class="field full" style="display:flex;flex-direction:row;justify-content:space-between;align-items:center;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--line)">
+                                <span class="hint">Saved automatically to your browser profile.</span>
+                                <button type="submit" class="btn-primary btn-icon" id="btn-save-profile">
+                                    ${icon('save', 16)} Save Profile Changes
+                                </button>
+                            </div>
+                        </form>
                     </section>` : ''}
             </main>
             ${window.App.UI.footer(true)}`;
@@ -197,6 +249,34 @@
                 window.App.UI.toast(error.message || 'We could not cancel this booking.', 'error');
             }
         };
+
+        const profileForm = container.querySelector('#profile-form');
+        if (profileForm) {
+            profileForm.onsubmit = e => {
+                e.preventDefault();
+                const name = container.querySelector('#pf-name')?.value.trim() || 'Patient';
+                const age = container.querySelector('#pf-age')?.value || '32';
+                const gender = container.querySelector('#pf-gender')?.value || 'Female';
+                const bloodGroup = container.querySelector('#pf-blood')?.value || 'O+';
+                const city = container.querySelector('#pf-city')?.value.trim() || 'Hyderabad';
+                const doctorPref = container.querySelector('#pf-pref')?.value || 'General consultation';
+
+                updatePatientData('name', name);
+                updatePatientData('age', age);
+                updatePatientData('gender', gender);
+                updatePatientData('bloodGroup', bloodGroup);
+                updatePatientData('city', city);
+                updatePatientData('doctorPref', doctorPref);
+
+                try {
+                    const profileKey = `smartcare.patientProfile_${state.loggedEmail || 'default'}`;
+                    localStorage.setItem(profileKey, JSON.stringify({ name, age, gender, bloodGroup, city, doctorPref }));
+                } catch {}
+
+                window.App.UI.toast('Patient profile updated successfully!', 'success');
+                navigate('/dashboard/patient?tab=profile');
+            };
+        }
 
         container.querySelector('#workspace-logout').onclick = logout;
         window.App.UI.bindTopbarControls(container);
