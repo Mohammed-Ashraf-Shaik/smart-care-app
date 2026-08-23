@@ -1,11 +1,13 @@
 (function () {
-    
     const config = window.App?.Config || {};
     const supabaseEnabled = config.supabaseEnabled === true && !!config.supabaseUrl && !!config.supabaseAnonKey && !!window.supabase;
 
+    const readStorage = key => { try { return JSON.parse(window.localStorage.getItem(key) || 'null'); } catch { return null; } };
+
     if (!supabaseEnabled) {
-        const demoQueue = [{
-            id: 'demo-queue-001',
+        const queueKey = 'smartcare.demoQueue';
+        const defaultQueue = [{
+            id: 'SC-DEMO001',
             name: 'Maya Singh',
             age: 29,
             gender: 'Female',
@@ -22,6 +24,14 @@
             status: 'waiting',
             created_at: new Date(Date.now() - 18 * 60000).toISOString()
         }];
+
+        const storedQueue = readStorage(queueKey);
+        const demoQueue = Array.isArray(storedQueue) && storedQueue.length ? storedQueue : defaultQueue;
+
+        function saveDemoQueue() {
+            try { window.localStorage.setItem(queueKey, JSON.stringify(demoQueue)); } catch {}
+        }
+
         const demoUsers = {
             'hospital@smartcare.demo': { email: 'hospital@smartcare.demo', password: 'demo1234', role: 'doctor', hospital: 'SmartCare Community Hospital', country: 'India', state: 'Telangana', city: 'Hyderabad' },
             'admin@smartcare.demo': { email: 'admin@smartcare.demo', password: 'demo1234', role: 'staff', hospital: 'SmartCare Operations Centre', country: 'India', state: 'Telangana', city: 'Hyderabad' }
@@ -53,16 +63,51 @@
             submitDonationInterest: async payload => ({ success: true, id: `donation-demo-${Date.now()}`, payload }),
             addPatient: async patientData => {
                 const id = `SC-${Date.now().toString(36).toUpperCase()}`;
-                demoQueue.push({ id, ...patientData, created_at: new Date().toISOString(), status: 'waiting' });
+                const record = {
+                    id,
+                    name: patientData.name || 'Patient',
+                    age: parseInt(patientData.age) || 30,
+                    gender: patientData.gender || 'Not specified',
+                    doctorPref: patientData.doctorPref || 'General consultation',
+                    doctor_pref: patientData.doctorPref || 'General consultation',
+                    area: patientData.area || 'Hyderabad',
+                    symptoms: patientData.symptoms || 'General consultation',
+                    problem: patientData.symptoms || 'General consultation',
+                    hospital: patientData.hospital || 'SmartCare Community Hospital',
+                    country: patientData.country || 'India',
+                    state: patientData.state || 'Telangana',
+                    city: patientData.city || 'Hyderabad',
+                    triage: patientData.triage || 'Green',
+                    fee: patientData.fee || 125,
+                    created_at: new Date().toISOString(),
+                    status: 'waiting'
+                };
+                demoQueue.push(record);
+                saveDemoQueue();
+                if (window.App.Store?.updateQueue) {
+                    window.App.Store.updateQueue([...demoQueue]);
+                }
                 return id;
             },
             updatePatient: async (id, updates) => {
                 const record = demoQueue.find(item => item.id === id);
-                if (record) Object.assign(record, updates);
+                if (record) {
+                    Object.assign(record, updates);
+                    saveDemoQueue();
+                    if (window.App.Store?.updateQueue) {
+                        window.App.Store.updateQueue([...demoQueue]);
+                    }
+                }
             },
             removePatient: async id => {
                 const index = demoQueue.findIndex(item => item.id === id);
-                if (index >= 0) demoQueue.splice(index, 1);
+                if (index >= 0) {
+                    demoQueue.splice(index, 1);
+                    saveDemoQueue();
+                    if (window.App.Store?.updateQueue) {
+                        window.App.Store.updateQueue([...demoQueue]);
+                    }
+                }
             }
         };
         return;
@@ -71,7 +116,6 @@
     const SUPABASE_URL = config.supabaseUrl;
     const SUPABASE_KEY = config.supabaseAnonKey;
 
-    
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     const DB = {
@@ -99,7 +143,6 @@
             const { data, error } = await supabase.from('donation_interests').insert([{ type: payload.type, name: payload.name, city: payload.city, preference: payload.preference }]).select('id').single();
             return error ? { success: false, error: error.message } : { success: true, id: data?.id };
         },
-        
         checkEmailExists: async (email) => {
             const { data, error } = await supabase
                 .from('professionals')
@@ -110,8 +153,6 @@
             if (error) return { success: false, error: error.message };
             return { success: !!data };
         },
-
-        
         checkCredentials: async (hospital, email, password, role) => {
             const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email: email.toLowerCase(), password });
             if (authError || !authData.user) return { success: false, error: 'Invalid credentials. Please check your email and password.' };
@@ -119,8 +160,6 @@
             if (profileError || !profile || profile.role !== role) { await supabase.auth.signOut(); return { success: false, error: 'This account is not enabled for the selected portal.' }; }
             return { success: true, user: { ...profile, hospital: hospital || profile.hospital } };
         },
-
-        
         registerProfessional: async (profData) => {
             const { data: authData, error: authError } = await supabase.auth.signUp({ email: profData.email.toLowerCase(), password: profData.password });
             if (authError || !authData.user) return { success: false, error: authError?.message || 'Account creation failed.' };
@@ -129,11 +168,7 @@
             await supabase.auth.signOut();
             return { success: true, user: data[0] };
         },
-
-        
         verifyPasswordHint: async () => ({ success: false, error: 'Use the secure email recovery link instead.' }),
-
-        
         resetPassword: async email => {
             const { error } = await supabase.auth.resetPasswordForEmail(email.toLowerCase(), { redirectTo: `${window.location.origin}${window.SMARTCARE_BASE_PATH || ''}/login` });
             return error ? { success: false, error: error.message } : { success: true };
@@ -142,8 +177,6 @@
             const { error } = await supabase.auth.updateUser({ password });
             return error ? { success: false, error: error.message } : { success: true };
         },
-
-        
         fetchQueue: async () => {
             const { data, error } = await supabase
                 .from('queue')
@@ -156,8 +189,6 @@
             }
             return data;
         },
-
-        
         listenToQueue: (onUpdate) => {
             const channel = supabase.channel('public:queue')
                 .on('postgres_changes', {
@@ -165,7 +196,6 @@
                     schema: 'public',
                     table: 'queue'
                 }, async (payload) => {
-                    console.log('Change received!', payload);
                     const queue = await DB.fetchQueue();
                     onUpdate(queue);
                 })
@@ -175,8 +205,6 @@
                 supabase.removeChannel(channel);
             };
         },
-
-        
         addPatient: async (patientData) => {
             try {
                 const data = {
@@ -207,8 +235,6 @@
                 throw e;
             }
         },
-
-        
         updatePatient: async (id, updates) => {
             try {
                 const { error } = await supabase
@@ -221,9 +247,7 @@
                 throw e;
             }
         },
-
-        
-        removePatient: async (id) => {
+        removePatient: async id => {
             try {
                 const { error } = await supabase
                     .from('queue')

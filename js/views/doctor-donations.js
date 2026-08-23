@@ -73,7 +73,10 @@
             container.innerHTML = `
                 <div class="flow-topbar">
                     <a class="brand-lockup" data-route="/" href="/"><span class="brand-mark">${icon('heart-pulse', 20)}</span><span><span class="brand-name">SmartCare</span><span class="brand-caption">${isStaff ? 'Operations workspace' : 'Hospital workspace'}</span></span></a>
-                    <a class="back-link" data-route="${overviewRoute}" href="${overviewRoute}">${icon('arrow-left', 16)} ${overviewLabel}</a>
+                    <div class="flow-topbar-actions">
+                        ${window.App.UI.topbarControls()}
+                        <a class="back-link" data-route="${overviewRoute}" href="${overviewRoute}">${icon('arrow-left', 16)} ${overviewLabel}</a>
+                    </div>
                 </div>
                 <main class="provider-shell section-dashboard" data-section="hospital-donations">
                     <header class="provider-header">
@@ -193,6 +196,7 @@
                 render();
             };
 
+            window.App.UI.bindTopbarControls(container);
             // RENDER LUCIDE ICONS SO LOGOS ALWAYS LOAD PROPERLY
             if (window.lucide) window.lucide.createIcons();
         }

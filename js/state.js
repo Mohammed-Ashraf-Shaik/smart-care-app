@@ -249,7 +249,15 @@
     function setAuthTarget(role) { state.auth.targetRole = ['patient', 'doctor', 'staff'].includes(role) ? role : 'patient'; }
     function updatePatientData(key, value, shouldNotify = false) { state.patientData[key] = value; persistDraft(); if (shouldNotify) notify(); }
     function recordPatientVisit(visit) { state.patientVisits = [visit, ...state.patientVisits.filter(item => item.id !== visit.id)].slice(0, 12); try { window.localStorage.setItem(patientVisitKey, JSON.stringify(state.patientVisits)); } catch { /* local history is optional */ } }
-    function updateQueue(newQueue) { fullQueue = Array.isArray(newQueue) ? newQueue : []; const isAdmin = state.loggedRole === 'staff'; const scopedQueue = !isAdmin && state.loggedHospital && state.loggedCity && state.loggedState && state.loggedCountry ? fullQueue.filter(patient => patient.hospital === state.loggedHospital && patient.city === state.loggedCity && patient.state === state.loggedState && patient.country === state.loggedCountry) : fullQueue; state.queue = scopedQueue.filter(patient => !['completed', 'cancelled', 'no-show'].includes(String(patient.status || '').toLowerCase())); if (['doctor', 'staff', 'queue', 'analytics'].includes(state.view)) notify(); }
+    function updateQueue(newQueue) {
+        fullQueue = Array.isArray(newQueue) ? newQueue : [];
+        const isAdmin = state.loggedRole === 'staff';
+        const scopedQueue = !isAdmin && state.loggedHospital && state.loggedCity
+            ? fullQueue.filter(patient => (patient.hospital === state.loggedHospital || !patient.hospital) && String(patient.city || 'Hyderabad').toLowerCase() === String(state.loggedCity || 'Hyderabad').toLowerCase())
+            : fullQueue;
+        state.queue = scopedQueue.filter(patient => !['completed', 'cancelled', 'no-show'].includes(String(patient.status || '').toLowerCase()));
+        if (['doctor', 'staff', 'queue', 'analytics'].includes(state.view)) notify();
+    }
     function setLoggedLocation(country, stateName, city, hospital) { state.loggedCountry = country; state.loggedState = stateName; state.loggedCity = city; state.loggedHospital = hospital; updateQueue(fullQueue); persistSession(); }
     function setLogin(email, role = 'patient') { state.isLogged = true; state.loggedEmail = email; state.loggedRole = role; state.sessionExpiresAt = Date.now() + (window.App.Config?.sessionTtlMs || 28800000); persistSession(); notify(); }
     function applyRemoteSession(remote) {

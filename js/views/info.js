@@ -156,7 +156,10 @@
                             <span class="brand-mark">${icon('heart-pulse', 20)}</span>
                             <span><span class="brand-name">SmartCare</span><span class="brand-caption">Help &amp; Documentation</span></span>
                         </a>
-                        <a class="back-link" data-route="${dashboardRoute}" href="${dashboardRoute}">${icon('arrow-left', 16)} Back to dashboard</a>
+                        <div class="flow-topbar-actions">
+                            ${window.App.UI.topbarControls()}
+                            <a class="back-link" data-route="${dashboardRoute}" href="${dashboardRoute}">${icon('arrow-left', 16)} Back to dashboard</a>
+                        </div>
                     </div>
                     <main class="provider-shell section-dashboard" data-section="workspace-help">
                         <nav class="workspace-tabs" aria-label="Workspace navigation">
@@ -178,13 +181,18 @@
                             <span class="brand-mark">${icon('heart-pulse', 20)}</span>
                             <span><span class="brand-name">SmartCare</span><span class="brand-caption">Information</span></span>
                         </a>
-                        <a class="back-link" data-route="${dashboardRoute}" href="${dashboardRoute}">${icon('arrow-left', 16)} ${state.isLogged ? 'Back to dashboard' : 'Back to home'}</a>
+                        <div class="flow-topbar-actions">
+                            ${window.App.UI.topbarControls()}
+                            <a class="back-link" data-route="${dashboardRoute}" href="${dashboardRoute}">${icon('arrow-left', 16)} ${state.isLogged ? 'Back to dashboard' : 'Back to home'}</a>
+                        </div>
                     </div>
                     <main>
                         ${innerHtml}
                     </main>
                     ${window.App.UI.footer(state.isLogged)}`;
             }
+
+            window.App.UI.bindTopbarControls(container);
 
             // Tab link interactions
             container.querySelectorAll('.info-tab-link, [data-page-link]').forEach(btn => {

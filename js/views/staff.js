@@ -1,31 +1,133 @@
 (function () {
     const icon = (name, size = 18) => `<i data-lucide="${name}" width="${size}" height="${size}"></i>`;
     const esc = (value = '') => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
+
     window.App.Views.Staff = function () {
         const { state, setView, getQueueMetrics, logout } = window.App.Store;
         const container = document.createElement('div');
         container.className = 'flow-shell workspace-shell';
         const metrics = getQueueMetrics();
         const activeTab = state.activeTab || '';
-        const rooms = [['Consultation 01', 'Internal medicine', 'In use'], ['Consultation 02', 'General care', 'Available'], ['Triage desk', 'Initial assessment', 'In use'], ['Pharmacy', 'Prescription pickup', 'Available']];
-        container.innerHTML = `<div class="flow-topbar"><a class="brand-lockup" data-route="/" href="/"><span class="brand-mark">${icon('heart-pulse', 20)}</span><span><span class="brand-name">SmartCare</span><span class="brand-caption">Operations workspace</span></span></a><button id="staff-back" class="back-link">${icon('arrow-left', 16)} Back to home</button></div><main class="provider-shell section-dashboard" data-section="admin-dashboard"><header class="provider-header"><div><div class="eyebrow" style="color:var(--teal)"><span class="eyebrow-dot"></span> Admin workspace</div><h1>Keep the centre ready.</h1><p>${esc(state.loggedHospital || 'Your care centre')} · ${esc(state.loggedCity || 'Location not set')}</p></div><div class="provider-date">${new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })}<br><strong>Operational view</strong></div></header><div class="provider-stats"><div class="provider-stat"><span>Patients waiting</span><strong>${metrics.waiting}</strong><small>Current active queue</small></div><div class="provider-stat"><span>Average wait</span><strong>${metrics.averageWait}m</strong><small>Based on arrival time</small></div><div class="provider-stat"><span>Priority cases</span><strong>${metrics.priority}</strong><small>Needs attention first</small></div><div class="provider-stat"><span>Projected revenue</span><strong>₹${metrics.revenue}</strong><small>Current queue estimate</small></div></div><div class="provider-grid"><section id="tab-rooms" data-tab-panel="rooms" class="provider-card"><div class="provider-card-heading"><div><h2>Room status</h2><p>Click a room to keep the next handoff visible to the front desk.</p></div><span class="status-eyebrow" style="color:var(--teal)"><i style="background:var(--teal)"></i> Live</span></div><div class="room-grid">${rooms.map(([name, type, status], index) => `<button type="button" class="room-item" data-room-index="${index}" aria-pressed="${status === 'In use'}"><span>${icon(status === 'Available' ? 'door-open' : 'door-closed', 17)}<strong>${name}</strong><small>${type}</small></span><span class="room-status">${status}</span></button>`).join('')}</div><div class="provider-notice">${icon('triangle-alert', 15)} Triage desk is handling the next priority case. The live queue has ${metrics.priority} red-priority patient(s).</div></section><section class="provider-card"><div class="provider-card-heading"><div><h2>Today at a glance</h2><p>Use these signals to plan the next hour.</p></div></div><div class="summary-row"><span>Peak period</span><strong>10:00–12:00</strong></div><div class="summary-row"><span>Queue health</span><strong>${metrics.waiting < 6 ? 'Within target' : 'Needs attention'}</strong></div><div class="summary-row"><span>Facility readiness</span><strong>${Math.max(0, 100 - metrics.priority * 8)}%</strong></div><a class="btn-secondary btn-wide btn-icon" data-route="/dashboard/analytics" href="/dashboard/analytics" style="margin-top:1rem">Open analytics ${icon('arrow-right', 16)}</a></section></div></main>${window.App.UI.footer(true)}`;
+        const rooms = [
+            ['Consultation 01', 'Internal medicine', 'In use'],
+            ['Consultation 02', 'General care', 'Available'],
+            ['Triage desk', 'Initial assessment', 'In use'],
+            ['Pharmacy', 'Prescription pickup', 'Available']
+        ];
+
+        container.innerHTML = `
+            <div class="flow-topbar">
+                <a class="brand-lockup" data-route="/" href="/">
+                    <span class="brand-mark">${icon('heart-pulse', 20)}</span>
+                    <span><span class="brand-name">SmartCare</span><span class="brand-caption">Operations workspace</span></span>
+                </a>
+                <div class="flow-topbar-actions">
+                    ${window.App.UI.topbarControls()}
+                    <button id="staff-back" class="back-link">${icon('arrow-left', 16)} Back to home</button>
+                </div>
+            </div>
+            <main class="provider-shell section-dashboard" data-section="admin-dashboard">
+                <header class="provider-header">
+                    <div>
+                        <div class="eyebrow" style="color:var(--teal)"><span class="eyebrow-dot"></span> Admin workspace</div>
+                        <h1>Keep the centre ready.</h1>
+                        <p>${esc(state.loggedHospital || 'Your care centre')} · ${esc(state.loggedCity || 'Location not set')}</p>
+                    </div>
+                    <div class="provider-date">${new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })}<br><strong>Operational view</strong></div>
+                </header>
+                <div class="provider-stats">
+                    <div class="provider-stat"><span>Patients waiting</span><strong>${metrics.waiting}</strong><small>Current active queue</small></div>
+                    <div class="provider-stat"><span>Average wait</span><strong>${metrics.averageWait}m</strong><small>Based on arrival time</small></div>
+                    <div class="provider-stat"><span>Priority cases</span><strong>${metrics.priority}</strong><small>Needs attention first</small></div>
+                    <div class="provider-stat"><span>Projected revenue</span><strong>₹${metrics.revenue}</strong><small>Current queue estimate</small></div>
+                </div>
+                <div class="provider-grid">
+                    <section id="tab-rooms" data-tab-panel="rooms" class="provider-card">
+                        <div class="provider-card-heading">
+                            <div>
+                                <h2>Room status</h2>
+                                <p>Click a room to keep the next handoff visible to the front desk.</p>
+                            </div>
+                            <span class="status-eyebrow" style="color:var(--teal)"><i style="background:var(--teal)"></i> Live</span>
+                        </div>
+                        <div class="room-grid">
+                            ${rooms.map(([name, type, status], index) => `
+                                <button type="button" class="room-item" data-room-index="${index}" aria-pressed="${status === 'In use'}">
+                                    <span>${icon(status === 'Available' ? 'door-open' : 'door-closed', 17)}<strong>${name}</strong><small>${type}</small></span>
+                                    <span class="room-status">${status}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+                        <div class="provider-notice">${icon('triangle-alert', 15)} Triage desk is handling the next priority case. The live queue has ${metrics.priority} red-priority patient(s).</div>
+                    </section>
+                    <section class="provider-card">
+                        <div class="provider-card-heading">
+                            <div>
+                                <h2>Today at a glance</h2>
+                                <p>Use these signals to plan the next hour.</p>
+                            </div>
+                        </div>
+                        <div class="summary-row"><span>Peak period</span><strong>10:00–12:00</strong></div>
+                        <div class="summary-row"><span>Queue health</span><strong>${metrics.waiting < 6 ? 'Within target' : 'Needs attention'}</strong></div>
+                        <div class="summary-row"><span>Facility readiness</span><strong>${Math.max(0, 100 - metrics.priority * 8)}%</strong></div>
+                        <a class="btn-secondary btn-wide btn-icon" data-route="/dashboard/analytics" href="/dashboard/analytics" style="margin-top:1rem">
+                            Open analytics ${icon('arrow-right', 16)}
+                        </a>
+                    </section>
+                </div>
+            </main>
+            ${window.App.UI.footer(true)}
+        `;
+
         const workspaceNav = document.createElement('nav');
         workspaceNav.className = 'workspace-tabs';
         workspaceNav.setAttribute('aria-label', 'Admin workspace navigation');
-        workspaceNav.innerHTML = `<a class="${activeTab === '' ? 'active' : ''}" href="/dashboard/admin" data-route="/dashboard/admin">${icon('layout-dashboard', 16)}<span>Operations</span></a><a class="${activeTab === 'rooms' ? 'active' : ''}" href="/dashboard/admin?tab=rooms" data-tab="rooms" data-tab-route="/dashboard/admin">${icon('door-open', 16)}<span>Rooms</span></a><a href="/dashboard/queue" data-route="/dashboard/queue">${icon('list-ordered', 16)}<span>Queue</span></a><a href="/dashboard/analytics" data-route="/dashboard/analytics">${icon('bar-chart-3', 16)}<span>Analytics</span></a><div class="nav-divider"></div><a href="/dashboard/admin/donations" data-route="/dashboard/admin/donations">${icon('heart-handshake', 16)}<span>Donations</span></a><a href="/dashboard/admin/help" data-route="/dashboard/admin/help">${icon('circle-help', 16)}<span>Help</span></a><button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>`;
+        const helpRoute = state.loggedRole === 'doctor' ? '/dashboard/doctor/help' : '/dashboard/admin/help';
+        const donRoute = state.loggedRole === 'doctor' ? '/dashboard/doctor/donations' : '/dashboard/admin/donations';
+
+        workspaceNav.innerHTML = `
+            <a class="${activeTab === '' ? 'active' : ''}" href="/dashboard/admin" data-route="/dashboard/admin">${icon('layout-dashboard', 16)}<span>Operations</span></a>
+            <a class="${activeTab === 'rooms' ? 'active' : ''}" href="/dashboard/admin?tab=rooms" data-tab="rooms" data-tab-route="/dashboard/admin">${icon('door-open', 16)}<span>Rooms</span></a>
+            <a href="/dashboard/queue" data-route="/dashboard/queue">${icon('list-ordered', 16)}<span>Queue</span></a>
+            <a href="/dashboard/analytics" data-route="/dashboard/analytics">${icon('bar-chart-3', 16)}<span>Analytics</span></a>
+            <div class="nav-divider"></div>
+            <a href="${donRoute}" data-route="${donRoute}">${icon('heart-handshake', 16)}<span>Donations</span></a>
+            <a href="${helpRoute}" data-route="${helpRoute}">${icon('circle-help', 16)}<span>Help</span></a>
+            <button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>
+        `;
+
         const workspaceMain = container.querySelector('main');
         const workspaceContent = document.createElement('div');
         workspaceContent.className = 'workspace-content';
         Array.from(workspaceMain.children).forEach(child => workspaceContent.appendChild(child));
         workspaceMain.append(workspaceNav, workspaceContent);
+
         const quickActions = document.createElement('section');
         quickActions.className = 'dashboard-quick-actions';
         quickActions.setAttribute('aria-label', 'Admin quick actions');
-        quickActions.innerHTML = `<div><span class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> Next actions</span><strong>Keep the centre moving</strong><small>Review rooms, queue health, and today's operating signals.</small></div><a class="btn-primary btn-icon" data-route="/dashboard/analytics" href="/dashboard/analytics">Open analytics ${icon('arrow-right', 16)}</a><a class="btn-secondary btn-icon" data-route="/dashboard/patient/apply/1" href="/dashboard/patient/apply/1">Preview patient flow ${icon('external-link', 16)}</a>`;
+        quickActions.innerHTML = `
+            <div>
+                <span class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> Next actions</span>
+                <strong>Keep the centre moving</strong>
+                <small>Review rooms, queue health, and today's operating signals.</small>
+            </div>
+            <a class="btn-primary btn-icon" data-route="/dashboard/analytics" href="/dashboard/analytics">Open analytics ${icon('arrow-right', 16)}</a>
+            <a class="btn-secondary btn-icon" data-route="/dashboard/patient/apply/1" href="/dashboard/patient/apply/1">Preview patient flow ${icon('external-link', 16)}</a>
+        `;
         workspaceContent.insertBefore(quickActions, workspaceContent.querySelector('.provider-stats'));
+
         container.querySelector('#workspace-logout').onclick = logout;
         container.querySelector('#staff-back').onclick = () => setView('landing');
-        container.querySelectorAll('[data-room-index]').forEach(button => button.onclick = () => { const room = rooms[Number(button.dataset.roomIndex)]; room[2] = room[2] === 'Available' ? 'In use' : 'Available'; button.setAttribute('aria-pressed', room[2] === 'In use'); button.querySelector('.room-status').textContent = room[2]; window.App.UI.toast(`${room[0]} is now ${room[2].toLowerCase()}.`, 'success'); });
+        container.querySelectorAll('[data-room-index]').forEach(button => button.onclick = () => {
+            const room = rooms[Number(button.dataset.roomIndex)];
+            room[2] = room[2] === 'Available' ? 'In use' : 'Available';
+            button.setAttribute('aria-pressed', room[2] === 'In use');
+            button.querySelector('.room-status').textContent = room[2];
+            window.App.UI.toast(`${room[0]} is now ${room[2].toLowerCase()}.`, 'success');
+        });
+
+        window.App.UI.bindTopbarControls(container);
+        if (window.lucide) window.lucide.createIcons();
         return container;
     };
 })();

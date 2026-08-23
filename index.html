@@ -24,7 +24,23 @@
                 const logicalPath = target.pathname.startsWith(repositoryPath) ? target.pathname.slice(repositoryPath.length) || '/' : target.pathname || '/';
                 window.history.replaceState({}, '', `${repositoryPath}${logicalPath === '/' ? '/' : logicalPath}${target.search}${target.hash}`);
             }
+
+            // Theme hydration to avoid flicker
+            try {
+                const savedTheme = localStorage.getItem('smartcare.theme') || 'light';
+                document.documentElement.setAttribute('data-theme', savedTheme);
+            } catch {}
         })();
+
+        function googleTranslateElementInit() {
+            if (window.google && window.google.translate) {
+                new window.google.translate.TranslateElement({
+                    pageLanguage: 'en',
+                    includedLanguages: 'en,hi,te,ta,bn,mr,es',
+                    autoDisplay: false
+                }, 'google_translate_element');
+            }
+        }
     </script>
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <title>SmartCare | Care, without the waiting room</title>
@@ -33,11 +49,13 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.css">
     <script src="https://unpkg.com/maplibre-gl@5.12.0/dist/maplibre-gl.js"></script>
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async defer></script>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 
 <body>
     <a href="#app" class="skip-link">Skip to main content</a>
+    <div id="google_translate_element" style="display:none"></div>
     <div id="app" aria-live="polite"></div>
 
     <script type="module" src="js/main.js"></script>
