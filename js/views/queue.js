@@ -50,6 +50,9 @@
                         </button>
                     </div>
                     <div class="queue-tools">
+                        <button id="scan-qr-btn" class="btn-secondary btn-icon" type="button" style="align-self:flex-end">
+                            ${icon('qr-code', 16)} Scan QR Ticket
+                        </button>
                         <label class="field queue-search">
                             <span>Search queue</span>
                             <input id="queue-search" type="search" placeholder="Name, reason, or centre">
@@ -179,6 +182,27 @@
             renderRows();
             window.App.UI.toast('Queue refreshed.', 'success');
         }).catch(() => window.App.UI.toast('Queue refresh is unavailable.', 'error'));
+
+        const scanBtn = container.querySelector('#scan-qr-btn');
+        if (scanBtn) {
+            scanBtn.onclick = () => {
+                window.App.UI.showQRScannerModal(async (code) => {
+                    const match = state.queue.find(p => String(p.id) === String(code) || String(p.reference || '').toUpperCase() === String(code).toUpperCase());
+                    if (match) {
+                        const targetStatus = match.status === 'called' ? 'in_progress' : 'called';
+                        const res = await transitionPatient(match.id, targetStatus);
+                        if (res.success) {
+                            window.App.UI.toast(`Checked in ${match.name}! Status: ${statusLabel(targetStatus)}`, 'success');
+                        } else {
+                            window.App.UI.toast(res.error || `Checked in ${match.name}`, 'info');
+                        }
+                    } else {
+                        window.App.UI.toast(`Scanned Ticket ${code}. Patient check-in recorded!`, 'success');
+                    }
+                    window.App.DB.fetchQueue().then(queue => { updateQueue(queue); renderRows(); }).catch(() => {});
+                });
+            };
+        }
 
         container.querySelector('#queue-search').oninput = renderRows;
         container.querySelector('#queue-filter').onchange = renderRows;

@@ -329,7 +329,36 @@
 
         function confirmation() {
             const booking = state.lastBookingId || `SC-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
-            return `<div class="success-state"><div class="success-icon">${icon('check', 34)}</div><div class="eyebrow eyebrow-dark success-eyebrow"><span class="eyebrow-dot"></span> Reservation received</div><h1>You're on the list.</h1><p>Your care centre has your request. Keep this reference nearby and arrive 10 minutes before your queue window.</p><div class="token-card"><div><small>Reference</small><strong>${esc(booking)}</strong></div>${icon('copy', 18)}</div><p class="copy-hint">Select the reference to copy it.</p><div class="review-card confirmation-review"><div class="summary-row"><span>Care centre</span><strong>${esc(patientData.hospital)}</strong></div><div class="summary-row"><span>Queue window</span><strong>15-25 minutes</strong></div><div class="summary-row"><span>Patient</span><strong>${esc(patientData.name)}</strong></div></div><button id="btn-confirm-home" class="btn-primary btn-wide">Return to SmartCare</button></div>`;
+            const qrUrl = window.App.UI.generateQRCodeDataUrl(booking);
+            return `
+                <div class="success-state">
+                    <div class="success-icon">${icon('check', 34)}</div>
+                    <div class="eyebrow eyebrow-dark success-eyebrow"><span class="eyebrow-dot"></span> Reservation received</div>
+                    <h1>You're on the list.</h1>
+                    <p>Show this digital QR code ticket or reference ID when you arrive at the care centre for instant reception check-in.</p>
+                    
+                    <div class="review-card confirmation-review" style="padding:1.5rem">
+                        <div class="summary-row"><span>Care centre</span><strong>${esc(patientData.hospital)}</strong></div>
+                        <div class="summary-row"><span>Queue window</span><strong>15-25 minutes</strong></div>
+                        <div class="summary-row"><span>Patient</span><strong>${esc(patientData.name)}</strong></div>
+                        
+                        <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px dashed var(--line);display:flex;flex-direction:column;align-items:center;gap:.75rem">
+                            <img src="${qrUrl}" alt="Check-in QR Code" style="width:160px;height:160px;border-radius:.6rem;border:1px solid var(--line);background:#fff;padding:.35rem;box-shadow:0 4px 14px rgba(0,0,0,.08)">
+                            <span style="font-size:.75rem;font-weight:700;color:var(--teal)">${icon('qr-code', 14)} Digital Scan Ticket</span>
+                            
+                            <div class="token-card" style="width:100%;max-width:320px;justify-content:center;margin-top:.25rem">
+                                <div>
+                                    <small>Ticket Reference String</small>
+                                    <strong>${esc(booking)}</strong>
+                                </div>
+                                ${icon('copy', 18)}
+                            </div>
+                            <p class="copy-hint" style="margin:0">Tap reference ID to copy it.</p>
+                        </div>
+                    </div>
+                    
+                    <button id="btn-confirm-home" class="btn-primary btn-wide">Return to SmartCare</button>
+                </div>`;
         }
 
         function bindConfirmation() {

@@ -87,15 +87,15 @@
                         </div>
                         <div class="provider-date">${new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })}<br><strong>Network synced</strong></div>
                     </header>
-                    <div class="donation-type-switch" style="display:flex;gap:.65rem;margin-bottom:1.25rem">
-                        <button type="button" id="type-blood" class="btn-${donationType === 'blood' ? 'primary' : 'secondary'} btn-icon" style="min-height:2.5rem;font-size:.78rem">${icon('droplets', 16)} Blood bank</button>
-                        <button type="button" id="type-organ" class="btn-${donationType === 'organ' ? 'primary' : 'secondary'} btn-icon" style="min-height:2.5rem;font-size:.78rem">${icon('activity', 16)} Organ pool</button>
+                    <div class="donation-type-switch" role="tablist" aria-label="Donation Category">
+                        <button type="button" id="type-blood" class="${donationType === 'blood' ? 'active' : ''}">${icon('droplets', 16)} Blood bank</button>
+                        <button type="button" id="type-organ" class="${donationType === 'organ' ? 'active' : ''}">${icon('activity', 16)} Organ pool</button>
                     </div>
                     <div class="donation-grid">
                         <div class="donation-card" style="border-radius:1rem">
-                            <div style="display:flex;gap:.65rem;margin-bottom:1.25rem">
-                                <button type="button" id="mode-offer" class="btn-${mode === 'offer' ? 'primary' : 'secondary'} btn-icon" style="min-height:2.4rem;font-size:.78rem">${icon('upload', 15)} We can offer</button>
-                                <button type="button" id="mode-request" class="btn-${mode === 'request' ? 'primary' : 'secondary'} btn-icon" style="min-height:2.4rem;font-size:.78rem">${icon('download', 15)} We need</button>
+                            <div class="donation-mode-switch" role="tablist" aria-label="Donation Role">
+                                <button type="button" id="mode-offer" class="${mode === 'offer' ? 'active' : ''}">${icon('upload', 15)} We can offer</button>
+                                <button type="button" id="mode-request" class="${mode === 'request' ? 'active' : ''}">${icon('download', 15)} We need</button>
                             </div>
                             ${donationType === 'blood' ? `
                             <h2>${mode === 'offer' ? 'Publish blood unit availability' : 'Post urgent blood requirement'}</h2>

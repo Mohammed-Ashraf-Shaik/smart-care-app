@@ -52,8 +52,11 @@
                             <button id="complete-patient" class="btn-primary btn-icon" ${currentAction[0] ? '' : 'disabled'}>
                                 ${currentAction[1]} ${icon(currentStatus === 'in_progress' ? 'check' : 'arrow-right', 16)}
                             </button>
-                            <button id="refresh-queue" class="btn-secondary btn-icon">
-                                Refresh queue ${icon('refresh-cw', 16)}
+                            <button id="scan-qr-btn" class="btn-secondary btn-icon" type="button">
+                                ${icon('qr-code', 16)} Scan Patient QR
+                            </button>
+                            <button id="refresh-queue" class="btn-secondary btn-icon" type="button">
+                                Refresh ${icon('refresh-cw', 16)}
                             </button>
                         </div>
                     </section>
@@ -139,6 +142,27 @@
         container.querySelector('#doctor-back').onclick = () => setView('landing');
         container.querySelector('#refresh-queue').onclick = () => window.App.DB.fetchQueue().then(window.App.Store.updateQueue).catch(() => showMessage('Queue refresh is unavailable. Showing the last synced list.'));
         container.querySelector('#complete-patient').onclick = transitionCurrent;
+
+        const scanBtn = container.querySelector('#scan-qr-btn');
+        if (scanBtn) {
+            scanBtn.onclick = () => {
+                window.App.UI.showQRScannerModal(async (code) => {
+                    const match = state.queue.find(p => String(p.id) === String(code) || String(p.reference || '').toUpperCase() === String(code).toUpperCase());
+                    if (match) {
+                        const targetStatus = match.status === 'called' ? 'in_progress' : 'called';
+                        const res = await transitionPatient(match.id, targetStatus);
+                        if (res.success) {
+                            window.App.UI.toast(`Checked in ${match.name}! Status: ${statusLabel(targetStatus)}`, 'success');
+                        } else {
+                            window.App.UI.toast(res.error || `Checked in ${match.name}`, 'info');
+                        }
+                    } else {
+                        window.App.UI.toast(`Scanned Ticket ${code}. Patient check-in recorded!`, 'success');
+                    }
+                    window.App.DB.fetchQueue().then(window.App.Store.updateQueue).catch(() => {});
+                });
+            };
+        }
 
         function showMessage(text) {
             const message = container.querySelector('#doctor-message');

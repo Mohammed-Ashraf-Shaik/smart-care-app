@@ -81,15 +81,15 @@
                         </div>
                         <div class="provider-date">Live synced pool<br><strong>Network active</strong></div>
                     </header>
-                    <div class="donation-type-switch" style="display:flex;gap:.65rem;margin-bottom:1.25rem">
-                        <button type="button" id="type-blood" class="btn-${donationType === 'blood' ? 'primary' : 'secondary'} btn-icon" style="min-height:2.5rem;font-size:.78rem">${icon('droplets', 16)} Blood donation</button>
-                        <button type="button" id="type-organ" class="btn-${donationType === 'organ' ? 'primary' : 'secondary'} btn-icon" style="min-height:2.5rem;font-size:.78rem">${icon('activity', 16)} Organ donation</button>
+                    <div class="donation-type-switch" role="tablist" aria-label="Donation Category">
+                        <button type="button" id="type-blood" class="${donationType === 'blood' ? 'active' : ''}">${icon('droplets', 16)} Blood donation</button>
+                        <button type="button" id="type-organ" class="${donationType === 'organ' ? 'active' : ''}">${icon('activity', 16)} Organ donation</button>
                     </div>
                     <div class="donation-grid">
                         <div class="donation-card" style="border-radius:1rem">
-                            <div style="display:flex;gap:.65rem;margin-bottom:1.25rem">
-                                <button type="button" id="mode-give" class="btn-${mode === 'give' ? 'primary' : 'secondary'} btn-icon" style="min-height:2.4rem;font-size:.78rem">${icon('heart-handshake', 15)} I want to give</button>
-                                <button type="button" id="mode-receive" class="btn-${mode === 'receive' ? 'primary' : 'secondary'} btn-icon" style="min-height:2.4rem;font-size:.78rem">${icon('hand', 15)} I need a donation</button>
+                            <div class="donation-mode-switch" role="tablist" aria-label="Donation Role">
+                                <button type="button" id="mode-give" class="${mode === 'give' ? 'active' : ''}">${icon('heart-handshake', 15)} I want to give</button>
+                                <button type="button" id="mode-receive" class="${mode === 'receive' ? 'active' : ''}">${icon('hand', 15)} I need a donation</button>
                             </div>
                             ${donationType === 'blood' ? `
                             <h2>${mode === 'give' ? 'Register as a blood donor' : 'Request blood unit'}</h2>
