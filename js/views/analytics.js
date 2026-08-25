@@ -151,7 +151,7 @@
                         <span><span class="brand-name">SmartCare</span><span class="brand-caption">Analytics workspace</span></span>
                     </a>
                     <div class="flow-topbar-actions">
-                        ${window.App.UI.topbarControls()}
+                        ${window.App.UI.topbarControls(true)}
                         <a id="analytics-back" class="back-link" data-route="${overviewRoute}" href="${overviewRoute}">
                             ${icon('arrow-left', 16)} ${overviewLabel}
                         </a>

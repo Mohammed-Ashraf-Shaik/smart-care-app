@@ -68,7 +68,7 @@
                 <div class="flow-topbar">
                     <a class="brand-lockup" data-route="/" href="/"><span class="brand-mark">${icon('heart-pulse', 20)}</span><span><span class="brand-name">SmartCare</span><span class="brand-caption">Patient portal</span></span></a>
                     <div class="flow-topbar-actions">
-                        ${window.App.UI.topbarControls()}
+                        ${window.App.UI.topbarControls(true)}
                         <a class="back-link" data-route="/dashboard/patient" href="/dashboard/patient">${icon('arrow-left', 16)} Back to dashboard</a>
                     </div>
                 </div>

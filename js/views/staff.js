@@ -22,7 +22,7 @@
                     <span><span class="brand-name">SmartCare</span><span class="brand-caption">Operations workspace</span></span>
                 </a>
                 <div class="flow-topbar-actions">
-                    ${window.App.UI.topbarControls()}
+                    ${window.App.UI.topbarControls(true)}
                     <button id="staff-back" class="back-link">${icon('arrow-left', 16)} Back to home</button>
                 </div>
             </div>
