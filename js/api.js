@@ -24,10 +24,15 @@
         fetchCities: async (countryName, stateName) => {
             try { const data = await fetchJson(`${API_BASE}/state/cities`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ country: countryName, state: stateName }) }); return data.data || []; } catch { return []; }
         },
-        getCoordinates: async query => {
+        getCoordinates: async (query, countryHint = 'India') => {
             try {
-                const data = await fetchJson(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q=${encodeURIComponent(query)}`);
-                const result = data?.[0];
+                const searchQuery = (query || '').toLowerCase().includes(countryHint.toLowerCase()) ? query : `${query}, ${countryHint}`;
+                let data = await fetchJson(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q=${encodeURIComponent(searchQuery)}`);
+                let result = data?.[0];
+                if (!result) {
+                    data = await fetchJson(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q=${encodeURIComponent(query)}`);
+                    result = data?.[0];
+                }
                 if (!result) return null;
                 const address = result.address || {};
                 return { lat: Number(result.lat), lng: Number(result.lon), bbox: result.boundingbox, displayName: result.display_name, country: address.country, state: address.state || address.region, city: address.city || address.town || address.village || address.suburb };

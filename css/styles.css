@@ -969,8 +969,7 @@ html { scroll-behavior: smooth; }
     position: fixed;
     inset: 0;
     z-index: 9998;
-    background: rgba(10, 30, 50, 0.55);
-    backdrop-filter: blur(3px);
+    background: rgba(0, 0, 0, 0.35);
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.28s ease;

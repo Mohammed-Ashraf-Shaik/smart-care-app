@@ -172,7 +172,7 @@
             async function searchLocation(query) {
                 if (!query) return showInlineError(target, 'Enter a city, neighbourhood or PIN code first.');
                 status.textContent = `Finding care centres near ${query}...`;
-                const coords = await window.App.API.getCoordinates(query);
+                const coords = await window.App.API.getCoordinates(query, patientData.country || 'India');
                 const resolved = coords || { lat: 17.385, lng: 78.4867 };
                 patientData.area = query;
                 patientData.country = coords?.country || 'India';
