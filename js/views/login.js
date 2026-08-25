@@ -50,6 +50,10 @@
                         </ul>
                     </aside>
                     <section class="auth-panel">
+                        <div class="auth-mode-switch" style="display:flex;gap:.5rem;margin-bottom:1.25rem;padding:.3rem;background:var(--surface);border:1px solid var(--line);border-radius:2rem">
+                            <button type="button" id="tab-signin" class="btn-${mode === 'signin' ? 'primary' : 'ghost'}" style="flex:1;border-radius:1.5rem;min-height:2.4rem;font-size:.8rem;font-weight:800">${icon('log-in', 14)} Sign In</button>
+                            <button type="button" id="tab-signup" class="btn-${mode === 'signup' ? 'primary' : 'ghost'}" style="flex:1;border-radius:1.5rem;min-height:2.4rem;font-size:.8rem;font-weight:800">${icon('user-plus', 14)} Sign Up</button>
+                        </div>
                         <div class="auth-role-switch" aria-label="Choose portal">
                             <button class="auth-role ${role === 'patient' ? 'active' : ''}" data-role="patient" type="button">${icon('user-round', 15)} Patient</button>
                             <button class="auth-role ${role === 'doctor' ? 'active' : ''}" data-role="doctor" type="button">${icon('stethoscope', 15)} Hospital</button>
@@ -124,10 +128,24 @@
         }
 
         function signUpForm() {
+            const patient = role === 'patient';
             return `
                 <form id="auth-form" class="auth-form" novalidate>
-                    <div class="field"><label for="auth-email">Work email <span>*</span></label><input id="auth-email" type="email" autocomplete="email" value="${esc(email)}" placeholder="name@carecentre.org" required></div>
-                    <div class="field"><label for="auth-facility">Care centre name <span>*</span></label><input id="auth-facility" value="${esc(facility)}" placeholder="Your registered care centre" required></div>
+                    <div class="field">
+                        <label for="auth-email">${patient ? 'Email address' : 'Work email'} <span>*</span></label>
+                        <input id="auth-email" type="email" autocomplete="email" value="${esc(email)}" placeholder="${patient ? 'you@example.com' : 'name@carecentre.org'}" required>
+                    </div>
+                    ${patient ? `
+                        <div class="field">
+                            <label for="auth-name">Full Name <span>*</span></label>
+                            <input id="auth-name" type="text" placeholder="e.g. Asha Rao" required>
+                        </div>
+                    ` : `
+                        <div class="field">
+                            <label for="auth-facility">Care centre name <span>*</span></label>
+                            <input id="auth-facility" value="${esc(facility)}" placeholder="Your registered care centre" required>
+                        </div>
+                    `}
                     <div class="field">
                         <label for="auth-password">Create password <span>*</span></label>
                         <div class="password-field">
@@ -136,9 +154,10 @@
                         </div>
                     </div>
                     <div class="field"><label for="auth-confirm">Confirm password <span>*</span></label><input id="auth-confirm" type="password" autocomplete="new-password" placeholder="Repeat your password" required></div>
-                    <button class="btn-primary auth-submit btn-icon" type="submit">Create provider account ${icon('arrow-right', 16)}</button>
+                    <button class="btn-primary auth-submit btn-icon" type="submit">${patient ? 'Create patient account' : 'Create provider account'} ${icon('arrow-right', 16)}</button>
                     <div class="auth-switch"><span>Already registered?</span><button type="button" id="show-signin">Return to sign in</button></div>
                 </form>
+                ${demoAccess()}
             `;
         }
 
@@ -177,10 +196,16 @@
             container.querySelectorAll('[data-demo-role]').forEach(button => button.onclick = () => startDemo(button.dataset.demoRole));
             const toggle = container.querySelector('#toggle-password');
             if (toggle) toggle.onclick = () => { passwordVisible = !passwordVisible; render(); };
+
+            const tabSignIn = container.querySelector('#tab-signin');
+            if (tabSignIn) tabSignIn.onclick = () => { mode = 'signin'; message = ''; render(); };
+            const tabSignUp = container.querySelector('#tab-signup');
+            if (tabSignUp) tabSignUp.onclick = () => { mode = 'signup'; message = ''; render(); };
+
             const signIn = container.querySelector('#show-signin');
             if (signIn) signIn.onclick = () => { mode = 'signin'; message = ''; render(); };
             const signUp = container.querySelector('#show-signup');
-            if (signUp) signUp.onclick = () => { if (role === 'patient') { role = 'doctor'; setAuthTarget(role); } mode = 'signup'; message = ''; render(); };
+            if (signUp) signUp.onclick = () => { mode = 'signup'; message = ''; render(); };
             const recovery = container.querySelector('#show-recovery');
             if (recovery) recovery.onclick = () => { mode = 'recovery'; message = ''; render(); };
         }
@@ -219,12 +244,26 @@
                 event.preventDefault();
                 readFields();
                 const confirm = container.querySelector('#auth-confirm')?.value || '';
-                if (!email || !email.includes('@') || !facility || password.length < 8) return showError('Use a valid work email, care centre, and a password with at least 8 characters.');
+                const patient = role === 'patient';
+                if (!email || !email.includes('@') || (!patient && !facility) || password.length < 8) {
+                    return showError(patient ? 'Enter a valid email and a password with at least 8 characters.' : 'Use a valid work email, care centre, and a password with at least 8 characters.');
+                }
                 if (password !== confirm) return showError('Passwords do not match.');
                 await runSubmit(async () => {
+                    if (patient) {
+                        const name = container.querySelector('#auth-name')?.value.trim() || email.split('@')[0];
+                        setLoggedLocation('India', 'Telangana', 'Hyderabad', 'SmartCare Community Hospital');
+                        setLogin(email, 'patient');
+                        try {
+                            localStorage.setItem(`smartcare.patientProfile_${email}`, JSON.stringify({ name, email }));
+                        } catch {}
+                        window.App.UI.toast(`Welcome ${name}! Your patient account is created.`, 'success');
+                        setView('patientDashboard');
+                        return;
+                    }
                     const result = await window.App.DB.registerProfessional({ email, hospital: facility, password, role });
                     if (!result.success) throw new Error(result.error || 'Account creation failed.');
-                    message = 'Account created. Check your email if confirmation is enabled, then sign in.';
+                    message = 'Account created successfully! You can now sign in.';
                     messageType = 'success';
                     mode = 'signin';
                     password = '';

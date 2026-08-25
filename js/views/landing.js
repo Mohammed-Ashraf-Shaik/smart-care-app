@@ -18,8 +18,7 @@
                 </nav>
                 <div class="nav-actions">
                     ${window.App.UI.topbarControls()}
-                    <button class="btn-secondary" id="nav-provider">Provider portal</button>
-                    <button class="btn-primary btn-icon" id="nav-apply">Patient portal ${icon('arrow-right', 16)}</button>
+                    <button class="btn-saffron btn-hero-pop btn-icon" id="nav-login">Sign in into portal ${icon('arrow-right', 16)}</button>
                 </div>
             </header>
             <main id="top" class="landing-main section-landing" data-section="landing-page">
@@ -30,8 +29,7 @@
                             <h1 id="hero-title">Care that starts <span>before</span> you arrive.</h1>
                             <p>Find the right care nearby, see the queue before you leave home, and reserve your place in a few calm, clear steps.</p>
                             <div class="hero-ctas">
-                                <button class="btn-saffron btn-icon" id="hero-apply">Sign in into portal ${icon('arrow-right', 16)}</button>
-                                <button class="text-link btn-icon" id="hero-track">Track an appointment <span aria-hidden="true">&#8594;</span></button>
+                                <button class="btn-saffron btn-hero-pop btn-icon" id="hero-login" style="font-size:1.05rem;padding:.9rem 1.8rem">Sign in into portal ${icon('arrow-right', 18)}</button>
                             </div>
                             <div class="hero-meta">
                                 <span>${icon('shield-check', 15)} Verified care centres</span>
@@ -123,13 +121,15 @@
             ${window.App.UI.footer()}
         `;
 
-        const openPatientPortal = () => { setAuthTarget('patient'); setView('login'); };
-        container.querySelector('#nav-apply').onclick = openPatientPortal;
-        container.querySelector('#hero-apply').onclick = openPatientPortal;
-        container.querySelector('#hero-track').onclick = openPatientPortal;
-        container.querySelector('#portal-patient').onclick = openPatientPortal;
-        container.querySelector('#nav-provider').onclick = () => { setAuthTarget('doctor'); setView('login'); };
-        container.querySelector('#portal-provider').onclick = () => { setAuthTarget('doctor'); setView('login'); };
+        const openLoginPortal = () => { setAuthTarget('patient'); setView('login'); };
+        const navLogin = container.querySelector('#nav-login');
+        if (navLogin) navLogin.onclick = openLoginPortal;
+        const heroLogin = container.querySelector('#hero-login');
+        if (heroLogin) heroLogin.onclick = openLoginPortal;
+        const portalPatient = container.querySelector('#portal-patient');
+        if (portalPatient) portalPatient.onclick = openLoginPortal;
+        const portalProvider = container.querySelector('#portal-provider');
+        if (portalProvider) portalProvider.onclick = () => { setAuthTarget('doctor'); setView('login'); };
 
         window.App.UI.bindTopbarControls(container);
         if (window.lucide) window.lucide.createIcons();

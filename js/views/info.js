@@ -136,15 +136,6 @@
                     </div>` : ''}
 
                     <div class="info-cards">${sectionCardsHtml}</div>
-
-                    <nav class="info-nav-links" aria-label="Information quick navigation">
-                        <span style="font-size:.78rem;color:var(--muted);font-weight:700">Explore SmartCare policies</span>
-                        <div style="display:flex;gap:1rem;flex-wrap:wrap">
-                            <a class="${page === 'about' ? 'active' : ''}" data-page-link="about" href="/about">${icon('heart-pulse', 14)} About Us</a>
-                            <a class="${page === 'terms' ? 'active' : ''}" data-page-link="terms" href="/terms">${icon('scroll-text', 14)} Terms of Use</a>
-                            <a class="${page === 'privacy' ? 'active' : ''}" data-page-link="privacy" href="/privacy">${icon('shield-check', 14)} Privacy Policy</a>
-                        </div>
-                    </nav>
                 </div>
             `;
 
