@@ -18,7 +18,7 @@
                 </nav>
                 <div class="nav-actions">
                     ${window.App.UI.topbarControls()}
-                    <button class="btn-saffron btn-hero-pop btn-icon" id="nav-login">Sign in into portal ${icon('arrow-right', 16)}</button>
+                    <button class="btn-hero-pop btn-icon" id="nav-login" style="font-size:.82rem;padding:.55rem 1.1rem;min-height:2.4rem">Sign in into portal ${icon('arrow-right', 14)}</button>
                 </div>
             </header>
             <main id="top" class="landing-main section-landing" data-section="landing-page">
@@ -29,7 +29,7 @@
                             <h1 id="hero-title">Care that starts <span>before</span> you arrive.</h1>
                             <p>Find the right care nearby, see the queue before you leave home, and reserve your place in a few calm, clear steps.</p>
                             <div class="hero-ctas">
-                                <button class="btn-saffron btn-hero-pop btn-icon" id="hero-login" style="font-size:1.05rem;padding:.9rem 1.8rem">Sign in into portal ${icon('arrow-right', 18)}</button>
+                                <button class="btn-hero-pop btn-icon" id="hero-login">Sign in into portal ${icon('arrow-right', 18)}</button>
                             </div>
                             <div class="hero-meta">
                                 <span>${icon('shield-check', 15)} Verified care centres</span>
