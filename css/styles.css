@@ -165,13 +165,13 @@ body { top: 0 !important; }
     box-shadow: 0 12px 28px rgba(214, 96, 12, 0.45) !important;
 }
 
-/* Info Pages Blue Contrast & Styling */
+/* Info Pages Blue Contrast & High Legibility Styling */
 .info-layout { max-width: 960px; margin: 0 auto 2rem; }
-.info-hero { background: linear-gradient(135deg, #09335b 0%, #0f5ca8 100%); color: #fff; border-radius: 1.2rem; padding: 2.25rem 2rem; box-shadow: 0 12px 32px rgba(10,59,105,.18); margin-bottom: 1.5rem; }
-.info-hero h1 { color: #fff !important; margin: .5rem 0 .75rem; font-size: clamp(1.8rem, 4vw, 2.75rem); }
-.info-intro { color: #d2e5f6; font-size: .95rem; line-height: 1.65; }
-.info-hero-icon { width: 3.2rem; height: 3.2rem; display: grid; place-items: center; border-radius: .85rem; background: rgba(255,255,255,.15); color: #fff; margin-bottom: .85rem; }
-.info-badge { display: inline-flex; align-items: center; gap: .4rem; padding: .4rem .85rem; border-radius: 2rem; background: rgba(255,255,255,.16); color: #fff; font-size: .75rem; font-weight: 700; }
+.info-hero { background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-top: 4px solid var(--teal); border-radius: 1.2rem; padding: 2.25rem 2rem; box-shadow: 0 8px 24px rgba(10,59,105,.08); margin-bottom: 1.5rem; }
+.info-hero h1 { color: var(--ink) !important; margin: .5rem 0 .75rem; font-size: clamp(1.8rem, 4vw, 2.75rem); letter-spacing: -.03em; }
+.info-intro { color: var(--muted); font-size: 1rem; line-height: 1.65; }
+.info-hero-icon { width: 3.4rem; height: 3.4rem; display: grid; place-items: center; border-radius: .9rem; background: var(--mint); color: var(--teal); margin-bottom: .85rem; border: 1px solid #b8d6f1; }
+.info-badge { display: inline-flex; align-items: center; gap: .4rem; padding: .45rem .95rem; border-radius: 2rem; background: var(--mint); color: var(--teal-dark); border: 1px solid #b8d6f1; font-size: .78rem; font-weight: 800; }
 .info-badges { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.25rem; }
 .info-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1.25rem; }
 .info-card { display: flex; gap: 1rem; align-items: flex-start; padding: 1.25rem; border: 1px solid #cce1f3; border-radius: 1rem; background: #f7faff; box-shadow: 0 4px 14px rgba(10,59,105,.05); transition: transform .18s ease, border-color .18s ease; }
