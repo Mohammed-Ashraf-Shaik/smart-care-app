@@ -124,7 +124,7 @@
                     <div class="info-hero">
                         <div class="info-hero-icon">${icon(content.icon, 26)}</div>
                         <div class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> ${esc(content.eyebrow)}</div>
-                        <h1>${esc(content.title)}</h1>
+                        <h1 style="color:var(--teal) !important">${esc(content.title)}</h1>
                         <p class="info-intro">${esc(content.intro)}</p>
                         ${badgesHtml ? `<div class="info-badges">${badgesHtml}</div>` : ''}
                     </div>

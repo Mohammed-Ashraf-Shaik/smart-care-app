@@ -6,7 +6,8 @@
         const { state, setView, navigate, logout, recordPatientVisit } = window.App.Store;
         const container = document.createElement('div');
         container.className = 'flow-shell workspace-shell patient-workspace-shell';
-        const patientName = state.patientData.name || (state.loggedEmail || 'Patient').split('@')[0].replace(/[._-]/g, ' ');
+        const patientData = state.patientData || {};
+        const patientName = patientData.name || (state.loggedEmail || 'Patient').split('@')[0].replace(/[._-]/g, ' ');
         const latestVisit = state.patientVisits[0];
         const activeTab = state.activeTab || '';
         const isApplyTab = activeTab === 'apply';
