@@ -26,16 +26,28 @@
         },
         getCoordinates: async (query, countryHint = 'India') => {
             try {
-                const searchQuery = (query || '').toLowerCase().includes(countryHint.toLowerCase()) ? query : `${query}, ${countryHint}`;
-                let data = await fetchJson(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q=${encodeURIComponent(searchQuery)}`);
+                const searchQuery = (query || '').trim();
+                const isNumericPin = /^\d{5,6}$/.test(searchQuery);
+                let url = '';
+                if (isNumericPin) {
+                    url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&postalcode=${encodeURIComponent(searchQuery)}&country=${encodeURIComponent(countryHint)}&countrycodes=in`;
+                } else {
+                    const fullQuery = searchQuery.toLowerCase().includes(countryHint.toLowerCase()) ? searchQuery : `${searchQuery}, ${countryHint}`;
+                    url = `https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q=${encodeURIComponent(fullQuery)}&countrycodes=in`;
+                }
+                let data = await fetchJson(url);
                 let result = data?.[0];
+                if (!result && isNumericPin) {
+                    data = await fetchJson(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q=${encodeURIComponent(searchQuery + ', India')}&countrycodes=in`);
+                    result = data?.[0];
+                }
                 if (!result) {
-                    data = await fetchJson(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q=${encodeURIComponent(query)}`);
+                    data = await fetchJson(`https://nominatim.openstreetmap.org/search?format=json&addressdetails=1&limit=1&q=${encodeURIComponent(searchQuery)}`);
                     result = data?.[0];
                 }
                 if (!result) return null;
                 const address = result.address || {};
-                return { lat: Number(result.lat), lng: Number(result.lon), bbox: result.boundingbox, displayName: result.display_name, country: address.country, state: address.state || address.region, city: address.city || address.town || address.village || address.suburb };
+                return { lat: Number(result.lat), lng: Number(result.lon), bbox: result.boundingbox, displayName: result.display_name, country: address.country || 'India', state: address.state || address.region || '', city: address.city || address.town || address.village || address.suburb || address.county || searchQuery };
             } catch { return null; }
         },
         getNearbyHospitals: async (lat, lng) => {

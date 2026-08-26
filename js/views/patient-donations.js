@@ -81,15 +81,21 @@
                         </div>
                         <div class="provider-date">Live synced pool<br><strong>Network active</strong></div>
                     </header>
-                    <div class="donation-type-switch" role="tablist" aria-label="Donation Category">
-                        <button type="button" id="type-blood" class="${donationType === 'blood' ? 'active' : ''}">${icon('droplets', 16)} Blood donation</button>
-                        <button type="button" id="type-organ" class="${donationType === 'organ' ? 'active' : ''}">${icon('activity', 16)} Organ donation</button>
+                    <div class="donation-category-section">
+                        <span class="donation-micro-label">DONATION CATEGORY</span>
+                        <div class="donation-type-switch" role="tablist" aria-label="Donation Category">
+                            <button type="button" id="type-blood" class="${donationType === 'blood' ? 'active' : ''}">${icon('droplets', 16)} Blood donation</button>
+                            <button type="button" id="type-organ" class="${donationType === 'organ' ? 'active' : ''}">${icon('activity', 16)} Organ donation</button>
+                        </div>
                     </div>
                     <div class="donation-grid">
                         <div class="donation-card" style="border-radius:1rem">
-                            <div class="donation-mode-switch" role="tablist" aria-label="Donation Role">
-                                <button type="button" id="mode-give" class="${mode === 'give' ? 'active' : ''}">${icon('heart-handshake', 15)} I want to give</button>
-                                <button type="button" id="mode-receive" class="${mode === 'receive' ? 'active' : ''}">${icon('hand', 15)} I need a donation</button>
+                            <div class="donation-mode-wrapper">
+                                <span class="donation-micro-label">I WANT TO...</span>
+                                <div class="donation-mode-tabs" role="tablist" aria-label="Donation Mode">
+                                    <button type="button" id="mode-give" class="donation-tab-btn ${mode === 'give' ? 'active' : ''}">${icon('heart-handshake', 16)} I want to give</button>
+                                    <button type="button" id="mode-receive" class="donation-tab-btn ${mode === 'receive' ? 'active' : ''}">${icon('hand', 16)} I need a donation</button>
+                                </div>
                             </div>
                             ${donationType === 'blood' ? `
                             <h2>${mode === 'give' ? 'Register as a blood donor' : 'Request blood unit'}</h2>

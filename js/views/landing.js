@@ -18,7 +18,8 @@
                 </nav>
                 <div class="nav-actions">
                     ${window.App.UI.topbarControls()}
-                    <button class="btn-hero-pop btn-icon" id="nav-login" style="font-size:.82rem;padding:.55rem 1.1rem;min-height:2.4rem">Sign in into portal ${icon('arrow-right', 14)}</button>
+                    <button class="btn-ghost" id="nav-login" style="font-weight:800;font-size:.84rem;min-height:2.4rem;padding:.4rem .75rem">Sign in</button>
+                    <button class="btn-primary" id="nav-signup" style="font-weight:800;font-size:.84rem;min-height:2.4rem;padding:.4rem .95rem;border-radius:.6rem">Sign up</button>
                 </div>
             </header>
             <main id="top" class="landing-main section-landing" data-section="landing-page">
@@ -79,7 +80,7 @@
                             <span class="journey-number">01</span>
                             <span class="journey-icon">${icon('locate-fixed', 20)}</span>
                             <h3>Locate</h3>
-                            <p>Use device location or search by city, neighbourhood, or PIN code.</p>
+                            <p>Use device location or search by city or neighbourhood.</p>
                             <a href="#top" class="text-link text-link-dark btn-icon">Find care <span aria-hidden="true">&#8594;</span></a>
                         </article>
                         <article>
@@ -94,22 +95,8 @@
                             <span class="journey-icon">${icon('activity', 20)}</span>
                             <h3>Follow through</h3>
                             <p>Keep your reservation reference, queue window, and centre details visible.</p>
-                            <a href="#for-providers" class="text-link text-link-dark btn-icon">See the portal <span aria-hidden="true">&#8594;</span></a>
+                            <a href="#top" class="text-link text-link-dark btn-icon">See the portal <span aria-hidden="true">&#8594;</span></a>
                         </article>
-                    </div>
-                </section>
-                <section id="for-providers" class="portal-split section-portals" data-section="portals">
-                    <div class="portal-panel portal-patient">
-                        <div class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> For patients</div>
-                        <h2>Arrive with a clearer plan.</h2>
-                        <p>Search nearby care, compare the queue, and reserve your place without repeating the same details at the front desk.</p>
-                        <button id="portal-patient" class="btn-primary btn-icon">Open patient portal ${icon('arrow-right', 16)}</button>
-                    </div>
-                    <div class="portal-panel portal-provider">
-                        <div class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> For hospitals</div>
-                        <h2>Keep the next handoff visible.</h2>
-                        <p>Give your team a shared view of arrivals, priority cases, room readiness, and daily performance.</p>
-                        <button id="portal-provider" class="btn-secondary btn-icon">Open provider portal ${icon('arrow-right', 16)}</button>
                     </div>
                 </section>
                 <section id="trust" class="trust-row section-trust" data-section="trust" aria-label="Why SmartCare">
@@ -121,15 +108,18 @@
             ${window.App.UI.footer()}
         `;
 
-        const openLoginPortal = () => { setAuthTarget('patient'); setView('login'); };
+        const openLoginPortal = (targetMode = 'signin') => {
+            setAuthTarget('patient');
+            const url = window.App.Store.hrefFor(`/login?mode=${targetMode}`);
+            window.history.pushState({}, '', url);
+            setView('login');
+        };
         const navLogin = container.querySelector('#nav-login');
-        if (navLogin) navLogin.onclick = openLoginPortal;
+        if (navLogin) navLogin.onclick = () => openLoginPortal('signin');
+        const navSignUp = container.querySelector('#nav-signup');
+        if (navSignUp) navSignUp.onclick = () => openLoginPortal('signup');
         const heroLogin = container.querySelector('#hero-login');
-        if (heroLogin) heroLogin.onclick = openLoginPortal;
-        const portalPatient = container.querySelector('#portal-patient');
-        if (portalPatient) portalPatient.onclick = openLoginPortal;
-        const portalProvider = container.querySelector('#portal-provider');
-        if (portalProvider) portalProvider.onclick = () => { setAuthTarget('doctor'); setView('login'); };
+        if (heroLogin) heroLogin.onclick = () => openLoginPortal('signin');
 
         window.App.UI.bindTopbarControls(container);
         if (window.lucide) window.lucide.createIcons();

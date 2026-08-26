@@ -87,15 +87,21 @@
                         </div>
                         <div class="provider-date">${new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })}<br><strong>Network synced</strong></div>
                     </header>
-                    <div class="donation-type-switch" role="tablist" aria-label="Donation Category">
-                        <button type="button" id="type-blood" class="${donationType === 'blood' ? 'active' : ''}">${icon('droplets', 16)} Blood bank</button>
-                        <button type="button" id="type-organ" class="${donationType === 'organ' ? 'active' : ''}">${icon('activity', 16)} Organ pool</button>
+                    <div class="donation-category-section">
+                        <span class="donation-micro-label">DONATION CATEGORY</span>
+                        <div class="donation-type-switch" role="tablist" aria-label="Donation Category">
+                            <button type="button" id="type-blood" class="${donationType === 'blood' ? 'active' : ''}">${icon('droplets', 16)} Blood bank</button>
+                            <button type="button" id="type-organ" class="${donationType === 'organ' ? 'active' : ''}">${icon('activity', 16)} Organ pool</button>
+                        </div>
                     </div>
                     <div class="donation-grid">
                         <div class="donation-card" style="border-radius:1rem">
-                            <div class="donation-mode-switch" role="tablist" aria-label="Donation Role">
-                                <button type="button" id="mode-offer" class="${mode === 'offer' ? 'active' : ''}">${icon('upload', 15)} We can offer</button>
-                                <button type="button" id="mode-request" class="${mode === 'request' ? 'active' : ''}">${icon('download', 15)} We need</button>
+                            <div class="donation-mode-wrapper">
+                                <span class="donation-micro-label">HOSPITAL ACTION MODE</span>
+                                <div class="donation-mode-tabs" role="tablist" aria-label="Donation Role">
+                                    <button type="button" id="mode-offer" class="donation-tab-btn ${mode === 'offer' ? 'active' : ''}">${icon('upload', 15)} We can offer</button>
+                                    <button type="button" id="mode-request" class="donation-tab-btn ${mode === 'request' ? 'active' : ''}">${icon('download', 15)} We need</button>
+                                </div>
                             </div>
                             ${donationType === 'blood' ? `
                             <h2>${mode === 'offer' ? 'Publish blood unit availability' : 'Post urgent blood requirement'}</h2>

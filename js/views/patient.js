@@ -120,12 +120,8 @@
         }
 
         function renderLocation(target) {
-            target.innerHTML = `<div class="map-layout section-map" data-section="care-map"><div class="map-panel"><div class="field"><label for="care-location">Where should we look? <span>*</span></label><div class="location-entry"><input id="care-location" value="${esc(patientData.area === 'Live location' ? '' : patientData.area)}" placeholder="City, neighbourhood or PIN code" autocomplete="address-level2"><button id="search-location" class="btn-primary btn-icon" type="button">Search ${icon('search', 16)}</button><button id="use-location" class="btn-secondary btn-icon" type="button" title="Use my current location">${icon('locate-fixed', 17)} <span class="location-label">Use my location</span></button></div><span class="hint">Location is requested only when you choose it. Example: Banjara Hills, Hyderabad or 500034.</span></div><div class="map-toolbar"><span id="map-status" class="status-note" role="status" aria-live="polite"></span><span id="map-accuracy" class="map-accuracy"></span><div class="map-toolbar-actions"><button id="map-recenter" class="text-link text-link-dark btn-icon" type="button">${icon('crosshair', 15)} Recenter</button><div class="map-view-toggle" role="group" aria-label="Map view"><button id="show-map" class="active" type="button">Map</button><button id="show-list" type="button">List</button></div></div></div><div class="map-wrap"><div id="hospital-map" aria-label="Map of nearby care centres"></div><div class="map-overlay">${icon('map', 14)} MapLibre care map</div></div></div><aside class="hospital-results"><div class="results-heading"><div><h2>Nearby care centres</h2><p id="results-summary" aria-live="polite">Search a location to see available centres.</p></div><label class="filter-control" for="care-filter"><span>Filter</span><select id="care-filter"><option value="all">All care</option><option value="hospital">Hospitals</option><option value="clinic">Clinics</option></select></label></div><div id="hospital-list" class="hospital-list"><div class="review-card"><p class="status-note">Your results will appear here after you search.</p></div></div></aside></div><div class="flow-actions"><button id="location-back" class="btn-secondary btn-icon">${icon('arrow-left', 16)} Back</button><button id="location-next" class="btn-primary btn-icon" disabled>Continue with selected centre ${icon('arrow-right', 16)}</button></div>`;
-            const input = target.querySelector('#care-location');
+            target.innerHTML = `<div class="map-layout section-map" data-section="care-map"><div class="map-panel"><div class="field"><label>Find nearby care centres <span>*</span></label><div class="location-entry" style="grid-template-columns:1fr"><button id="use-location" class="btn-primary btn-icon" type="button" style="width:100%;min-height:2.9rem;font-size:.88rem">${icon('locate-fixed', 18)} Detect &amp; use my device location</button></div><span class="hint">Click to automatically detect nearby care centres using your device GPS.</span></div><div class="map-toolbar"><span id="map-status" class="status-note" role="status" aria-live="polite"></span><span id="map-accuracy" class="map-accuracy"></span><div class="map-toolbar-actions"><button id="map-recenter" class="text-link text-link-dark btn-icon" type="button">${icon('crosshair', 15)} Recenter</button><div class="map-view-toggle" role="group" aria-label="Map view"><button id="show-map" class="active" type="button">Map</button><button id="show-list" type="button">List</button></div></div></div><div class="map-wrap"><div id="hospital-map" aria-label="Map of nearby care centres"></div><div class="map-overlay">${icon('map', 14)} MapLibre care map</div></div></div><aside class="hospital-results"><div class="results-heading"><div><h2>Nearby care centres</h2><p id="results-summary" aria-live="polite">Click 'Use my device location' to view nearby centres.</p></div><label class="filter-control" for="care-filter"><span>Filter</span><select id="care-filter"><option value="all">All care</option><option value="hospital">Hospitals</option><option value="clinic">Clinics</option></select></label></div><div id="hospital-list" class="hospital-list"><div class="review-card"><p class="status-note">Your results will appear here after detecting location.</p></div></div></aside></div><div class="flow-actions"><button id="location-back" class="btn-secondary btn-icon">${icon('arrow-left', 16)} Back</button><button id="location-next" class="btn-primary btn-icon" disabled>Continue with selected centre ${icon('arrow-right', 16)}</button></div>`;
             const status = target.querySelector('#map-status');
-            const search = () => searchLocation(input.value.trim());
-            input.onkeydown = event => { if (event.key === 'Enter') search(); };
-            target.querySelector('#search-location').onclick = search;
             target.querySelector('#care-filter').onchange = () => { if (state.userCoords) renderMap(state.userCoords.lat, state.userCoords.lng); };
             target.querySelector('#location-back').onclick = () => setStep(1);
             target.querySelector('#location-next').onclick = () => { if (patientData.hospital) setStep(3); else showInlineError(target, 'Choose a care centre before continuing.'); };
@@ -134,7 +130,11 @@
             target.querySelector('#show-list').onclick = () => setMapMode('list');
             target.querySelector('#use-location').onclick = useDeviceLocation;
             setMapMode('map');
-            if (state.tempHospitals?.length && state.userCoords) populateHospitals(state.userCoords.lat, state.userCoords.lng, patientData.area || 'Saved location', false);
+            if (state.tempHospitals?.length && state.userCoords) {
+                populateHospitals(state.userCoords.lat, state.userCoords.lng, 'Live location', false);
+            } else {
+                useDeviceLocation();
+            }
 
             function setMapMode(mode) {
                 const layout = target.querySelector('.map-layout');
@@ -353,36 +353,63 @@
                                 </div>
                                 ${icon('copy', 18)}
                             </div>
-                            <p class="copy-hint" style="margin:0">Tap reference ID to copy it.</p>
+                        <div class="next-steps-card" style="margin-top:1.25rem;padding:1.15rem 1.25rem;border:1px solid #bce0fd;border-radius:.85rem;background:#f2f8fe;text-align:left">
+                            <strong style="font-size:.9rem;color:var(--teal-dark);display:flex;align-items:center;gap:.45rem;margin-bottom:.75rem">
+                                ${icon('circle-help', 16)} What happens next?
+                            </strong>
+                            <ol style="margin:0;padding-left:1.2rem;display:grid;gap:.55rem;font-size:.82rem;color:var(--muted);line-height:1.5">
+                                <li><strong>Arrive at care centre:</strong> Head to <strong>${esc(patientData.hospital)}</strong> within your estimated 15–25 min queue window.</li>
+                                <li><strong>Present your QR Code:</strong> Show this digital QR ticket or reference ID (<strong>${esc(booking)}</strong>) at the reception desk.</li>
+                                <li><strong>Instant Scan Check-in:</strong> The hospital team scans your QR code using their camera scanner to check you in instantly and call your number.</li>
+                            </ol>
                         </div>
                     </div>
                     
-                    <button id="btn-confirm-home" class="btn-primary btn-wide">Return to SmartCare</button>
+                    <div class="confirmation-actions" style="display:flex;gap:.75rem;margin-top:1.25rem;width:100%;flex-wrap:wrap">
+                        <button id="btn-book-another" class="btn-primary" style="flex:1;min-height:2.6rem">${icon('calendar-plus', 16)} Book another appointment</button>
+                        <button id="btn-view-dashboard" class="btn-secondary" style="flex:1;min-height:2.6rem">${icon('layout-dashboard', 16)} View my patient dashboard</button>
+                        <button id="btn-test-doctor" class="btn-secondary" style="flex:1;min-height:2.6rem">${icon('stethoscope', 16)} Test scanning as hospital</button>
+                    </div>
                 </div>`;
         }
 
         function bindConfirmation() {
             const token = container.querySelector('.token-card');
-            const copyReference = async () => {
-                try {
-                    await navigator.clipboard.writeText(state.lastBookingId || '');
-                    token.classList.add('copied');
-                    token.setAttribute('aria-label', 'Reservation reference copied');
-                } catch {
-                    token.setAttribute('aria-label', 'Reservation reference');
-                }
-            };
-            token.setAttribute('role', 'button');
-            token.setAttribute('tabindex', '0');
-            token.setAttribute('aria-label', 'Copy reservation reference');
-            token.onclick = copyReference;
-            token.onkeydown = event => {
-                if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    copyReference();
-                }
-            };
-            container.querySelector('#btn-confirm-home').onclick = () => setView('landing');
+            if (token) {
+                const copyReference = async () => {
+                    try {
+                        await navigator.clipboard.writeText(state.lastBookingId || '');
+                        token.classList.add('copied');
+                        token.setAttribute('aria-label', 'Reservation reference copied');
+                    } catch {
+                        token.setAttribute('aria-label', 'Reservation reference');
+                    }
+                };
+                token.setAttribute('role', 'button');
+                token.setAttribute('tabindex', '0');
+                token.setAttribute('aria-label', 'Copy reservation reference');
+                token.onclick = copyReference;
+                token.onkeydown = event => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        copyReference();
+                    }
+                };
+            }
+            const bookAnother = container.querySelector('#btn-book-another');
+            if (bookAnother) {
+                bookAnother.onclick = () => {
+                    patientData.symptoms = '';
+                    patientData.hospital = '';
+                    patientData.fee = 0;
+                    persistDraft();
+                    setStep(1);
+                };
+            }
+            const viewDash = container.querySelector('#btn-view-dashboard');
+            if (viewDash) viewDash.onclick = () => setView('patient-dashboard');
+            const testDoc = container.querySelector('#btn-test-doctor');
+            if (testDoc) testDoc.onclick = () => { setAuthTarget('doctor'); setView('doctor'); };
             if (window.lucide) window.lucide.createIcons();
         }
 

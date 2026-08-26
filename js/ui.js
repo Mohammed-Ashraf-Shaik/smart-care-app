@@ -45,18 +45,13 @@
         return document.documentElement.getAttribute('data-theme') || 'light';
     }
 
-    function topbarControls(isWorkspace = false) {
+    function topbarControls() {
         const theme = getCurrentTheme();
-        const themeIcon = theme === 'dark' ? 'moon' : theme === 'contrast' ? 'contrast' : 'sun';
-        const themeLabel = theme === 'dark' ? 'Dark' : theme === 'contrast' ? 'Contrast' : 'Light';
+        const themeIcon = theme === 'dark' ? 'moon' : 'sun';
+        const themeLabel = theme === 'dark' ? 'Dark' : 'Light';
         
         return `
             <div class="topbar-control-group">
-                ${isWorkspace ? `
-                    <button type="button" class="topbar-control-btn mobile-menu-btn" id="mobile-menu-btn" aria-label="Open workspace menu">
-                        ${icon('menu', 16)} <span>Menu</span>
-                    </button>
-                ` : ''}
                 <div class="lang-dropdown-wrapper">
                     <select class="lang-select-native" id="global-lang-select" aria-label="Select language">
                         <option value="en">🌐 English (EN)</option>
@@ -77,18 +72,21 @@
     }
 
     function bindTopbarControls(container = document) {
+        // Clean up any old drawer backdrops
+        document.querySelectorAll('.workspace-drawer-backdrop').forEach(el => el.remove());
+
         const themeBtn = container.querySelector('#theme-toggle-btn');
         if (themeBtn) {
             themeBtn.onclick = () => {
                 const current = getCurrentTheme();
-                const nextTheme = current === 'light' ? 'dark' : current === 'dark' ? 'contrast' : 'light';
+                const nextTheme = current === 'dark' ? 'light' : 'dark';
                 document.documentElement.setAttribute('data-theme', nextTheme);
                 try { localStorage.setItem('smartcare.theme', nextTheme); } catch {}
-                toast(`Switched theme to ${nextTheme === 'contrast' ? 'High Contrast' : nextTheme.charAt(0).toUpperCase() + nextTheme.slice(1)} Mode`, 'info');
+                toast(`Switched to ${nextTheme === 'dark' ? 'Dark' : 'Light'} Mode`, 'info');
                 const labelSpan = themeBtn.querySelector('span');
-                if (labelSpan) labelSpan.textContent = nextTheme.charAt(0).toUpperCase() + nextTheme.slice(1);
-                const iconName = nextTheme === 'dark' ? 'moon' : nextTheme === 'contrast' ? 'contrast' : 'sun';
-                themeBtn.innerHTML = `${icon(iconName, 15)} <span>${nextTheme.charAt(0).toUpperCase() + nextTheme.slice(1)}</span>`;
+                if (labelSpan) labelSpan.textContent = nextTheme === 'dark' ? 'Dark' : 'Light';
+                const iconName = nextTheme === 'dark' ? 'moon' : 'sun';
+                themeBtn.innerHTML = `${icon(iconName, 15)} <span>${nextTheme === 'dark' ? 'Dark' : 'Light'}</span>`;
                 if (window.lucide) window.lucide.createIcons();
             };
         }
@@ -114,34 +112,6 @@
                     location.reload();
                 }
             };
-        }
-
-        const menuBtn = container.querySelector('#mobile-menu-btn');
-        const tabs = container.querySelector('.workspace-tabs');
-        if (menuBtn && tabs) {
-            let backdrop = document.querySelector('.workspace-drawer-backdrop');
-            if (!backdrop) {
-                backdrop = document.createElement('div');
-                backdrop.className = 'workspace-drawer-backdrop';
-                document.body.appendChild(backdrop);
-            }
-            const closeDrawer = () => {
-                tabs.classList.remove('drawer-open');
-                backdrop.classList.remove('active');
-            };
-            menuBtn.onclick = (e) => {
-                e.stopPropagation();
-                const isOpen = tabs.classList.contains('drawer-open');
-                if (isOpen) closeDrawer();
-                else {
-                    tabs.classList.add('drawer-open');
-                    backdrop.classList.add('active');
-                }
-            };
-            backdrop.onclick = closeDrawer;
-            tabs.querySelectorAll('a, button').forEach(el => {
-                el.addEventListener('click', closeDrawer);
-            });
         }
     }
 
