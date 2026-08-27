@@ -45,13 +45,18 @@
         return document.documentElement.getAttribute('data-theme') || 'light';
     }
 
-    function topbarControls() {
+    function topbarControls(isWorkspace = false) {
         const theme = getCurrentTheme();
         const themeIcon = theme === 'dark' ? 'moon' : 'sun';
         const themeLabel = theme === 'dark' ? 'Dark' : 'Light';
         
         return `
             <div class="topbar-control-group">
+                ${isWorkspace ? `
+                    <button type="button" class="topbar-control-btn mobile-menu-btn" id="sidebar-toggle-btn" aria-label="Toggle Navigation" title="Toggle Navigation">
+                        ${icon('menu', 18)}
+                    </button>
+                ` : ''}
                 <div class="lang-dropdown-wrapper">
                     <select class="lang-select-native" id="global-lang-select" aria-label="Select language">
                         <option value="en">🌐 English (EN)</option>
@@ -72,7 +77,7 @@
     }
 
     function bindTopbarControls(container = document) {
-        // Clean up any old drawer backdrops
+        // Clean up any old drawer backdrops and teleported sidebars
         document.querySelectorAll('.workspace-drawer-backdrop').forEach(el => el.remove());
 
         const themeBtn = container.querySelector('#theme-toggle-btn');
@@ -113,7 +118,118 @@
                 }
             };
         }
+
+        const sidebarToggleBtn = container.querySelector('#sidebar-toggle-btn');
+        const workspaceTabs = container.querySelector('.workspace-tabs');
+        const providerShell = container.querySelector('.provider-shell');
+
+        if (!sidebarToggleBtn || !workspaceTabs) return;
+
+        // --- Shared close function ---
+        function closeDrawer() {
+            workspaceTabs.classList.remove('drawer-open');
+            sidebarToggleBtn.innerHTML = icon('menu', 18);
+            if (window.lucide) window.lucide.createIcons();
+            document.querySelectorAll('.workspace-drawer-backdrop').forEach(el => el.remove());
+        }
+
+        // Add a drawer header (logo + X close button) inside workspaceTabs for mobile mode if not present
+        if (!workspaceTabs.querySelector('.mobile-drawer-header')) {
+            const drawerHeader = document.createElement('div');
+            drawerHeader.className = 'mobile-drawer-header';
+            drawerHeader.innerHTML = `
+                <div class="brand-lockup">
+                    <span class="brand-mark">${icon('heart-pulse', 20)}</span>
+                    <span class="brand-name">SmartCare</span>
+                </div>
+                <button type="button" class="mobile-drawer-close" aria-label="Close navigation">
+                    ${icon('x', 18)}
+                </button>
+            `;
+            workspaceTabs.insertBefore(drawerHeader, workspaceTabs.firstChild);
+            const closeBtn = drawerHeader.querySelector('.mobile-drawer-close');
+            if (closeBtn) closeBtn.onclick = closeDrawer;
+        }
+
+        // --- Responsive layout manager ---
+        function applyLayout() {
+            const isMobile = window.innerWidth < 768;
+
+            if (isMobile) {
+                // Teleport sidebar to body so position:fixed works correctly relative to viewport
+                if (workspaceTabs.parentElement !== document.body) {
+                    document.body.appendChild(workspaceTabs);
+                }
+                workspaceTabs.classList.add('mobile-drawer');
+                workspaceTabs.classList.remove('desktop-sidebar');
+                workspaceTabs.style.top = '';
+                if (providerShell) {
+                    providerShell.style.gridTemplateColumns = '';
+                    providerShell.style.marginLeft = '';
+                }
+                closeDrawer();
+            } else {
+                // Move sidebar back into provider-shell as first child
+                if (workspaceTabs.parentElement !== providerShell && providerShell) {
+                    providerShell.insertBefore(workspaceTabs, providerShell.firstChild);
+                }
+                workspaceTabs.classList.remove('mobile-drawer', 'drawer-open');
+                workspaceTabs.classList.add('desktop-sidebar');
+                workspaceTabs.style.top = '';
+                document.querySelectorAll('.workspace-drawer-backdrop').forEach(el => el.remove());
+                // Restore desktop collapsed state if needed
+                if (providerShell && providerShell.classList.contains('sidebar-collapsed')) {
+                    providerShell.style.gridTemplateColumns = '0px minmax(0, 1fr)';
+                }
+            }
+        }
+
+        // Initial layout
+        applyLayout();
+
+        // Responsive listener
+        const mq = window.matchMedia('(max-width: 767px)');
+        mq.addEventListener('change', applyLayout);
+
+        // --- Toggle button click handler ---
+        sidebarToggleBtn.onclick = () => {
+            const isMobile = window.innerWidth < 768;
+            if (isMobile) {
+                const isOpen = workspaceTabs.classList.toggle('drawer-open');
+                sidebarToggleBtn.innerHTML = isOpen ? icon('x', 18) : icon('menu', 18);
+                if (window.lucide) window.lucide.createIcons();
+
+                if (isOpen) {
+                    let backdrop = document.querySelector('.workspace-drawer-backdrop');
+                    if (!backdrop) {
+                        backdrop = document.createElement('div');
+                        backdrop.className = 'workspace-drawer-backdrop';
+                        document.body.appendChild(backdrop);
+                    }
+                    backdrop.onclick = closeDrawer;
+                } else {
+                    document.querySelectorAll('.workspace-drawer-backdrop').forEach(el => el.remove());
+                }
+            } else {
+                // Desktop: toggle collapse
+                if (providerShell) {
+                    const isCollapsed = providerShell.classList.toggle('sidebar-collapsed');
+                    sidebarToggleBtn.title = isCollapsed ? 'Expand navigation' : 'Collapse navigation';
+                }
+            }
+        };
+
+        // Auto-close drawer when any sidebar link is tapped on mobile
+        workspaceTabs.querySelectorAll('a, button').forEach(link => {
+            if (!link.classList.contains('mobile-drawer-close')) {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth < 768) closeDrawer();
+                });
+            }
+        });
     }
+
+
 
     function generateQRCodeDataUrl(text = '') {
         try {
@@ -375,5 +491,93 @@
         };
     }
 
-    window.App.UI = { icon, footer, toast, topbarControls, bindTopbarControls, generateQRCodeDataUrl, showQRScannerModal, showPrescriptionModal };
+    // ─── Mobile Bottom Navigation Bar ───────────────────────────────────────────
+    // Role-based nav items. Each item: [iconName, label, route, data-route attr OR data-tab]
+    const MOBILE_NAV = {
+        patient: [
+            { icon: 'layout-dashboard', label: 'Overview',   route: '/dashboard/patient',             attr: 'data-route' },
+            { icon: 'calendar-plus',    label: 'Book',        route: '/dashboard/patient/apply/1',     attr: 'data-tab',   tab: 'apply', tabRoute: '/dashboard/patient' },
+            { icon: 'clipboard-list',   label: 'Visits',      route: '/dashboard/patient/visits',      attr: 'data-tab',   tab: 'visits', tabRoute: '/dashboard/patient' },
+            { icon: 'heart-handshake',  label: 'Donations',   route: '/dashboard/patient/donations',   attr: 'data-route' },
+            { icon: 'log-out',          label: 'Sign out',    route: null,                             attr: 'signout' },
+        ],
+        doctor: [
+            { icon: 'layout-dashboard', label: 'Overview',   route: '/dashboard/doctor',              attr: 'data-route' },
+            { icon: 'list-ordered',     label: 'Queue',       route: '/dashboard/queue',               attr: 'data-route' },
+            { icon: 'bar-chart-3',      label: 'Analytics',   route: '/dashboard/analytics',           attr: 'data-route' },
+            { icon: 'heart-handshake',  label: 'Donations',   route: '/dashboard/doctor/donations',    attr: 'data-route' },
+            { icon: 'log-out',          label: 'Sign out',    route: null,                             attr: 'signout' },
+        ],
+        staff: [
+            { icon: 'layout-dashboard', label: 'Operations', route: '/dashboard/admin',               attr: 'data-route' },
+            { icon: 'list-ordered',     label: 'Queue',       route: '/dashboard/queue',               attr: 'data-route' },
+            { icon: 'bar-chart-3',      label: 'Analytics',   route: '/dashboard/analytics',           attr: 'data-route' },
+            { icon: 'heart-handshake',  label: 'Donations',   route: '/dashboard/admin/donations',     attr: 'data-route' },
+            { icon: 'log-out',          label: 'Sign out',    route: null,                             attr: 'signout' },
+        ],
+    };
+
+    function mobileBottomNav(role, currentRoute) {
+        const items = MOBILE_NAV[role] || MOBILE_NAV.patient;
+        const buttons = items.map(item => {
+            const isActive = item.route && (
+                currentRoute === item.route ||
+                (item.route === '/dashboard/patient' && currentRoute === '/dashboard/patient') ||
+                (item.tab === 'apply' && currentRoute.startsWith('/dashboard/patient/apply'))
+            );
+            if (item.attr === 'signout') {
+                return `<button type="button" class="mobile-nav-btn" data-mobile-nav-signout aria-label="Sign out">
+                    ${icon(item.icon, 20)}<span>${item.label}</span>
+                </button>`;
+            }
+            if (item.attr === 'data-tab') {
+                return `<a class="mobile-nav-btn${isActive ? ' active' : ''}" href="${item.route}" data-tab="${item.tab}" data-tab-route="${item.tabRoute}" aria-label="${item.label}">
+                    ${icon(item.icon, 20)}<span>${item.label}</span>
+                </a>`;
+            }
+            return `<a class="mobile-nav-btn${isActive ? ' active' : ''}" href="${item.route}" data-route="${item.route}" aria-label="${item.label}">
+                ${icon(item.icon, 20)}<span>${item.label}</span>
+            </a>`;
+        }).join('');
+
+        return `<nav class="mobile-bottom-nav" aria-label="Mobile navigation">${buttons}</nav>`;
+    }
+
+    function bindMobileBottomNav(container) {
+        // Clean up previous bottom navs teleported to body
+        document.querySelectorAll('body > .mobile-bottom-nav').forEach(el => el.remove());
+
+        const nav = container.querySelector('.mobile-bottom-nav');
+        if (!nav) return;
+
+        // Teleport mobile bottom nav to document.body so position:fixed is always relative to viewport
+        if (nav.parentElement !== document.body) {
+            document.body.appendChild(nav);
+        }
+
+        // Sign-out button
+        const signoutBtn = nav.querySelector('[data-mobile-nav-signout]');
+
+        if (signoutBtn && window.App && window.App.Store && window.App.Store.logout) {
+            signoutBtn.onclick = window.App.Store.logout;
+        }
+
+        // Auto-close sidebar drawer when a bottom nav item is tapped
+        nav.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const sidebar = document.querySelector('.workspace-tabs.mobile-drawer');
+                if (sidebar) {
+                    sidebar.classList.remove('drawer-open');
+                    const backdrop = document.querySelector('.workspace-drawer-backdrop');
+                    if (backdrop) backdrop.remove();
+                    const toggleBtn = document.querySelector('#sidebar-toggle-btn');
+                    if (toggleBtn) { toggleBtn.innerHTML = icon('menu', 18); if (window.lucide) window.lucide.createIcons(); }
+                }
+            });
+        });
+
+        if (window.lucide) window.lucide.createIcons();
+    }
+
+    window.App.UI = { icon, footer, toast, topbarControls, bindTopbarControls, mobileBottomNav, bindMobileBottomNav, generateQRCodeDataUrl, showQRScannerModal, showPrescriptionModal };
 })();

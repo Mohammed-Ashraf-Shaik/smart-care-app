@@ -127,6 +127,8 @@
         });
 
         window.App.UI.bindTopbarControls(container);
+        container.insertAdjacentHTML('beforeend', window.App.UI.mobileBottomNav('staff', state.route));
+        window.App.UI.bindMobileBottomNav(container);
         if (window.lucide) window.lucide.createIcons();
         return container;
     };

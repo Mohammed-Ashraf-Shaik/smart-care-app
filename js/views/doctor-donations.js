@@ -203,6 +203,8 @@
             };
 
             window.App.UI.bindTopbarControls(container);
+            container.insertAdjacentHTML('beforeend', window.App.UI.mobileBottomNav(state.loggedRole, state.route));
+            window.App.UI.bindMobileBottomNav(container);
             // RENDER LUCIDE ICONS SO LOGOS ALWAYS LOAD PROPERLY
             if (window.lucide) window.lucide.createIcons();
         }

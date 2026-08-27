@@ -209,6 +209,9 @@
         renderRows();
 
         window.App.UI.bindTopbarControls(container);
+        container.insertAdjacentHTML('beforeend', window.App.UI.mobileBottomNav(state.loggedRole, state.route));
+        window.App.UI.bindMobileBottomNav(container);
+        if (window.lucide) window.lucide.createIcons();
         return container;
     };
 })();

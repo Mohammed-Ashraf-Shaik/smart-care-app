@@ -184,6 +184,10 @@
             }
 
             window.App.UI.bindTopbarControls(container);
+            if (isWorkspace) {
+                container.insertAdjacentHTML('beforeend', window.App.UI.mobileBottomNav(state.loggedRole || 'patient', state.route));
+                window.App.UI.bindMobileBottomNav(container);
+            }
 
             // Tab link interactions
             container.querySelectorAll('.info-tab-link, [data-page-link]').forEach(btn => {
