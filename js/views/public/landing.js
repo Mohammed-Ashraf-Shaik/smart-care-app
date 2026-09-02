@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
     const icon = (name, size = 18) => `<i data-lucide="${name}" width="${size}" height="${size}"></i>`;
     window.App.Views.Landing = function () {
         const { setView, setAuthTarget } = window.App.Store;
@@ -126,3 +126,4 @@
         return container;
     };
 })();
+

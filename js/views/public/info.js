@@ -104,23 +104,8 @@
                 </div>
             `).join('');
 
-            const tabPills = `
-                <div class="info-tab-nav" role="tablist" aria-label="Information sections">
-                    <button type="button" class="info-tab-link ${page === 'about' ? 'active' : ''}" data-page="about">
-                        ${icon('heart-pulse', 15)} About
-                    </button>
-                    <button type="button" class="info-tab-link ${page === 'terms' ? 'active' : ''}" data-page="terms">
-                        ${icon('scroll-text', 15)} Terms
-                    </button>
-                    <button type="button" class="info-tab-link ${page === 'privacy' ? 'active' : ''}" data-page="privacy">
-                        ${icon('shield-check', 15)} Privacy
-                    </button>
-                </div>
-            `;
-
             const innerHtml = `
                 <div class="info-layout section-info" data-section="${page}">
-                    ${tabPills}
                     <div class="info-hero">
                         <div class="info-hero-icon">${icon(content.icon, 26)}</div>
                         <div class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> ${esc(content.eyebrow)}</div>

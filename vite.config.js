@@ -1,6 +1,8 @@
 import { defineConfig } from 'vite';
+import preact from '@preact/preset-vite';
 
 export default defineConfig({
+  plugins: [preact()],
   // Use './' for local dev; GitHub Pages CI can override with /smart-care-app/
   base: './',
   server: {

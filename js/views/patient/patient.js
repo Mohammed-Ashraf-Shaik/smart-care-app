@@ -253,10 +253,10 @@
                 target.querySelector('#results-summary').textContent = `${visibleHospitals.length} options, sorted by distance & drive time`;
 
                 list.innerHTML = visibleHospitals.map((hospital, index) => {
-                    const hours = hospital.openingHours === '24/7' ? 'Open 24 hours' : 'Hours not listed';
+                    const hours = hospital.openingHours === '24/7' ? 'Open 24 hours' : (hospital.openingHours || 'Hours not listed');
                     const meta = getDrivingMeta(hospital.distance);
                     return `
-                        <button class="hospital-option ${patientData.hospital === hospital.name ? 'selected' : ''}" data-hospital-id="${esc(hospital.id)}" aria-pressed="${patientData.hospital === hospital.name}" ${index >= 8 ? 'hidden' : ''}>
+                        <button class="hospital-option ${patientData.hospital === hospital.name ? 'selected' : ''}" data-hospital-id="${esc(hospital.id)}" aria-pressed="${patientData.hospital === hospital.name}">
                             <div class="hospital-option-header">
                                 <span><strong><span style="color:var(--teal);margin-right:.3rem">${index + 1}</span>${esc(hospital.name)}</strong><small>${esc(hospital.type || 'Care centre')} · ${hours}</small></span>
                                 <span class="hospital-distance">${hospital.distance.toFixed(1)} km</span>
@@ -273,12 +273,24 @@
                             </div>
                         </button>
                     `;
-                }).join('') + (visibleHospitals.length > 8 ? `<button class="show-more-results" type="button">Show all ${visibleHospitals.length} centres</button>` : '');
+                }).join('');
 
-                list.querySelectorAll('[data-hospital-id]').forEach(button => button.onclick = () => selectHospital(button.dataset.hospitalId));
-                list.querySelector('.show-more-results')?.addEventListener('click', () => {
-                    list.querySelectorAll('.hospital-option').forEach(node => { node.hidden = false; });
-                    list.querySelector('.show-more-results')?.remove();
+                list.querySelectorAll('[data-hospital-id]').forEach(button => {
+                    button.onclick = () => selectHospital(button.dataset.hospitalId);
+                    button.onmouseenter = () => {
+                        const id = button.dataset.hospitalId;
+                        const markerNode = markerNodes.find(item => String(item.hospital.id) === String(id));
+                        if (markerNode && map) {
+                            markerNode.marker.getElement().classList.add('active');
+                        }
+                    };
+                    button.onmouseleave = () => {
+                        const id = button.dataset.hospitalId;
+                        const markerNode = markerNodes.find(item => String(item.hospital.id) === String(id));
+                        if (markerNode && map) {
+                            markerNode.marker.getElement().classList.remove('active');
+                        }
+                    };
                 });
 
                 function selectHospital(id) {

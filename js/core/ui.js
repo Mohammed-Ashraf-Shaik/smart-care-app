@@ -497,8 +497,8 @@
         patient: [
             { icon: 'layout-dashboard', label: 'Overview',   route: '/dashboard/patient',             attr: 'data-route' },
             { icon: 'calendar-plus',    label: 'Book',        route: '/dashboard/patient/apply/1',     attr: 'data-tab',   tab: 'apply', tabRoute: '/dashboard/patient' },
+            { icon: 'file-text',        label: 'Passport',    route: '/dashboard/patient/history',     attr: 'data-route' },
             { icon: 'clipboard-list',   label: 'Visits',      route: '/dashboard/patient/visits',      attr: 'data-tab',   tab: 'visits', tabRoute: '/dashboard/patient' },
-            { icon: 'heart-handshake',  label: 'Donations',   route: '/dashboard/patient/donations',   attr: 'data-route' },
             { icon: 'log-out',          label: 'Sign out',    route: null,                             attr: 'signout' },
         ],
         doctor: [

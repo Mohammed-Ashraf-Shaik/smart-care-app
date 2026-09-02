@@ -20,24 +20,6 @@
             const description = mode === 'signin' ? (patient ? 'Use your email and password to continue.' : 'Use your work email and care centre details to continue.') : mode === 'signup' ? 'Register your care centre once, then manage the live queue.' : mode === 'recovery' ? 'We will email a secure password reset link.' : 'Choose a new password for your SmartCare account.';
 
             container.innerHTML = `
-                <div class="flow-topbar">
-                    <a class="brand-lockup" data-route="/" href="/">
-                        <span class="brand-mark">${icon('heart-pulse', 20)}</span>
-                        <span><span class="brand-name">SmartCare</span><span class="brand-caption">Secure access</span></span>
-                    </a>
-                    <nav class="flow-topbar-nav" aria-label="Portal navigation">
-                        <a data-route="/" href="/">Home</a>
-                        <a data-route="/dashboard/patient/apply/1" href="/dashboard/patient/apply/1">Patient portal</a>
-                        <a data-route="/login" href="/login" class="active">Provider portal</a>
-                        <a data-route="/about" href="/about">About</a>
-                    </nav>
-                    <div class="flow-topbar-actions">
-                        ${window.App.UI.topbarControls()}
-                        <button id="auth-back" class="back-link" type="button">
-                            ${icon('arrow-left', 16)} Back to home
-                        </button>
-                    </div>
-                </div>
                 <main class="auth-layout section-auth" data-section="portal-login" aria-labelledby="auth-title">
                     <aside class="auth-aside">
                         <div class="eyebrow"><span class="eyebrow-dot"></span> Role-based access</div>
@@ -183,7 +165,8 @@
         }
 
         function bindCommon() {
-            container.querySelector('#auth-back').onclick = e => { e.preventDefault(); setView('landing'); };
+            const authBack = container.querySelector('#auth-back');
+            if (authBack) authBack.onclick = e => { e.preventDefault(); setView('landing'); };
             container.querySelectorAll('[data-role]').forEach(button => button.onclick = () => {
                 role = button.dataset.role;
                 setAuthTarget(role);
