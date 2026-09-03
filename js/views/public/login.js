@@ -6,8 +6,9 @@
         const { state, setView, setAuthTarget, setLogin, setLoggedLocation } = window.App.Store;
         const container = document.createElement('div');
         container.className = 'flow-shell';
+        const requestedMode = new URLSearchParams(window.location.search).get('mode');
         let role = state.auth?.targetRole || 'patient',
-            mode = window.location.hash.includes('type=recovery') ? 'update-password' : 'signin',
+            mode = window.location.hash.includes('type=recovery') ? 'update-password' : requestedMode === 'signup' ? 'signup' : 'signin',
             email = '', password = '', facility = '', message = '', messageType = '', passwordVisible = false;
 
         render();
@@ -16,8 +17,8 @@
         function render() {
             const patient = role === 'patient';
             const roleName = patient ? 'Patient portal' : role === 'doctor' ? 'Doctor & Provider workspace' : 'Hospital Operations portal';
-            const title = mode === 'signin' ? 'Sign in to your workspace' : mode === 'signup' ? 'Create a provider account' : mode === 'recovery' ? 'Recover your access' : 'Set a new password';
-            const description = mode === 'signin' ? (patient ? 'Use your email and password to continue.' : 'Use your work email and care centre details to continue.') : mode === 'signup' ? 'Register your care centre once, then manage the live queue.' : mode === 'recovery' ? 'We will email a secure password reset link.' : 'Choose a new password for your SmartCare account.';
+            const title = mode === 'signin' ? 'Sign in to your workspace' : mode === 'signup' ? (patient ? 'Create a patient profile' : 'Create a provider account') : mode === 'recovery' ? 'Recover your access' : 'Set a new password';
+            const description = mode === 'signin' ? (patient ? 'Use your email and password to continue.' : 'Use your work email and care centre details to continue.') : mode === 'signup' ? (patient ? 'Save a local demo profile for faster bookings on this device.' : 'Create a temporary provider account for this demo session.') : mode === 'recovery' ? 'We will email a secure password reset link.' : 'Choose a new password for your SmartCare account.';
 
             container.innerHTML = `
                 <main class="auth-layout section-auth" data-section="portal-login" aria-labelledby="auth-title">
@@ -32,14 +33,14 @@
                         </ul>
                     </aside>
                     <section class="auth-panel">
-                        <div class="auth-mode-switch" style="display:flex;gap:.5rem;margin-bottom:1.25rem;padding:.3rem;background:var(--surface);border:1px solid var(--line);border-radius:2rem">
-                            <button type="button" id="tab-signin" class="btn-${mode === 'signin' ? 'primary' : 'ghost'}" style="flex:1;border-radius:1.5rem;min-height:2.4rem;font-size:.8rem;font-weight:800">${icon('log-in', 14)} Sign In</button>
-                            <button type="button" id="tab-signup" class="btn-${mode === 'signup' ? 'primary' : 'ghost'}" style="flex:1;border-radius:1.5rem;min-height:2.4rem;font-size:.8rem;font-weight:800">${icon('user-plus', 14)} Sign Up</button>
+                        <div class="auth-mode-switch" role="tablist" aria-label="Authentication mode" style="display:flex;gap:.5rem;margin-bottom:1.25rem;padding:.3rem;background:var(--surface);border:1px solid var(--line);border-radius:2rem">
+                            <button type="button" role="tab" aria-selected="${mode === 'signin'}" id="tab-signin" class="btn-${mode === 'signin' ? 'primary' : 'ghost'}" style="flex:1;border-radius:1.5rem;min-height:2.75rem;font-size:.8rem;font-weight:800">${icon('log-in', 14)} Sign In</button>
+                            <button type="button" role="tab" aria-selected="${mode === 'signup'}" id="tab-signup" class="btn-${mode === 'signup' ? 'primary' : 'ghost'}" style="flex:1;border-radius:1.5rem;min-height:2.75rem;font-size:.8rem;font-weight:800">${icon('user-plus', 14)} Sign Up</button>
                         </div>
-                        <div class="auth-role-switch" aria-label="Choose portal">
-                            <button class="auth-role ${role === 'patient' ? 'active' : ''}" data-role="patient" type="button">${icon('user-round', 15)} Patient</button>
-                            <button class="auth-role ${role === 'doctor' ? 'active' : ''}" data-role="doctor" type="button">${icon('stethoscope', 15)} Doctor / Provider</button>
-                            <button class="auth-role ${role === 'staff' ? 'active' : ''}" data-role="staff" type="button">${icon('building-2', 15)} Hospital Ops</button>
+                        <div class="auth-role-switch" role="tablist" aria-label="Choose portal">
+                            <button class="auth-role ${role === 'patient' ? 'active' : ''}" role="tab" aria-selected="${role === 'patient'}" data-role="patient" type="button">${icon('user-round', 15)} Patient</button>
+                            <button class="auth-role ${role === 'doctor' ? 'active' : ''}" role="tab" aria-selected="${role === 'doctor'}" data-role="doctor" type="button">${icon('stethoscope', 15)} Doctor / Provider</button>
+                            <button class="auth-role ${role === 'staff' ? 'active' : ''}" role="tab" aria-selected="${role === 'staff'}" data-role="staff" type="button">${icon('building-2', 15)} Hospital Ops</button>
                         </div>
                         <div class="eyebrow" style="color:var(--teal)"><span class="eyebrow-dot"></span> ${roleName}</div>
                         <h2 id="auth-title">${title}</h2>
@@ -99,7 +100,7 @@
             return `
                 <div class="demo-access">
                     <p class="eyebrow" style="color:var(--teal)"><span class="eyebrow-dot"></span> Quick Demo Sign-In</p>
-                    <p class="hint">Click a demo role to pre-fill ready-to-use credentials for evaluation &amp; presentation.</p>
+                    <p class="hint">Open a ready-to-use workspace instantly for evaluation &amp; presentation.</p>
                     <div class="demo-buttons">
                         <button type="button" class="text-link demo-button" data-demo-role="patient">${icon('user-round', 15)} Patient demo</button>
                         <button type="button" class="text-link demo-button" data-demo-role="doctor">${icon('stethoscope', 15)} Doctor demo</button>
@@ -168,22 +169,30 @@
             const authBack = container.querySelector('#auth-back');
             if (authBack) authBack.onclick = e => { e.preventDefault(); setView('landing'); };
             container.querySelectorAll('[data-role]').forEach(button => button.onclick = () => {
+                readFields();
                 role = button.dataset.role;
                 setAuthTarget(role);
                 message = '';
-                const url = window.App.Store.hrefFor(`/login?role=${role}`);
-                window.history.pushState({}, '', url);
+                syncAuthUrl();
                 render();
-                window.scrollTo({ top: 0, behavior: 'instant' });
+                container.querySelector('#auth-email')?.focus();
             });
             container.querySelectorAll('[data-demo-role]').forEach(button => button.onclick = () => startDemo(button.dataset.demoRole));
             const toggle = container.querySelector('#toggle-password');
-            if (toggle) toggle.onclick = () => { passwordVisible = !passwordVisible; render(); };
+            if (toggle) toggle.onclick = () => {
+                const input = container.querySelector('#auth-password');
+                passwordVisible = !passwordVisible;
+                input.type = passwordVisible ? 'text' : 'password';
+                toggle.setAttribute('aria-label', passwordVisible ? 'Hide password' : 'Show password');
+                toggle.innerHTML = icon(passwordVisible ? 'eye-off' : 'eye', 17);
+                if (window.lucide) window.lucide.createIcons();
+                input.focus();
+            };
 
             const tabSignIn = container.querySelector('#tab-signin');
-            if (tabSignIn) tabSignIn.onclick = () => { mode = 'signin'; message = ''; render(); };
+            if (tabSignIn) tabSignIn.onclick = () => { readFields(); mode = 'signin'; message = ''; syncAuthUrl(); render(); container.querySelector('#auth-email')?.focus(); };
             const tabSignUp = container.querySelector('#tab-signup');
-            if (tabSignUp) tabSignUp.onclick = () => { mode = 'signup'; message = ''; render(); };
+            if (tabSignUp) tabSignUp.onclick = () => { readFields(); mode = 'signup'; message = ''; syncAuthUrl(); render(); container.querySelector('#auth-email')?.focus(); };
 
             const signIn = container.querySelector('#show-signin');
             if (signIn) signIn.onclick = () => { mode = 'signin'; message = ''; render(); };
@@ -197,6 +206,14 @@
             email = container.querySelector('#auth-email')?.value.trim() || email;
             facility = container.querySelector('#auth-facility')?.value.trim() || facility;
             password = container.querySelector('#auth-password')?.value || password;
+        }
+
+        function syncAuthUrl() {
+            const url = new URL(window.location.href);
+            url.searchParams.set('role', role);
+            if (mode === 'signup') url.searchParams.set('mode', 'signup');
+            else url.searchParams.delete('mode');
+            window.history.replaceState({}, '', url.toString());
         }
 
         function bindSignIn() {
@@ -297,41 +314,37 @@
             try { await action(); } catch (error) { showError(error.message || 'Something went wrong. Try again.'); }
         }
 
-        function startDemo(demoRole) {
-            const prevRole = role;
+        async function startDemo(demoRole) {
             role = demoRole;
             setAuthTarget(role);
             email = demoRole === 'patient' ? 'patient@smartcare.demo' : demoRole === 'doctor' ? 'hospital@smartcare.demo' : 'admin@smartcare.demo';
-            facility = demoRole === 'patient' ? 'SmartCare Demo Clinic' : demoRole === 'doctor' ? 'SmartCare Community Hospital' : 'SmartCare Operations Centre';
+            facility = demoRole === 'patient' ? 'SmartCare Demo Clinic' : 'SmartCare Community Hospital';
             password = 'demo1234';
             mode = 'signin';
-            message = 'Demo credentials loaded. Click sign in to continue.';
-            messageType = 'success';
+            message = '';
+            render();
+            const buttons = container.querySelectorAll('[data-demo-role]');
+            buttons.forEach(button => { button.disabled = true; });
+            const activeButton = container.querySelector(`[data-demo-role="${demoRole}"]`);
+            if (activeButton) activeButton.textContent = 'Opening demo...';
 
-            if (prevRole !== demoRole) {
-                render();
-                return;
-            }
-
-            const emailEl = container.querySelector('#auth-email'); if (emailEl) emailEl.value = email;
-            const facilityEl = container.querySelector('#auth-facility'); if (facilityEl) facilityEl.value = facility;
-            const passwordEl = container.querySelector('#auth-password'); if (passwordEl) passwordEl.value = password;
-            const roleButtons = container.querySelectorAll('[data-role]');
-            roleButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.role === role));
-            const msgEl = container.querySelector('.auth-message');
-            if (msgEl) {
-                msgEl.textContent = message;
-                msgEl.className = `auth-message ${messageType}`;
-            } else {
-                const authPanel = container.querySelector('.auth-panel');
-                if (authPanel) {
-                    const div = document.createElement('div');
-                    div.className = `auth-message ${messageType}`;
-                    div.setAttribute('role', 'alert');
-                    div.textContent = message;
-                    const form = authPanel.querySelector('#auth-form');
-                    if (form) authPanel.insertBefore(div, form);
+            try {
+                if (demoRole === 'patient') {
+                    setLoggedLocation('India', 'Telangana', 'Hyderabad', facility);
+                    setLogin(email, 'patient');
+                    setView('patientDashboard');
+                    return;
                 }
+                const result = await window.App.DB.checkCredentials(facility, email, password, demoRole);
+                if (!result.success) throw new Error(result.error || 'The demo workspace is unavailable.');
+                const user = result.user || {};
+                setLoggedLocation(user.country || 'India', user.state || 'Telangana', user.city || 'Hyderabad', user.hospital || facility);
+                setLogin(email, demoRole);
+                setView(demoRole);
+            } catch (error) {
+                message = error.message || 'The demo workspace is unavailable.';
+                messageType = 'error';
+                render();
             }
         }
 

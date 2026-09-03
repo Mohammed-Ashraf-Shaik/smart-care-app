@@ -77,9 +77,9 @@
                         <div>
                             <div class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> Community &amp; Hospital donations</div>
                             <h1>Give or receive care, ${esc(patientName)}.</h1>
-                            <p>Directly synced with care centres and blood banks across the SmartCare network.</p>
+                            <p>Explore a same-device demo of patient and hospital donation workflows. No care centre is contacted.</p>
                         </div>
-                        <div class="provider-date">Live synced pool<br><strong>Network active</strong></div>
+                        <div class="provider-date">Demo donation pool<br><strong>Stored locally</strong></div>
                     </header>
                     <div class="donation-category-section">
                         <span class="donation-micro-label">DONATION CATEGORY</span>
@@ -99,22 +99,22 @@
                             </div>
                             ${donationType === 'blood' ? `
                             <h2>${mode === 'give' ? 'Register as a blood donor' : 'Request blood unit'}</h2>
-                            <p>${mode === 'give' ? 'Your availability will show up immediately in hospital care dashboards for matching.' : 'Tell us your blood group. Hospital blood banks with matching inventory will be notified.'}</p>
+                            <p>${mode === 'give' ? 'Save donor interest to the same-device Hospital Ops demo for testing.' : 'Record a demo blood request and review matching sample inventory.'}</p>
                             <form id="donation-form" class="donation-form">
                                 <label class="field"><span>Full name</span><input id="d-name" type="text" placeholder="Your name" value="${esc(patientName)}" required></label>
                                 <label class="field"><span>Blood group</span><select id="d-group">${bloodGroups.map(g => `<option value="${g}">${g}</option>`).join('')}</select></label>
                                 <label class="field"><span>City</span><input id="d-city" type="text" placeholder="Hyderabad" value="${esc(state.patientData.city || 'Hyderabad')}" required></label>
-                                ${mode === 'give' ? `<label class="consent-field"><input type="checkbox" id="d-consent" checked> I consent to sharing my contact with matched care centres.</label>` : `<label class="field"><span>Urgency</span><select id="d-urgency"><option value="Routine">Routine</option><option value="Urgent">Urgent</option><option value="Emergency">Emergency</option></select></label>`}
-                                <button type="submit" class="btn-primary btn-icon" id="d-submit">${icon(mode === 'give' ? 'heart-handshake' : 'send', 16)} ${mode === 'give' ? 'Register as blood donor' : 'Submit blood request'}</button>
+                                ${mode === 'give' ? `<label class="consent-field"><input type="checkbox" id="d-consent" required> I understand this saves demo contact interest locally and does not contact a care centre.</label>` : `<label class="field"><span>Urgency</span><select id="d-urgency"><option value="Routine">Routine</option><option value="Urgent">Urgent</option><option value="Emergency">Emergency</option></select></label>`}
+                                <button type="submit" class="btn-primary btn-icon" id="d-submit">${icon(mode === 'give' ? 'heart-handshake' : 'send', 16)} ${mode === 'give' ? 'Save blood donor interest' : 'Save demo blood request'}</button>
                             </form>` : `
-                            <h2>${mode === 'give' ? 'Pledge organ donation' : 'Request organ transplant support'}</h2>
-                            <p>${mode === 'give' ? 'Organ donation saves lives. Your pledge is shared directly with authorized hospital transplant pools.' : 'Submit a request to matching hospital transplant programs.'}</p>
+                            <h2>${mode === 'give' ? 'Record organ donation interest' : 'Request organ transplant guidance'}</h2>
+                            <p>${mode === 'give' ? 'Save a non-binding demo interest before continuing through an official registry and clinical process.' : 'Record a demo request to explore the coordinator workflow; this does not join a transplant waiting list.'}</p>
                             <form id="donation-form" class="donation-form">
                                 <label class="field"><span>Full name</span><input id="d-name" type="text" placeholder="Your name" value="${esc(patientName)}" required></label>
-                                <label class="field"><span>${mode === 'give' ? 'Organ to pledge' : 'Organ needed'}</span><select id="d-group">${organs.map(o => `<option value="${o}">${o}</option>`).join('')}</select></label>
+                                <label class="field"><span>${mode === 'give' ? 'Organ of interest' : 'Organ guidance needed'}</span><select id="d-group">${organs.map(o => `<option value="${o}">${o}</option>`).join('')}</select></label>
                                 <label class="field"><span>City</span><input id="d-city" type="text" placeholder="Hyderabad" value="${esc(state.patientData.city || 'Hyderabad')}" required></label>
-                                ${mode === 'give' ? `<label class="consent-field"><input type="checkbox" id="d-consent" checked> I consent to organ donation as per national health guidelines.</label>` : `<label class="field"><span>Urgency</span><select id="d-urgency"><option value="Routine">Routine</option><option value="Urgent">Urgent</option><option value="Emergency">Emergency</option></select></label>`}
-                                <button type="submit" class="btn-primary btn-icon" id="d-submit">${icon(mode === 'give' ? 'heart-handshake' : 'send', 16)} ${mode === 'give' ? 'Register organ pledge' : 'Submit organ request'}</button>
+                                ${mode === 'give' ? `<label class="consent-field"><input type="checkbox" id="d-consent" required> I understand this is not legal donor registration, medical consent, or an official registry submission.</label>` : `<label class="field"><span>Urgency</span><select id="d-urgency"><option value="Routine">Routine</option><option value="Urgent">Urgent</option><option value="Emergency">Emergency</option></select></label>`}
+                                <button type="submit" class="btn-primary btn-icon" id="d-submit">${icon(mode === 'give' ? 'heart-handshake' : 'send', 16)} ${mode === 'give' ? 'Save organ donation interest' : 'Save demo guidance request'}</button>
                             </form>`}
                             ${message ? `<div class="donation-message ${messageType}" role="alert" style="margin-top:.85rem;padding:.75rem;border-radius:.5rem;background:${messageType === 'success' ? '#e8f8f2' : '#fdeeed'};color:${messageType === 'success' ? '#0b754f' : '#b23b35'}">${message}</div>` : ''}
                         </div>
@@ -159,7 +159,7 @@
                     const id = btn.dataset.itemId;
                     const item = relevantHospitalPosts.find(p => p.id === id);
                     if (item) {
-                        window.App.UI.toast(`Connected with ${item.hospital} for ${item.group} ${item.type}. A coordinator has been alerted!`, 'success');
+                        window.App.UI.toast(`Demo response recorded for ${item.hospital}. No coordinator was contacted.`, 'info');
                     }
                 };
             });
@@ -185,9 +185,9 @@
                     urgency: urgency
                 });
 
-                message = mode === 'give' 
-                    ? `Thank you, ${name}! Your ${group} ${donationType} donor registration is now live and visible to hospitals.` 
-                    : `Your ${group} ${donationType} request has been posted. Hospital blood banks and donor coordinators are notified.`;
+                message = mode === 'give'
+                    ? `Saved ${name}'s ${group} ${donationType} interest in this device's demo pool. No hospital was contacted.`
+                    : `Saved the ${group} ${donationType} request in this device's demo pool. No hospital or registry was notified.`;
                 messageType = 'success';
                 window.App.UI.toast(message, 'success');
                 render();

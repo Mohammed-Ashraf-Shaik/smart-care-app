@@ -3,7 +3,7 @@
     const esc = (value = '') => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
 
     window.App.Views.PatientHistory = function () {
-        const { state, getMedicalHistory, saveMedicalHistory, logout, hrefFor } = window.App.Store;
+        const { state, getMedicalHistory, saveMedicalHistory, registerMedicalPassport, logout, hrefFor } = window.App.Store;
         const container = document.createElement('div');
         container.className = 'flow-shell workspace-shell patient-workspace-shell';
 
@@ -16,8 +16,11 @@
         
         // Parse dynamic URL parameters (e.g. ?passportId=SC-PASSPORT-8924&mode=view)
         const urlParams = new URLSearchParams(window.location.search);
-        const dynamicPassportId = urlParams.get('passportId') || urlParams.get('pin') || 'SC-PASSPORT-8924';
+        const ownerSeed = String(state.loggedEmail || 'guest').toLowerCase();
+        const passportNumber = ownerSeed === 'patient@smartcare.demo' ? 8924 : 100000 + ([...ownerSeed].reduce((total, character) => ((total * 31) + character.charCodeAt(0)) >>> 0, 0) % 900000);
+        const dynamicPassportId = urlParams.get('passportId') || urlParams.get('pin') || `SC-PASSPORT-${passportNumber}`;
         const isPrintMode = urlParams.get('mode') === 'print';
+        registerMedicalPassport(dynamicPassportId);
 
         const prevDoc = historyData.previousProvider || { doctorName: '', hospitalName: '', city: '', contactPhone: '' };
         const diseases = Array.isArray(historyData.diseases) ? historyData.diseases : [];
@@ -288,7 +291,7 @@
                                 <h3 style="margin:0;color:var(--teal-dark);font-size:1.15rem;display:flex;align-items:center;gap:.5rem">
                                     ${icon('square-pen', 18)} Add &amp; Edit Medical History Records
                                 </h3>
-                                <button id="cancel-edit-modal-top" type="button" class="btn-ghost" style="padding:.2rem .5rem">✕</button>
+                                <button id="cancel-edit-modal-top" type="button" class="btn-ghost modal-close-button" aria-label="Close medical record editor">${icon('x', 18)}</button>
                             </div>
                             
                             <form id="edit-passport-form">
@@ -308,34 +311,52 @@
 
                                     <!-- SECTION 2: ADD NEW EFFECTIVE MEDICATION -->
                                     <div class="modal-section-card">
-                                        <strong style="font-size:.85rem;color:var(--teal-dark);display:block;margin-bottom:.6rem">2. Add / Edit Effective Medication</strong>
+                                        <strong style="font-size:.85rem;color:var(--teal-dark);display:block;margin-bottom:.6rem">2. Add Effective Medication</strong>
                                         <div style="display:grid;gap:.6rem">
-                                            <input id="edit-med-name" type="text" value="${esc(effectiveMeds[0]?.medicineName || '')}" placeholder="Medication Name (e.g. Dolo 650)" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
+                                            <input id="edit-med-name" type="text" value="" placeholder="Medication Name (e.g. Dolo 650)" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
                                             <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
-                                                <input id="edit-med-dosage" type="text" value="${esc(effectiveMeds[0]?.dosage || '')}" placeholder="Dosage (e.g. 650mg as needed)" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
-                                                <input id="edit-med-condition" type="text" value="${esc(effectiveMeds[0]?.conditionTreated || '')}" placeholder="Condition Treated" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
+                                                <input id="edit-med-dosage" type="text" value="" placeholder="Dosage (e.g. 650mg as needed)" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
+                                                <input id="edit-med-condition" type="text" value="" placeholder="Condition Treated" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
                                             </div>
                                         </div>
                                     </div>
 
                                     <!-- SECTION 3: ADD NEW ALLERGY ALERT -->
                                     <div class="modal-section-card modal-section-alert">
-                                        <strong style="font-size:.85rem;color:#991b1b;display:block;margin-bottom:.6rem">3. Add / Edit Allergy &amp; Avoid Alert</strong>
+                                        <strong style="font-size:.85rem;color:#991b1b;display:block;margin-bottom:.6rem">3. Add Allergy &amp; Avoid Alert</strong>
                                         <div style="display:grid;gap:.6rem">
-                                            <input id="edit-alg-substance" type="text" value="${esc(allergies[0]?.substance || '')}" placeholder="Substance to Avoid (e.g. Penicillin / Amoxicillin)" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
-                                            <input id="edit-alg-desc" type="text" value="${esc(allergies[0]?.reactionDescription || '')}" placeholder="Reaction Description (e.g. Severe skin hives)" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
+                                            <input id="edit-alg-substance" type="text" value="" placeholder="Substance to Avoid (e.g. Penicillin / Amoxicillin)" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
+                                            <input id="edit-alg-desc" type="text" value="" placeholder="Reaction Description (e.g. Severe skin hives)" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
                                         </div>
                                     </div>
 
-                                    <!-- SECTION 4: ADD NEW CHRONIC CONDITION & PREFERENCE -->
+                                    <!-- SECTION 4: CARE CONDITION -->
                                     <div class="modal-section-card">
-                                        <strong style="font-size:.85rem;color:var(--teal-dark);display:block;margin-bottom:.6rem">4. Chronic Condition &amp; Personal Care Preference</strong>
+                                        <strong style="font-size:.85rem;color:var(--teal-dark);display:block;margin-bottom:.6rem">4. Add Care Condition</strong>
+                                        <div style="display:grid;gap:.6rem">
+                                            <input id="edit-care-category" type="text" value="" placeholder="Category (e.g. Respiratory care)" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
+                                            <input id="edit-care-instruction" type="text" value="" placeholder="Care instruction" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
+                                        </div>
+                                    </div>
+
+                                    <!-- SECTION 5: EMERGENCY PROTOCOL -->
+                                    <div class="modal-section-card modal-section-alert">
+                                        <strong style="font-size:.85rem;color:#991b1b;display:block;margin-bottom:.6rem">5. Add Emergency Protocol</strong>
+                                        <div style="display:grid;gap:.6rem">
+                                            <input id="edit-emergency-trigger" type="text" value="" placeholder="Trigger condition" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
+                                            <input id="edit-emergency-action" type="text" value="" placeholder="Recommended action steps" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
+                                        </div>
+                                    </div>
+
+                                    <!-- SECTION 6: CLINICAL OVERVIEW -->
+                                    <div class="modal-section-card">
+                                        <strong style="font-size:.85rem;color:var(--teal-dark);display:block;margin-bottom:.6rem">6. Add Condition or Care Preference</strong>
                                         <div style="display:grid;gap:.6rem">
                                             <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
-                                                <input id="edit-disease-name" type="text" value="${esc(diseases[0]?.diseaseName || '')}" placeholder="Disease (e.g. Type-2 Diabetes)" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
-                                                <input id="edit-disease-since" type="text" value="${esc(diseases[0]?.diagnosedSince || '')}" placeholder="Duration (e.g. 3 years)" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
+                                                <input id="edit-disease-name" type="text" value="" placeholder="Disease (e.g. Type-2 Diabetes)" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
+                                                <input id="edit-disease-since" type="text" value="" placeholder="Duration (e.g. 3 years)" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
                                             </div>
-                                            <input id="edit-pref-text" type="text" value="${esc(preferences[0]?.preference || '')}" placeholder="Personal Preference (e.g. Quiet room, Low sodium diet)" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
+                                            <input id="edit-pref-text" type="text" value="" placeholder="Personal Preference (e.g. Quiet room, Low sodium diet)" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
                                         </div>
                                     </div>
 
@@ -343,7 +364,7 @@
 
                                 <div style="display:flex;justify-content:flex-end;gap:.75rem;margin-top:1.5rem">
                                     <button id="cancel-edit-btn" type="button" class="btn-ghost">Cancel</button>
-                                    <button type="submit" class="btn-primary">Save Passport Record</button>
+                                    <button type="submit" class="btn-primary">Save Passport Updates</button>
                                 </div>
                             </form>
                         </div>
@@ -352,17 +373,17 @@
                     <!-- QR HANDOFF MODAL CONTAINER -->
                     <div id="qr-modal-overlay" class="modal-overlay print-hide" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:999;place-items:center;padding:1rem">
                         <div class="modal-card" style="background:#fff;padding:2rem;border-radius:1.5rem;max-width:440px;width:100%;text-align:center;box-shadow:0 20px 40px rgba(0,0,0,0.2);position:relative">
-                            <button id="close-qr-modal" type="button" style="position:absolute;top:1rem;right:1rem;border:0;background:none;font-size:1.2rem;cursor:pointer">✕</button>
+                            <button id="close-qr-modal" class="btn-ghost modal-close-button" type="button" aria-label="Close QR handoff" style="position:absolute;top:1rem;right:1rem">${icon('x', 18)}</button>
                             <div style="width:3.5rem;height:3.5rem;margin:0 auto 1rem;display:grid;place-items:center;border-radius:1rem;background:#e8f4fb;color:var(--teal)">
                                 ${icon('qr-code', 28)}
                             </div>
                             <h3 style="margin:0 0 .4rem;color:var(--teal-dark)">Doctor QR Handoff Code</h3>
-                            <p style="font-size:.8rem;color:var(--muted);margin-bottom:1.25rem">Show this QR code or 6-digit PIN to your new doctor to instantly transfer your medical history without manual paperwork.</p>
+                            <p style="font-size:.8rem;color:var(--muted);margin-bottom:1.25rem">Ask the clinician to scan this code inside the SmartCare Doctor workspace to open a read-only demo summary.</p>
 
                             <div id="qr-code-canvas" style="display:inline-block;padding:1rem;background:#fff;border:2px dashed var(--teal);border-radius:1rem;margin-bottom:1rem"></div>
 
                             <div style="background:var(--mint);padding:.75rem;border-radius:.8rem;margin-bottom:1.5rem">
-                                <small style="color:var(--muted);display:block;font-size:.72rem">Instant Access PIN / Passport ID</small>
+                                <small style="color:var(--muted);display:block;font-size:.72rem">Medical Passport ID</small>
                                 <strong style="font-size:1.2rem;letter-spacing:.1em;color:var(--teal-dark)">${esc(dynamicPassportId)}</strong>
                             </div>
 
@@ -419,9 +440,26 @@
         const cancelEditTop = container.querySelector('#cancel-edit-modal-top');
         const editForm = container.querySelector('#edit-passport-form');
 
-        if (editBtn) editBtn.onclick = () => { if (editModal) editModal.style.display = 'grid'; };
-        if (cancelEdit) cancelEdit.onclick = () => { if (editModal) editModal.style.display = 'none'; };
-        if (cancelEditTop) cancelEditTop.onclick = () => { if (editModal) editModal.style.display = 'none'; };
+        if (editModal) {
+            editModal.querySelector('.modal-card')?.setAttribute('role', 'dialog');
+            editModal.querySelector('.modal-card')?.setAttribute('aria-modal', 'true');
+            editModal.querySelector('.modal-card')?.setAttribute('aria-label', 'Add or update Medical Passport records');
+            editModal.onclick = event => { if (event.target === editModal) closeEditModal(); };
+            editModal.onkeydown = event => { if (event.key === 'Escape') closeEditModal(); };
+        }
+        const openEditModal = () => {
+            if (!editModal) return;
+            editModal.style.display = 'grid';
+            editModal.querySelector('#edit-doc-name')?.focus();
+        };
+        function closeEditModal() {
+            if (!editModal) return;
+            editModal.style.display = 'none';
+            editBtn?.focus();
+        }
+        if (editBtn) editBtn.onclick = openEditModal;
+        if (cancelEdit) cancelEdit.onclick = closeEditModal;
+        if (cancelEditTop) cancelEditTop.onclick = closeEditModal;
 
         if (editForm) {
             editForm.onsubmit = event => {
@@ -437,6 +475,10 @@
                 const medCondition = container.querySelector('#edit-med-condition')?.value || '';
                 const algSubstance = container.querySelector('#edit-alg-substance')?.value || '';
                 const algDesc = container.querySelector('#edit-alg-desc')?.value || '';
+                const careCategory = container.querySelector('#edit-care-category')?.value || '';
+                const careInstruction = container.querySelector('#edit-care-instruction')?.value || '';
+                const emergencyTrigger = container.querySelector('#edit-emergency-trigger')?.value || '';
+                const emergencyAction = container.querySelector('#edit-emergency-action')?.value || '';
 
                 historyData.previousProvider = { doctorName: docName, hospitalName: hospName, city: prevDoc.city || 'Hyderabad', contactPhone: docPhone };
                 historyData.lastUpdated = new Date().toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -453,9 +495,14 @@
                 if (algSubstance) {
                     historyData.allergiesAndAvoid = [{ id: `alg-${Date.now()}`, substance: algSubstance, severity: 'Severe', reactionDescription: algDesc || 'Severe reaction reported' }, ...allergies];
                 }
+                if (careCategory || careInstruction) {
+                    historyData.careConditions = [{ id: `care-${Date.now()}`, category: careCategory || 'General care', instruction: careInstruction || 'Discuss this care condition with the treating clinician' }, ...careConditions];
+                }
+                if (emergencyTrigger || emergencyAction) {
+                    historyData.emergencyProtocols = [{ id: `emg-${Date.now()}`, triggerCondition: emergencyTrigger || 'Emergency symptoms', actionSteps: emergencyAction || 'Seek immediate clinical assessment' }, ...protocols];
+                }
 
                 saveMedicalHistory(historyData);
-                if (editModal) editModal.style.display = 'none';
             };
         }
 
@@ -465,15 +512,32 @@
         const closeQr = container.querySelector('#close-qr-modal');
         const closeQrDone = container.querySelector('#close-qr-done');
 
+        if (qrModal) {
+            qrModal.querySelector('.modal-card')?.setAttribute('role', 'dialog');
+            qrModal.querySelector('.modal-card')?.setAttribute('aria-modal', 'true');
+            qrModal.querySelector('.modal-card')?.setAttribute('aria-label', 'Doctor QR handoff');
+            qrModal.onclick = event => { if (event.target === qrModal) closeQrModal(); };
+            qrModal.onkeydown = event => { if (event.key === 'Escape') closeQrModal(); };
+        }
+
+        function closeQrModal() {
+            if (!qrModal) return;
+            qrModal.style.display = 'none';
+            qrBtn?.focus();
+        }
+
         if (qrBtn) {
             qrBtn.onclick = () => {
-                if (qrModal) qrModal.style.display = 'grid';
+                if (qrModal) {
+                    qrModal.style.display = 'grid';
+                    closeQr?.focus();
+                }
                 const qrTarget = container.querySelector('#qr-code-canvas');
                 if (window.qrcode && qrTarget) {
                     const typeNumber = 4;
                     const errorCorrectionLevel = 'L';
                     const qr = window.qrcode(typeNumber, errorCorrectionLevel);
-                    const shareUrl = hrefFor(`/dashboard/patient/history?passportId=${dynamicPassportId}&mode=view`);
+                    const shareUrl = hrefFor(`/login?role=doctor&passportId=${encodeURIComponent(dynamicPassportId)}`);
                     qr.addData(window.location.origin + shareUrl);
                     qr.make();
                     qrTarget.innerHTML = qr.createImgTag(5);
@@ -481,8 +545,8 @@
             };
         }
 
-        if (closeQr) closeQr.onclick = () => { if (qrModal) qrModal.style.display = 'none'; };
-        if (closeQrDone) closeQrDone.onclick = () => { if (qrModal) qrModal.style.display = 'none'; };
+        if (closeQr) closeQr.onclick = closeQrModal;
+        if (closeQrDone) closeQrDone.onclick = closeQrModal;
 
         window.App.UI.bindMobileBottomNav(container);
         return container;

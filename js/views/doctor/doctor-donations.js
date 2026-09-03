@@ -51,7 +51,7 @@
                     <div class="donation-result-icon">${icon(p.type === 'blood' ? 'droplets' : 'activity', 16)}</div>
                     <div>
                         <strong>${esc(p.name)} · ${esc(p.group)}</strong>
-                        <p>${p.mode === 'give' ? 'Registered Donor' : 'Patient Request'} · ${esc(p.city)}</p>
+                        <p>${p.mode === 'give' ? (p.type === 'organ' ? 'Recorded Interest' : 'Demo Donor Interest') : 'Demo Patient Request'} · ${esc(p.city)}</p>
                         <small>${esc(p.status || 'Active')} · ${esc(p.urgency || 'Routine')}</small>
                     </div>
                     <button type="button" class="btn-primary btn-icon btn-contact" data-name="${esc(p.name)}" data-group="${esc(p.group)}" style="font-size:.72rem;min-height:2.2rem;padding:.4rem .75rem">
@@ -82,11 +82,12 @@
                     <header class="provider-header">
                         <div>
                             <div class="eyebrow" style="color:var(--teal)"><span class="eyebrow-dot"></span> Blood Bank &amp; Organ Network</div>
-                            <h1>Manage centre donations &amp; donor pool.</h1>
+                            <h1>Explore centre donation workflows.</h1>
                             <p>${esc(state.loggedHospital || 'SmartCare Central Hospital')} · ${esc(state.loggedCity || 'Hyderabad')}</p>
                         </div>
-                        <div class="provider-date">${new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })}<br><strong>Network synced</strong></div>
+                        <div class="provider-date">${new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })}<br><strong>Local demo pool</strong></div>
                     </header>
+                    <div class="provider-notice donation-demo-notice">${icon('info', 15)} Demo only: entries stay on this device. No donor, patient, hospital, registry, or emergency service is contacted.</div>
                     <div class="donation-category-section">
                         <span class="donation-micro-label">DONATION CATEGORY</span>
                         <div class="donation-type-switch" role="tablist" aria-label="Donation Category">
@@ -105,29 +106,29 @@
                             </div>
                             ${donationType === 'blood' ? `
                             <h2>${mode === 'offer' ? 'Publish blood unit availability' : 'Post urgent blood requirement'}</h2>
-                            <p>${mode === 'offer' ? 'Add available units to the regional blood bank inventory visible to patients and triage desks.' : 'Broadcast a blood shortage to registered donors and partner medical centres.'}</p>
+                            <p>${mode === 'offer' ? 'Add sample units to the same-device patient and operations demo.' : 'Record a shortage scenario for the local donor-pool workflow.'}</p>
                             <form id="donation-form" class="donation-form">
                                 <label class="field"><span>Blood group</span><select id="d-group">${bloodGroups.map(g => `<option value="${g}">${g}</option>`).join('')}</select></label>
                                 <label class="field"><span>Units ${mode === 'offer' ? 'available' : 'needed'}</span><input id="d-units" type="number" min="1" max="100" placeholder="e.g. 5" value="4" required></label>
                                 <label class="field"><span>Urgency</span><select id="d-urgency"><option value="Routine">Routine</option><option value="Urgent">Urgent</option><option value="Emergency">Emergency</option></select></label>
                                 <label class="field"><span>Storage notes / Location</span><input id="d-notes" type="text" placeholder="e.g. Blood Bank Wing B, shelf 3" value="Main Blood Bank Wing"></label>
-                                <button type="submit" class="btn-primary btn-icon" id="d-submit">${icon('send', 16)} ${mode === 'offer' ? 'Publish blood offer' : 'Broadcast blood request'}</button>
+                                <button type="submit" class="btn-primary btn-icon" id="d-submit">${icon('send', 16)} ${mode === 'offer' ? 'Save demo blood offer' : 'Save demo blood request'}</button>
                             </form>` : `
-                            <h2>${mode === 'offer' ? 'Register organ transplant availability' : 'Broadcast urgent organ transplant need'}</h2>
-                            <p>${mode === 'offer' ? 'List available matching organs with authorized transplant coordinators.' : 'Notify the regional organ sharing network and patient registries.'}</p>
+                            <h2>${mode === 'offer' ? 'Record an organ availability scenario' : 'Record an organ support scenario'}</h2>
+                            <p>${mode === 'offer' ? 'Simulate an authorized coordinator review without publishing organ availability.' : 'Simulate a transplant support workflow without notifying a registry or waiting list.'}</p>
                             <form id="donation-form" class="donation-form">
                                 <label class="field"><span>${mode === 'offer' ? 'Organ available' : 'Organ required'}</span><select id="d-group">${organs.map(o => `<option value="${o}">${o}</option>`).join('')}</select></label>
                                 <label class="field"><span>Urgency</span><select id="d-urgency"><option value="Routine">Routine</option><option value="Urgent">Urgent</option><option value="Emergency">Emergency</option></select></label>
                                 <label class="field"><span>Clinical notes</span><input id="d-notes" type="text" placeholder="Compatibility, HLA crossmatch details"></label>
-                                <label class="consent-field"><input type="checkbox" id="d-consent" checked> I confirm this entry complies with national organ transplant protocols.</label>
-                                <button type="submit" class="btn-primary btn-icon" id="d-submit">${icon('send', 16)} ${mode === 'offer' ? 'Publish organ entry' : 'Broadcast organ request'}</button>
+                                <label class="consent-field"><input type="checkbox" id="d-consent" required> I understand this is a local workflow demo and does not update an official transplant registry or constitute clinical authorization.</label>
+                                <button type="submit" class="btn-primary btn-icon" id="d-submit">${icon('send', 16)} ${mode === 'offer' ? 'Save demo organ case' : 'Save demo support case'}</button>
                             </form>`}
                             ${message ? `<div class="donation-message ${messageType}" role="alert" style="margin-top:.85rem;padding:.75rem;border-radius:.5rem;background:${messageType === 'success' ? '#e8f8f2' : '#fdeeed'};color:${messageType === 'success' ? '#0b754f' : '#b23b35'}">${message}</div>` : ''}
                         </div>
                         <div class="donation-card donation-aside" style="border-radius:1rem">
                             <div class="donation-aside-icon" style="margin-bottom:.75rem">${icon(mode === 'offer' ? 'users' : 'user-check', 22)}</div>
-                            <h2 style="margin:.25rem 0 .35rem;font-size:1.05rem">${mode === 'offer' ? `Patients needing ${donationType}` : `Registered ${donationType} donors`}</h2>
-                            <p style="font-size:.78rem;color:var(--muted);margin-bottom:.75rem">${mode === 'offer' ? `Live patient requests across the network waiting for ${donationType}.` : `Community members registered and available for ${donationType} donation.`}</p>
+                            <h2 style="margin:.25rem 0 .35rem;font-size:1.05rem">${mode === 'offer' ? `Sample ${donationType} requests` : donationType === 'organ' ? 'Recorded organ interests' : 'Demo blood donor interests'}</h2>
+                            <p style="font-size:.78rem;color:var(--muted);margin-bottom:.75rem">${mode === 'offer' ? `Local demo patient requests for the ${donationType} workflow.` : `Same-device entries available for testing coordinator follow-up.`}</p>
                             <div class="donation-results">
                                 ${patientMatchesHtml || `<div class="provider-empty" style="padding:1.5rem 0">${icon('user-x', 26)}<p>No matching patient ${mode === 'offer' ? 'requests' : 'donors'} registered.</p></div>`}
                             </div>
@@ -163,7 +164,7 @@
                 btn.onclick = () => {
                     const name = btn.dataset.name;
                     const group = btn.dataset.group;
-                    window.App.UI.toast(`Initiated direct hospital contact dispatch for ${name} (${group}).`, 'success');
+                    window.App.UI.toast(`Demo follow-up opened for ${name} (${group}). No contact was dispatched.`, 'info');
                 };
             });
 
@@ -195,8 +196,8 @@
                 });
 
                 message = mode === 'offer'
-                    ? `Successfully posted ${units ? `${units} units of ` : ''}${group} ${donationType} to the network. Visible to patients and partner care centres.`
-                    : `Urgent requirement for ${group} ${donationType} published to the network. Matching donors will receive dispatch alerts.`;
+                    ? `Saved ${units ? `${units} units of ` : ''}${group} ${donationType} to this device's demo pool. Nothing was published externally.`
+                    : `Saved the ${group} ${donationType} requirement to this device's demo pool. No alerts were dispatched.`;
                 messageType = 'success';
                 window.App.UI.toast(message, 'success');
                 render();

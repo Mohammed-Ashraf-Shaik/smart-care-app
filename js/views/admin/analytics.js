@@ -19,8 +19,9 @@
             const baseMetrics = getQueueMetrics();
             if (range === 'week') {
                 return {
-                    label: 'Past 7 Days',
-                    period: '17 Aug – 23 Aug 2026',
+                    label: '7-day sample',
+                    period: 'Illustrative dataset',
+                    sample: true,
                     waiting: 48,
                     avgWait: '14m',
                     priority: 9,
@@ -36,13 +37,15 @@
                     ],
                     peakHour: 'Friday 10:30 AM',
                     topDept: 'General Medicine (44%)',
-                    health: 'Optimal Capacity'
+                    health: 'Sample: optimal capacity',
+                    roomUtilization: 'Sample: 84%'
                 };
             }
             if (range === 'month') {
                 return {
-                    label: 'Month-to-Date',
-                    period: '01 Aug – 23 Aug 2026',
+                    label: 'Monthly sample',
+                    period: 'Illustrative dataset',
+                    sample: true,
                     waiting: 194,
                     avgWait: '16m',
                     priority: 34,
@@ -55,45 +58,59 @@
                     ],
                     peakHour: 'Mornings 09:00–12:00',
                     topDept: 'Emergency & Triage (38%)',
-                    health: 'Stable Flow'
+                    health: 'Sample: stable flow',
+                    roomUtilization: 'Sample: 84%'
                 };
             }
-            // Today (default)
-            const liveBars = state.queue.length
-                ? state.queue.map((patient, idx) => ({
-                    label: `${8 + idx}:00`,
-                    height: Math.min(100, 35 + (patient.triage === 'Red' ? 55 : patient.triage === 'Yellow' ? 35 : 15)),
-                    count: 1
-                })).slice(0, 8)
-                : [
-                    { label: '08:00', height: 30, count: 3 },
-                    { label: '09:00', height: 65, count: 8 },
-                    { label: '10:00', height: 90, count: 12 },
-                    { label: '11:00', height: 75, count: 9 },
-                    { label: '12:00', height: 45, count: 5 },
-                    { label: '13:00', height: 35, count: 4 },
-                    { label: '14:00', height: 55, count: 7 },
-                    { label: '15:00', height: 40, count: 5 }
-                ];
+
+            const hourlyCounts = state.queue.reduce((counts, patient) => {
+                const arrival = new Date(patient.created_at || Date.now());
+                const hour = Number.isNaN(arrival.getTime()) ? new Date().getHours() : arrival.getHours();
+                counts[hour] = (counts[hour] || 0) + 1;
+                return counts;
+            }, {});
+            const maxHourlyCount = Math.max(1, ...Object.values(hourlyCounts));
+            const liveBars = Object.entries(hourlyCounts)
+                .sort(([a], [b]) => Number(a) - Number(b))
+                .map(([hour, count]) => ({
+                    label: `${String(hour).padStart(2, '0')}:00`,
+                    height: Math.max(12, Math.round((count / maxHourlyCount) * 100)),
+                    count
+                }));
+            const departmentCounts = state.queue.reduce((counts, patient) => {
+                const department = patient.doctorPref || patient.doctor_pref || 'General care';
+                counts[department] = (counts[department] || 0) + 1;
+                return counts;
+            }, {});
+            const topDepartment = Object.entries(departmentCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'No active demand';
+            const peakBar = [...liveBars].sort((a, b) => b.count - a.count)[0];
 
             return {
-                label: 'Today',
+                label: 'Current queue',
                 period: new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' }),
-                waiting: baseMetrics.waiting || 6,
-                avgWait: `${baseMetrics.averageWait || 12}m`,
-                priority: baseMetrics.priority || 1,
-                revenue: `₹${baseMetrics.revenue || 1375}`,
+                sample: false,
+                waiting: baseMetrics.waiting,
+                avgWait: `${baseMetrics.averageWait}m`,
+                priority: baseMetrics.priority,
+                revenue: `₹${baseMetrics.revenue}`,
                 bars: liveBars,
-                peakHour: '10:00–11:00 AM',
-                topDept: esc(state.queue[0]?.doctorPref || state.queue[0]?.problem || 'General Consultation'),
-                health: (baseMetrics.waiting || 0) < 8 ? 'Within Target' : 'High Volume'
+                peakHour: peakBar ? `${peakBar.label} (${peakBar.count} active)` : 'No arrivals in current queue',
+                topDept: topDepartment,
+                health: baseMetrics.waiting === 0 ? 'Queue clear' : baseMetrics.waiting < 8 ? 'Within target' : 'High volume',
+                roomUtilization: 'Not measured'
             };
         }
 
         function exportCSV() {
             const data = getRangeData(selectedRange);
+            const csvCell = value => {
+                let text = String(value ?? '');
+                if (/^[=+\-@]/.test(text)) text = `'${text}`;
+                return `"${text.replace(/"/g, '""')}"`;
+            };
             const rows = [
-                ['SmartCare Clinical & Queue Report'],
+                ['SmartCare Queue Report'],
+                ['Dataset', data.sample ? 'Illustrative sample — not operational history' : 'Current active queue snapshot'],
                 ['Hospital', state.loggedHospital || 'SmartCare Community Hospital'],
                 ['Date Range', data.label + ' (' + data.period + ')'],
                 ['Export Timestamp', new Date().toISOString()],
@@ -118,27 +135,25 @@
                         p.name || 'Anonymous',
                         p.age || 'N/A',
                         p.gender || 'N/A',
-                        `"${(p.symptoms || p.problem || p.doctorPref || 'General').replace(/"/g, '""')}"`,
+                        p.symptoms || p.problem || p.doctorPref || 'General',
                         p.triage || 'Green',
                         p.status || 'waiting',
                         p.fee || 125,
                         p.created_at || new Date().toISOString()
                     ]);
                 });
-            } else {
-                rows.push(['SC-DEMO001', 'Maya Singh', '29', 'Female', '"Follow-up consultation"', 'Green', 'waiting', '125', new Date().toISOString()]);
-                rows.push(['SC-DEMO002', 'Asha Rao', '32', 'Female', '"Fever and general check-up"', 'Yellow', 'waiting', '275', new Date().toISOString()]);
-            }
+            } else rows.push(['No active queue entries']);
 
-            const csvContent = 'data:text/csv;charset=utf-8,' + rows.map(e => e.join(',')).join('\n');
-            const encodedUri = encodeURI(csvContent);
+            const csvContent = rows.map(row => row.map(csvCell).join(',')).join('\n');
+            const encodedUri = URL.createObjectURL(new Blob([csvContent], { type: 'text/csv;charset=utf-8' }));
             const link = document.createElement('a');
             link.setAttribute('href', encodedUri);
             link.setAttribute('download', `SmartCare_Queue_Report_${selectedRange}_${new Date().toISOString().slice(0,10)}.csv`);
             document.body.appendChild(link);
             link.click();
             link.remove();
-            window.App.UI.toast(`Exported ${data.label} CSV Report!`, 'success');
+            URL.revokeObjectURL(encodedUri);
+            window.App.UI.toast(`Exported ${data.label} CSV report.`, 'success');
         }
 
         function render() {
@@ -162,21 +177,21 @@
                         <div>
                             <div class="eyebrow" style="color:var(--teal)"><span class="eyebrow-dot"></span> Performance analytics</div>
                             <h1>See where care slows down.</h1>
-                            <p>${esc(state.loggedHospital || 'SmartCare Community Hospital')} · Live operational telemetry</p>
+                            <p>${esc(state.loggedHospital || 'SmartCare Community Hospital')} · ${data.sample ? 'Clearly labeled demo sample' : 'Current active queue snapshot'}</p>
                         </div>
                         <div class="provider-date">${icon('calendar-days', 14)} ${esc(data.period)}<br><strong>Refreshes with the queue</strong></div>
                     </header>
 
                     <div class="analytics-toolbar">
                         <div class="range-pill-group" role="tablist" aria-label="Date Range Filter">
-                            <button type="button" class="range-pill-btn ${selectedRange === 'today' ? 'active' : ''}" data-range="today">
-                                ${icon('clock', 13)} Today
+                            <button type="button" role="tab" aria-selected="${selectedRange === 'today'}" class="range-pill-btn ${selectedRange === 'today' ? 'active' : ''}" data-range="today">
+                                ${icon('clock', 13)} Current queue
                             </button>
-                            <button type="button" class="range-pill-btn ${selectedRange === 'week' ? 'active' : ''}" data-range="week">
-                                ${icon('calendar-days', 13)} Past 7 Days
+                            <button type="button" role="tab" aria-selected="${selectedRange === 'week'}" class="range-pill-btn ${selectedRange === 'week' ? 'active' : ''}" data-range="week">
+                                ${icon('calendar-days', 13)} 7-day sample
                             </button>
-                            <button type="button" class="range-pill-btn ${selectedRange === 'month' ? 'active' : ''}" data-range="month">
-                                ${icon('calendar-range', 13)} Month-to-Date
+                            <button type="button" role="tab" aria-selected="${selectedRange === 'month'}" class="range-pill-btn ${selectedRange === 'month' ? 'active' : ''}" data-range="month">
+                                ${icon('calendar-range', 13)} Monthly sample
                             </button>
                         </div>
 
@@ -192,24 +207,24 @@
 
                     <div class="provider-stats">
                         <div class="provider-stat">
-                            <span>Patient Volume (${data.label})</span>
+                            <span>${data.sample ? 'Sample patient volume' : 'Active visits'}</span>
                             <strong>${data.waiting}</strong>
-                            <small>Total registered visits</small>
+                            <small>${data.sample ? 'Illustrative, not stored history' : 'Current queue entries'}</small>
                         </div>
                         <div class="provider-stat">
                             <span>Average Wait Time</span>
                             <strong>${data.avgWait}</strong>
-                            <small>Arrival to consultation</small>
+                            <small>${data.sample ? 'Illustrative duration' : 'Time since queue arrival'}</small>
                         </div>
                         <div class="provider-stat">
                             <span>Priority Triage</span>
                             <strong>${data.priority}</strong>
-                            <small>Red/urgent priority cases</small>
+                            <small>${data.sample ? 'Illustrative red cases' : 'Red cases in current queue'}</small>
                         </div>
                         <div class="provider-stat">
                             <span>Consultation Value</span>
                             <strong>${data.revenue}</strong>
-                            <small>Estimated period total</small>
+                            <small>${data.sample ? 'Illustrative value' : 'Estimated from active visits'}</small>
                         </div>
                     </div>
 
@@ -221,26 +236,26 @@
                                     <p>Track arrival spikes to balance doctors and triage desk rooms.</p>
                                 </div>
                             </div>
-                            <div class="chart-bars" role="img" aria-label="Chart showing queue activity">
+                            ${data.bars.length ? `<div class="chart-bars" role="img" aria-label="${data.sample ? 'Illustrative' : 'Current'} queue activity by arrival hour">
                                 ${data.bars.map(b => `
                                     <div class="chart-column">
                                         <div class="chart-bar" style="height:${b.height}%" title="${b.label}: ${b.count || b.height} visits"></div>
                                         <small>${b.label}</small>
                                     </div>`).join('')}
-                            </div>
+                            </div>` : `<div class="provider-empty">${icon('chart-no-axes-column', 28)}<p>No active arrivals to chart.</p></div>`}
                         </section>
 
                         <section id="tab-signals" data-tab-panel="signals" class="provider-card" data-section="analytics-signals">
                             <div class="provider-card-heading">
                                 <div>
                                     <h2>Operational Signals &amp; Bottlenecks</h2>
-                                    <p>Live health indicators and department distribution.</p>
+                                    <p>${data.sample ? 'Illustrative planning signals.' : 'Signals derived from the current active queue only.'}</p>
                                 </div>
                             </div>
                             <div class="summary-row"><span>Peak Rush Window</span><strong>${data.peakHour}</strong></div>
-                            <div class="summary-row"><span>Top Department Demand</span><strong>${data.topDept}</strong></div>
+                            <div class="summary-row"><span>Top department demand</span><strong>${esc(data.topDept)}</strong></div>
                             <div class="summary-row"><span>Queue Flow Status</span><strong style="color:var(--teal)">${data.health}</strong></div>
-                            <div class="summary-row"><span>Room Utilization</span><strong>84% Active</strong></div>
+                            <div class="summary-row"><span>Room utilization</span><strong>${data.roomUtilization}</strong></div>
                             <a class="btn-secondary btn-wide btn-icon" data-route="${overviewRoute}" href="${overviewRoute}" style="margin-top:1rem">
                                 Back to ${overviewLabel} ${icon('arrow-right', 16)}
                             </a>

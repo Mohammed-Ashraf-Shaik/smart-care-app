@@ -17,21 +17,21 @@
             about: {
                 eyebrow: 'About SmartCare Systems',
                 icon: 'heart-pulse',
-                title: 'Next-generation digital queue access for patients and hospitals.',
-                intro: 'SmartCare connects patients with nearby care centres in real time, organizes arrival times, and gives medical teams live queue telemetry to reduce crowding and wait times.',
+                title: 'A high-fidelity healthcare queue and Medical Passport prototype.',
+                intro: 'SmartCare demonstrates how patients, care providers, and hospital operations teams can coordinate booking, queue handoffs, and browser-local health records in one accessible interface.',
                 badges: [
-                    { icon: 'clock-3', text: 'Live Queue Telemetry' },
-                    { icon: 'map-pin', text: 'Location-Aware Discovery' },
-                    { icon: 'shield-check', text: 'Zero Data Retention' },
-                    { icon: 'heart-handshake', text: 'Community Donation Hub' }
+                    { icon: 'clock-3', text: 'Current Queue Snapshot' },
+                    { icon: 'map-pin', text: 'Opt-In Location Search' },
+                    { icon: 'hard-drive', text: 'Browser-Local Demo Records' },
+                    { icon: 'heart-handshake', text: 'Donation Workflow Demo' }
                 ],
                 keypointTitle: 'Prototype & Demo Architecture',
-                keypointText: 'SmartCare is a high-fidelity demonstration prototype. Location services, queue metrics, and care provider authentication are integrated with a simulated service layer for evaluation.',
+                keypointText: 'This build is an evaluation prototype. It uses a browser-local service for accounts, queues, rooms, prescriptions, and donation workflows, plus public map services for location search. It is not connected to a clinical system or care network.',
                 sections: [
-                    { icon: 'stethoscope', heading: 'Care Discovery & Queue Access', text: 'Search nearby clinics and hospitals, compare live queue waiting times, and reserve a consultation slot without waiting in crowded physical lobbies.' },
-                    { icon: 'layout-dashboard', heading: 'Provider & Hospital Workspace', text: 'Doctors and hospital triage desks get real-time patient queue metrics, room availability management, and structured handoff workflows.' },
-                    { icon: 'heart-handshake', heading: 'Blood & Organ Donation Pool', text: 'An integrated regional network where patients and care centres can post and discover urgent blood supplies and pledged organ donor registries.' },
-                    { icon: 'sparkles', heading: 'Triage-First Prioritization', text: 'Patients are automatically organized by clinical urgency (Red / Yellow / Green) and arrival sequence to ensure critical care cases are seen first.' }
+                    { icon: 'stethoscope', heading: 'Care Discovery & Queue Access', text: 'Search public map data and clearly labeled fictional fallback centres, then create a local demo reservation and follow its current queue state.' },
+                    { icon: 'layout-dashboard', heading: 'Provider & Hospital Workspace', text: 'Doctors and Hospital Ops can test queue transitions, walk-in intake, local room readiness, Passport handoff, and e-prescription workflows.' },
+                    { icon: 'heart-handshake', heading: 'Blood & Organ Donation Workflow', text: 'Explore a same-device demonstration of donation offers, support requests, and non-binding organ interest without contacting hospitals or official registries.' },
+                    { icon: 'sparkles', heading: 'Triage-First Ordering', text: 'The demo orders queue entries by their assigned Red, Yellow, or Green priority and then by arrival time; it does not make clinical triage decisions.' }
                 ]
             },
             terms: {
@@ -42,34 +42,34 @@
                 badges: [
                     { icon: 'flask-conical', text: 'Evaluation Prototype' },
                     { icon: 'triangle-alert', text: 'Not for Medical Emergencies' },
-                    { icon: 'file-text', text: 'Updated August 2026' }
+                    { icon: 'file-text', text: 'Updated September 2026' }
                 ],
                 keypointTitle: 'Important User Responsibilities',
                 keypointText: 'By using the SmartCare prototype, you agree not to enter sensitive medical records, protected health information (PHI), or real credentials.',
                 sections: [
                     { icon: 'monitor', heading: 'Non-Emergency Simulation', text: 'SmartCare is a design and workflow prototype. Do not use this demo for life-threatening medical emergencies. Please call your local emergency services (e.g. 108 / 911 / 112) immediately.' },
-                    { icon: 'key-round', heading: 'Account & Demo Authentication', text: 'Role-based accounts (Patient, Doctor, Staff) are provided for evaluation. Please use fictional demo credentials and do not submit sensitive personal identifiers.' },
-                    { icon: 'map', heading: 'Location & Map Services', text: 'Geocoding and mapping features use public API services. Location queries are used solely in-memory to find nearby simulated hospital coordinates.' },
+                    { icon: 'key-round', heading: 'Account & Demo Authentication', text: 'Role-based Patient, Doctor / Provider, and Hospital Ops accounts are provided for evaluation. Use fictional demo credentials and do not submit sensitive personal identifiers.' },
+                    { icon: 'map', heading: 'Location & Map Services', text: 'When you choose a device-location or manual search, the query or coordinates are sent to public OpenStreetMap-based services. Selected booking details may then remain in this browser.' },
                     { icon: 'refresh-cw', heading: 'Continuous Improvements', text: 'System features, queue metrics, and simulated inventories may update dynamically as new capabilities are tested and refined.' }
                 ]
             },
             privacy: {
                 eyebrow: 'Privacy Notice & Data Security',
                 icon: 'shield-check',
-                title: 'Privacy by design. Minimal data, maximum security.',
-                intro: 'SmartCare adheres to strict data minimization principles. We believe health technology prototypes should safeguard user privacy from day one.',
+                title: 'Know what this prototype stores and shares.',
+                intro: 'SmartCare is a front-end demonstration, not a production health-record system. Use only fictional information and clear the site’s browser data when you finish evaluating it.',
                 badges: [
                     { icon: 'lock', text: 'Local-First Storage' },
-                    { icon: 'eye-off', text: 'Zero Tracking Cookies' },
-                    { icon: 'trash-2', text: 'Instant Session Reset' }
+                    { icon: 'cookie', text: 'Translation Cookie Only' },
+                    { icon: 'trash-2', text: 'Clear Through Browser Settings' }
                 ],
-                keypointTitle: 'Your Data Privacy Rights',
-                keypointText: 'You have full control over all data generated during your session. Logging out or clearing your browser storage instantly wipes all demo records from this device.',
+                keypointTitle: 'Logging Out Is Not Data Deletion',
+                keypointText: 'Signing out removes the active SmartCare session but intentionally keeps local demo profiles, visits, queues, rooms, prescriptions, Passport records, theme, and donation entries. Clear this site’s cookies and storage in your browser to remove them.',
                 sections: [
-                    { icon: 'database', heading: 'Data Handled in Demo', text: 'Only basic temporary inputs required to demonstrate queue reservations (e.g. mock name, age, symptom category, and selected care centre) are stored locally.' },
-                    { icon: 'navigation', heading: 'Precise Location Privacy', text: 'Your browser location is requested only when you click "Use current location". It is never tracked in the background or shared with third parties.' },
-                    { icon: 'hard-drive', heading: 'Local Storage Isolation', text: 'Your visit history, donor pledges, and draft forms are kept in your browser local storage. You can clear them at any time from your browser settings or by signing out.' },
-                    { icon: 'mail', heading: 'Contact & Support Inquiries', text: 'For questions regarding privacy, demo data handling, or technical architecture, reach out to our team at support@smartcare.demo.' }
+                    { icon: 'database', heading: 'Data Stored in This Demo', text: 'The browser can store fictional profiles, booking drafts and visits, queue entries, room states, prescriptions, Medical Passport fields, donation entries, session details, and interface preferences.' },
+                    { icon: 'navigation', heading: 'Location & External Map Services', text: 'Location access starts only when you select it. Manual search text or device coordinates are sent to Nominatim and Overpass/OpenStreetMap-based services to geocode and find nearby places; map assets also load from external providers.' },
+                    { icon: 'hard-drive', heading: 'Local Storage Scope', text: 'Patient drafts, visits, and Passport history are account-scoped in this browser. Some shared operational demo data—such as queues, donation posts, and prescriptions—is visible across local demo roles by design.' },
+                    { icon: 'languages', heading: 'Language Preference', text: 'The optional translation control may set a Google Translate preference cookie. SmartCare does not include advertising or analytics trackers in this build.' }
                 ]
             }
         };
@@ -79,7 +79,7 @@
         function workspaceNavHtml() {
             const role = state.loggedRole;
             if (role === 'patient') {
-                return `<a href="/dashboard/patient" data-route="/dashboard/patient">${icon('layout-dashboard', 16)}<span>Overview</span></a><a href="/dashboard/patient/apply/1" data-route="/dashboard/patient/apply/1" data-tab="apply">${icon('calendar-plus', 16)}<span>Book appointment</span></a><a href="/dashboard/patient?tab=visits" data-tab="visits" data-tab-route="/dashboard/patient">${icon('clipboard-check', 16)}<span>Previous visits</span></a><a href="/dashboard/patient?tab=profile" data-tab="profile" data-tab-route="/dashboard/patient">${icon('user-round', 16)}<span>Profile</span></a><div class="nav-divider"></div><a href="/dashboard/patient/donations" data-route="/dashboard/patient/donations">${icon('heart-handshake', 16)}<span>Donations</span></a><a class="active" href="/dashboard/patient/help" data-route="/dashboard/patient/help">${icon('circle-help', 16)}<span>Help</span></a><button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>`;
+                return `<a href="/dashboard/patient" data-route="/dashboard/patient">${icon('layout-dashboard', 16)}<span>Overview</span></a><a href="/dashboard/patient/apply/1" data-route="/dashboard/patient/apply/1">${icon('calendar-plus', 16)}<span>Book appointment</span></a><a href="/dashboard/patient?tab=visits" data-tab="visits" data-tab-route="/dashboard/patient">${icon('clipboard-check', 16)}<span>Previous visits</span></a><a href="/dashboard/patient?tab=profile" data-tab="profile" data-tab-route="/dashboard/patient">${icon('user-round', 16)}<span>Profile</span></a><div class="nav-divider"></div><a href="/dashboard/patient/donations" data-route="/dashboard/patient/donations">${icon('heart-handshake', 16)}<span>Donations</span></a><a class="active" href="/dashboard/patient/help" data-route="/dashboard/patient/help">${icon('circle-help', 16)}<span>Help</span></a><button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>`;
             }
             if (role === 'doctor') {
                 return `<a href="/dashboard/doctor" data-route="/dashboard/doctor">${icon('layout-dashboard', 16)}<span>Overview</span></a><a href="/dashboard/queue" data-route="/dashboard/queue">${icon('list-ordered', 16)}<span>Queue</span></a><a href="/dashboard/analytics" data-route="/dashboard/analytics">${icon('bar-chart-3', 16)}<span>Analytics</span></a><div class="nav-divider"></div><a href="/dashboard/doctor/donations" data-route="/dashboard/doctor/donations">${icon('heart-handshake', 16)}<span>Donations</span></a><a class="active" href="/dashboard/doctor/help" data-route="/dashboard/doctor/help">${icon('circle-help', 16)}<span>Help</span></a><button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>`;

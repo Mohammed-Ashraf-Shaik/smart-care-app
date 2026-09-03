@@ -14,20 +14,20 @@
         }
     }
 
-    // Rich fallback dataset of 12 verified medical centers
+    // Fictional fallback centres keep the prototype usable when public map results are sparse.
     const fallbackHospitals = [
-        { id: 'hosp-101', name: 'SmartCare Community Hospital', type: 'hospital', area: 'Banjara Hills', city: 'Hyderabad', openingHours: '24/7 Emergency', waitTime: '12 min', rating: 4.8 },
-        { id: 'hosp-102', name: 'Apollo Health City', type: 'hospital', area: 'Jubilee Hills', city: 'Hyderabad', openingHours: '24/7 Emergency', waitTime: '18 min', rating: 4.9 },
-        { id: 'hosp-103', name: 'KIMS Hospitals & Research Centre', type: 'hospital', area: 'Secunderabad', city: 'Secunderabad', openingHours: '24/7 Emergency', waitTime: '15 min', rating: 4.7 },
-        { id: 'hosp-104', name: 'Yashoda Super Specialty Hospital', type: 'hospital', area: 'Somajiguda', city: 'Hyderabad', openingHours: '24/7 Emergency', waitTime: '22 min', rating: 4.8 },
-        { id: 'hosp-105', name: 'Green Cross Medical Clinic', type: 'clinic', area: 'Gachibowli', city: 'Hyderabad', openingHours: '08:00 - 22:00', waitTime: '8 min', rating: 4.6 },
-        { id: 'hosp-106', name: 'Care Hospitals & Specialty Clinic', type: 'hospital', area: 'HITEC City', city: 'Hyderabad', openingHours: '24/7 Emergency', waitTime: '14 min', rating: 4.7 },
-        { id: 'hosp-107', name: 'Continental Hospitals', type: 'hospital', area: 'Financial District', city: 'Hyderabad', openingHours: '24/7 Emergency', waitTime: '16 min', rating: 4.8 },
-        { id: 'hosp-108', name: 'Sunshine Community Clinic', type: 'clinic', area: 'Madhapur', city: 'Hyderabad', openingHours: '09:00 - 21:00', waitTime: '5 min', rating: 4.5 },
-        { id: 'hosp-109', name: 'Fernandez Women & Child Care', type: 'clinic', area: 'Bogulkunta', city: 'Hyderabad', openingHours: '08:00 - 20:00', waitTime: '10 min', rating: 4.9 },
-        { id: 'hosp-110', name: 'Star Hospitals & Heart Institute', type: 'hospital', area: 'Nanakramguda', city: 'Hyderabad', openingHours: '24/7 Emergency', waitTime: '20 min', rating: 4.8 },
-        { id: 'hosp-111', name: 'Olive Super Specialty Hospital', type: 'hospital', area: 'Mehdipatnam', city: 'Hyderabad', openingHours: '24/7 Emergency', waitTime: '15 min', rating: 4.4 },
-        { id: 'hosp-112', name: 'Maxivision Eye & Multi-Specialty Clinic', type: 'clinic', area: 'Begumpet', city: 'Hyderabad', openingHours: '09:00 - 19:00', waitTime: '6 min', rating: 4.6 }
+        { id: 'hosp-101', name: 'SmartCare Community Hospital', type: 'hospital', area: 'Central district', city: 'Hyderabad', openingHours: 'Hours not verified', waitTime: '12 min' },
+        { id: 'hosp-102', name: 'Lakeview General Hospital', type: 'hospital', area: 'Lakeview', city: 'Hyderabad', openingHours: 'Hours not verified', waitTime: '18 min' },
+        { id: 'hosp-103', name: 'Northgate Medical Centre', type: 'hospital', area: 'Northgate', city: 'Hyderabad', openingHours: 'Hours not verified', waitTime: '15 min' },
+        { id: 'hosp-104', name: 'Riverside Care Hospital', type: 'hospital', area: 'Riverside', city: 'Hyderabad', openingHours: 'Hours not verified', waitTime: '22 min' },
+        { id: 'hosp-105', name: 'Green Cross Community Clinic', type: 'clinic', area: 'West district', city: 'Hyderabad', openingHours: 'Hours not verified', waitTime: '8 min' },
+        { id: 'hosp-106', name: 'Horizon Multispecialty Centre', type: 'hospital', area: 'Tech district', city: 'Hyderabad', openingHours: 'Hours not verified', waitTime: '14 min' },
+        { id: 'hosp-107', name: 'Metro Family Hospital', type: 'hospital', area: 'Financial district', city: 'Hyderabad', openingHours: 'Hours not verified', waitTime: '16 min' },
+        { id: 'hosp-108', name: 'Sunrise Community Clinic', type: 'clinic', area: 'East district', city: 'Hyderabad', openingHours: 'Hours not verified', waitTime: '5 min' },
+        { id: 'hosp-109', name: 'Fern Grove Women & Child Care', type: 'clinic', area: 'Old city district', city: 'Hyderabad', openingHours: 'Hours not verified', waitTime: '10 min' },
+        { id: 'hosp-110', name: 'Civic Heart Institute', type: 'hospital', area: 'South district', city: 'Hyderabad', openingHours: 'Hours not verified', waitTime: '20 min' },
+        { id: 'hosp-111', name: 'Olive Grove Hospital', type: 'hospital', area: 'Garden district', city: 'Hyderabad', openingHours: 'Hours not verified', waitTime: '15 min' },
+        { id: 'hosp-112', name: 'Vision Point Eye Clinic', type: 'clinic', area: 'Market district', city: 'Hyderabad', openingHours: 'Hours not verified', waitTime: '6 min' }
     ];
 
     // Radial offsets to place fallback centers around detected user coordinates dynamically
@@ -110,7 +110,7 @@
                     ...hosp,
                     lat: lat + off.dLat,
                     lng: lng + off.dLng,
-                    source: 'Verified Partner'
+                    source: 'Illustrative demo centre'
                 };
             });
 

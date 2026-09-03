@@ -3,7 +3,7 @@
     const esc = (value = '') => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
 
     window.App.Views.PatientDashboard = function () {
-        const { state, setView, navigate, logout, recordPatientVisit } = window.App.Store;
+        const { state, setView, navigate, logout, recordPatientVisit, sortQueue } = window.App.Store;
         const container = document.createElement('div');
         container.className = 'flow-shell workspace-shell patient-workspace-shell';
         const patientData = state.patientData || {};
@@ -16,10 +16,19 @@
         const showProfile = activeTab === 'profile';
         const activeVisit = state.patientVisits.find(visit => !['completed', 'cancelled', 'no-show'].includes(String(visit.status || '').toLowerCase()));
         const visitStatusLabel = value => ({ booked: 'Booked', waiting: 'Waiting for the centre', called: 'Please proceed to reception', in_progress: 'In consultation', completed: 'Completed', cancelled: 'Cancelled' }[String(value || 'booked').toLowerCase()] || 'Booked');
+        const activeQueue = sortQueue(state.queue);
+        const liveQueueEntry = activeVisit ? activeQueue.find(entry => String(entry.id) === String(activeVisit.id)) : null;
+        const liveQueueIndex = liveQueueEntry ? activeQueue.findIndex(entry => String(entry.id) === String(liveQueueEntry.id)) : -1;
+        const patientsAhead = liveQueueIndex >= 0 ? liveQueueIndex : null;
+        const liveStatus = String(liveQueueEntry?.status || activeVisit?.status || 'booked').toLowerCase();
+        const queuePosition = !liveQueueEntry ? 'Sync pending' : liveStatus === 'waiting' ? `#${liveQueueIndex + 1}` : liveStatus === 'called' ? 'Called' : liveStatus === 'in_progress' ? 'In room' : 'Updated';
+        const queueEstimate = !liveQueueEntry ? 'Check again shortly' : liveStatus === 'waiting' ? `About ${Math.max(5, (patientsAhead * 12) + 10)} min` : liveStatus === 'called' ? 'Proceed now' : liveStatus === 'in_progress' ? 'Visit underway' : 'Status updated';
 
-        // Build visit rows HTML with Prescription / Report Download action
+        // Build visit rows with explicit demo-record availability.
         const visitRows = state.patientVisits.length
-            ? state.patientVisits.map(visit => `
+            ? state.patientVisits.map(visit => {
+                const hasPrescription = Boolean(window.App.Store.getPrescription(visit.id));
+                return `
                 <div class="patient-visit">
                     <div class="patient-visit-icon">${icon('clipboard-check', 18)}</div>
                     <div>
@@ -29,23 +38,29 @@
                     </div>
                     <div class="visit-actions">
                         <button type="button" class="btn-secondary btn-icon btn-view-rx" data-visit-id="${esc(visit.id)}" style="font-size:.72rem;min-height:2.2rem;padding:.35rem .75rem">
-                            ${icon('file-text', 14)} <span>Prescription &amp; Lab</span>
+                            ${icon(hasPrescription ? 'file-text' : 'file-question', 14)} <span>${hasPrescription ? 'View demo record' : 'No record yet'}</span>
                         </button>
                     </div>
-                </div>`).join('')
+                </div>`;
+            }).join('')
             : `<div class="provider-empty">${icon('clipboard-x', 28)}<p>No visits saved yet.</p></div>`;
 
         const appointmentCard = activeVisit ? `
-            <section class="patient-appointment-card" aria-label="Next appointment">
+            <section class="patient-appointment-card" aria-label="Next appointment and live queue status">
                 <div class="appointment-icon">${icon('calendar-clock', 22)}</div>
                 <div class="appointment-copy">
                     <span class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> Next appointment</span>
                     <h2>${esc(activeVisit.hospital || 'SmartCare centre')}</h2>
                     <p>${esc(activeVisit.reason || 'General consultation')} · ${esc(activeVisit.date || 'Date pending')} · ${esc(activeVisit.city || state.patientData.city || 'Hyderabad')}</p>
                     <small>Reference: <strong>${esc(activeVisit.id || 'SC-DEMO')}</strong></small>
+                    <div class="appointment-telemetry" aria-live="polite">
+                        <span><small>Live position</small><strong>${esc(queuePosition)}</strong></span>
+                        <span><small>Patients ahead</small><strong>${patientsAhead === null ? '—' : patientsAhead}</strong></span>
+                        <span><small>Estimated window</small><strong>${esc(queueEstimate)}</strong></span>
+                    </div>
                 </div>
                 <div class="appointment-actions">
-                    <strong>${esc(visitStatusLabel(activeVisit.status))}</strong>
+                    <strong>${esc(visitStatusLabel(liveStatus))}</strong>
                     <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
                         <button type="button" class="btn-secondary btn-icon btn-view-rx" data-visit-id="${esc(activeVisit.id)}" style="font-size:.72rem;min-height:2.2rem;padding:.35rem .65rem">
                             ${icon('file-text', 14)} Clinical slip
@@ -61,7 +76,7 @@
                     <h2>Keep your care plan moving.</h2>
                     <p>Choose a nearby centre and reserve a visit when you are ready.</p>
                 </div>
-                <a class="text-link text-link-dark btn-icon" data-route="/dashboard/patient/apply/1" href="/dashboard/patient/apply/1" data-tab="apply">Book a visit ${icon('arrow-right', 15)}</a>
+                <a class="text-link text-link-dark btn-icon" data-route="/dashboard/patient/apply/1" href="/dashboard/patient/apply/1">Book a visit ${icon('arrow-right', 15)}</a>
             </section>`;
 
         container.innerHTML = `
@@ -92,7 +107,7 @@
                             <h2>Need care today?</h2>
                             <p>Search nearby centres, compare queues, and reserve a visit when it suits you.</p>
                         </div>
-                        <a class="btn-primary btn-icon" data-route="/dashboard/patient/apply/1" href="/dashboard/patient/apply/1" data-tab="apply">Book an appointment ${icon('arrow-right', 16)}</a>
+                        <a class="btn-primary btn-icon" data-route="/dashboard/patient/apply/1" href="/dashboard/patient/apply/1">Book an appointment ${icon('arrow-right', 16)}</a>
                     </section>
                     <div class="provider-stats patient-stats" aria-label="Patient summary">
                         <div class="provider-stat">
@@ -120,10 +135,10 @@
                     <section id="tab-visits" data-tab-panel="visits" class="provider-card patient-visits-card">
                         <div class="provider-card-heading">
                             <div>
-                                <h2>Previous visits &amp; Clinical Reports</h2>
-                                <p>View and download official prescriptions and diagnostic lab summaries.</p>
+                                <h2>Previous visits &amp; clinical records</h2>
+                                <p>Review clinician-authored demo notes stored for each visit on this device.</p>
                             </div>
-                            <a class="text-link text-link-dark btn-icon" data-route="/dashboard/patient/apply/1" href="/dashboard/patient/apply/1" data-tab="apply">Book again ${icon('arrow-up-right', 15)}</a>
+                            <a class="text-link text-link-dark btn-icon" data-route="/dashboard/patient/apply/1" href="/dashboard/patient/apply/1">Book again ${icon('arrow-up-right', 15)}</a>
                         </div>
                         <div class="patient-visit-list">${visitRows}</div>
                     </section>` : ''}
@@ -204,7 +219,7 @@
         workspaceNav.setAttribute('aria-label', 'Patient portal navigation');
         workspaceNav.innerHTML = `
             <a class="${activeTab === 'overview' || activeTab === '' ? 'active' : ''}" href="/dashboard/patient" data-route="/dashboard/patient">${icon('layout-dashboard', 16)}<span>Overview</span></a>
-            <a class="${isApplyTab ? 'active' : ''}" href="/dashboard/patient/apply/1" data-route="/dashboard/patient/apply/1" data-tab="apply">${icon('calendar-plus', 16)}<span>Book appointment</span></a>
+            <a class="${isApplyTab ? 'active' : ''}" href="/dashboard/patient/apply/1" data-route="/dashboard/patient/apply/1">${icon('calendar-plus', 16)}<span>Book appointment</span></a>
             <a href="/dashboard/patient/history" data-route="/dashboard/patient/history">${icon('file-text', 16)}<span>Medical Passport</span></a>
             <a class="${activeTab === 'visits' ? 'active' : ''}" href="/dashboard/patient?tab=visits" data-tab="visits" data-tab-route="/dashboard/patient">${icon('clipboard-check', 16)}<span>Previous visits</span></a>
             <a class="${activeTab === 'profile' ? 'active' : ''}" href="/dashboard/patient?tab=profile" data-tab="profile" data-tab-route="/dashboard/patient">${icon('user-round', 16)}<span>Profile</span></a>

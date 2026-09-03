@@ -34,7 +34,7 @@
 
         const demoUsers = {
             'hospital@smartcare.demo': { email: 'hospital@smartcare.demo', password: 'demo1234', role: 'doctor', hospital: 'SmartCare Community Hospital', country: 'India', state: 'Telangana', city: 'Hyderabad' },
-            'admin@smartcare.demo': { email: 'admin@smartcare.demo', password: 'demo1234', role: 'staff', hospital: 'SmartCare Operations Centre', country: 'India', state: 'Telangana', city: 'Hyderabad' }
+            'admin@smartcare.demo': { email: 'admin@smartcare.demo', password: 'demo1234', role: 'staff', hospital: 'SmartCare Community Hospital', country: 'India', state: 'Telangana', city: 'Hyderabad' }
         };
         const demoBloodCentres = [
             { id: 'blood-demo-1', name: 'SmartCare Community Hospital Blood Bank', area: 'Banjara Hills, Hyderabad', city: 'hyderabad', supported_groups: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'], hours: 'Open today · 09:00–17:00', note: 'Supports all common blood groups.' },
@@ -47,10 +47,16 @@
             checkCredentials: async (hospital, email, password, role) => {
                 const user = demoUsers[String(email).toLowerCase()];
                 return user && user.password === password && user.role === role
-                    ? { success: true, user: { ...user, hospital: hospital || user.hospital } }
+                    ? { success: true, user: { email: user.email, role: user.role, hospital: user.hospital, country: user.country, state: user.state, city: user.city } }
                     : { success: false, error: 'Demo mode: use one of the supplied demo accounts.' };
             },
-            registerProfessional: async profData => ({ success: true, user: { ...profData, email: profData.email.toLowerCase() } }),
+            registerProfessional: async profData => {
+                const email = String(profData.email || '').toLowerCase();
+                if (demoUsers[email]) return { success: false, error: 'A demo account with this email already exists.' };
+                const user = { email, password: profData.password, role: profData.role, hospital: profData.hospital, country: 'India', state: 'Telangana', city: 'Hyderabad' };
+                demoUsers[email] = user;
+                return { success: true, user: { email, role: user.role, hospital: user.hospital, country: user.country, state: user.state, city: user.city } };
+            },
             verifyPasswordHint: async () => ({ success: false, error: 'Password recovery is unavailable in local demo mode.' }),
             resetPassword: async () => ({ success: false, error: 'Password recovery is unavailable in local demo mode.' }),
             updatePassword: async () => ({ success: false, error: 'Password recovery is unavailable in local demo mode.' }),
@@ -77,7 +83,7 @@
                     country: patientData.country || 'India',
                     state: patientData.state || 'Telangana',
                     city: patientData.city || 'Hyderabad',
-                    triage: patientData.triage || 'Green',
+                    triage: patientData.triage || 'Unassessed',
                     fee: patientData.fee || 125,
                     created_at: new Date().toISOString(),
                     status: 'waiting'
@@ -158,7 +164,8 @@
             if (authError || !authData.user) return { success: false, error: 'Invalid credentials. Please check your email and password.' };
             const { data: profile, error: profileError } = await supabase.from('professionals').select('id,email,hospital,role,country,state,city').eq('id', authData.user.id).maybeSingle();
             if (profileError || !profile || profile.role !== role) { await supabase.auth.signOut(); return { success: false, error: 'This account is not enabled for the selected portal.' }; }
-            return { success: true, user: { ...profile, hospital: hospital || profile.hospital } };
+            if (String(hospital || '').trim().toLowerCase() !== String(profile.hospital || '').trim().toLowerCase()) { await supabase.auth.signOut(); return { success: false, error: 'The care centre does not match this account.' }; }
+            return { success: true, user: profile };
         },
         registerProfessional: async (profData) => {
             const { data: authData, error: authError } = await supabase.auth.signUp({ email: profData.email.toLowerCase(), password: profData.password });
@@ -218,7 +225,7 @@
                     country: patientData.country,
                     state: patientData.state,
                     city: patientData.city,
-                    triage: patientData.triage || "Green",
+                    triage: patientData.triage || "Unassessed",
                     fee: patientData.fee || 125,
                     problem: patientData.symptoms || "Unknown"
                 };

@@ -3,9 +3,9 @@
     const esc = (value = '') => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[character]));
     
     const fallbackHospitals = (lat, lng) => [
-        { id: 'fallback-1', name: 'SmartCare Community Hospital', type: 'Hospital', lat: lat + .018, lng: lng + .014 },
-        { id: 'fallback-2', name: 'Green Cross Medical Centre', type: 'Clinic', lat: lat - .013, lng: lng + .022 },
-        { id: 'fallback-3', name: 'CityCare Family Clinic', type: 'Clinic', lat: lat + .008, lng: lng - .024 }
+        { id: 'fallback-1', name: 'SmartCare Community Hospital', type: 'Hospital', lat: lat + .018, lng: lng + .014, source: 'Illustrative demo centre' },
+        { id: 'fallback-2', name: 'Green Cross Community Clinic', type: 'Clinic', lat: lat - .013, lng: lng + .022, source: 'Illustrative demo centre' },
+        { id: 'fallback-3', name: 'CityCare Family Clinic', type: 'Clinic', lat: lat + .008, lng: lng - .024, source: 'Illustrative demo centre' }
     ];
 
     const distanceKm = (a, b) => {
@@ -14,20 +14,6 @@
         const dLng = (b.lng - a.lng) * radians;
         const value = Math.sin(dLat / 2) ** 2 + Math.cos(a.lat * radians) * Math.cos(b.lat * radians) * Math.sin(dLng / 2) ** 2;
         return 6371 * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value));
-    };
-
-    const getDrivingMeta = (distKm) => {
-        const mins = Math.max(4, Math.round(distKm * 2.8));
-        const trafficType = distKm < 2.5 ? 'smooth' : distKm < 6 ? 'moderate' : 'congested';
-        const trafficLabel = trafficType === 'smooth' ? 'Smooth traffic' : trafficType === 'moderate' ? 'Moderate traffic' : 'Dense traffic';
-        return { mins, trafficType, trafficLabel };
-    };
-
-    const calculateFee = symptoms => {
-        const text = symptoms.toLowerCase();
-        if (/chest pain|breathing|stroke|accident|unconscious|bleeding/.test(text)) return { fee: 450, triage: 'Red' };
-        if (/fever|vomit|stomach|fatigue|nausea|pain/.test(text)) return { fee: 275, triage: 'Yellow' };
-        return { fee: 125, triage: 'Green' };
     };
 
     const mapStyle = {
@@ -124,7 +110,7 @@
         }
 
         function renderLocation(target) {
-            target.innerHTML = `<div class="map-layout section-map" data-section="care-map"><div class="map-panel"><div class="field"><label>Find nearby care centres <span>*</span></label><div class="location-entry" style="grid-template-columns:1fr"><button id="use-location" class="btn-primary btn-icon" type="button" style="width:100%;min-height:2.9rem;font-size:.88rem">${icon('locate-fixed', 18)} Detect &amp; use my device location</button></div><span class="hint">Click to automatically detect nearby care centres using your device GPS.</span></div><div class="map-toolbar"><span id="map-status" class="status-note" role="status" aria-live="polite"></span><span id="map-accuracy" class="map-accuracy"></span><div class="map-toolbar-actions"><button id="map-recenter" class="text-link text-link-dark btn-icon" type="button">${icon('crosshair', 15)} Recenter</button><div class="map-view-toggle" role="group" aria-label="Map view"><button id="show-map" class="active" type="button">Map</button><button id="show-list" type="button">List</button></div></div></div><div class="map-wrap"><div id="hospital-map" aria-label="Map of nearby care centres"></div><div class="map-overlay">${icon('map', 14)} MapLibre care map</div></div></div><aside class="hospital-results"><div class="results-heading"><div><h2>Nearby care centres</h2><p id="results-summary" aria-live="polite">Click 'Use my device location' to view nearby centres.</p></div><label class="filter-control" for="care-filter"><span>Filter</span><select id="care-filter"><option value="all">All care</option><option value="hospital">Hospitals</option><option value="clinic">Clinics</option></select></label></div><div id="hospital-list" class="hospital-list"><div class="review-card"><p class="status-note">Your results will appear here after detecting location.</p></div></div></aside></div><div class="flow-actions"><button id="location-back" class="btn-secondary btn-icon">${icon('arrow-left', 16)} Back</button><button id="location-next" class="btn-primary btn-icon" disabled>Continue with selected centre ${icon('arrow-right', 16)}</button></div>`;
+            target.innerHTML = `<div class="map-layout section-map" data-section="care-map"><div class="map-panel"><div class="field"><label>Find nearby care centres <span>*</span></label><div class="location-entry" style="grid-template-columns:1fr"><button id="use-location" class="btn-primary btn-icon" type="button" style="width:100%;min-height:2.9rem;font-size:.88rem">${icon('locate-fixed', 18)} Detect &amp; use my device location</button></div><span class="hint">Location starts only when you choose and is sent to public map services for this search.</span><div class="location-divider"><span>or search manually</span></div><form id="location-search-form" class="location-search-form"><label class="sr-only" for="location-query">City, neighbourhood, or PIN code</label><input id="location-query" type="search" autocomplete="postal-code" maxlength="80" placeholder="City, neighbourhood, or PIN code"><button class="btn-secondary btn-icon" type="submit">${icon('search', 16)} Search</button></form></div><div class="map-toolbar"><span id="map-status" class="status-note" role="status" aria-live="polite"></span><span id="map-accuracy" class="map-accuracy"></span><div class="map-toolbar-actions"><button id="map-recenter" class="text-link text-link-dark btn-icon" type="button">${icon('crosshair', 15)} Recenter</button><div class="map-view-toggle" role="group" aria-label="Map view"><button id="show-map" class="active" type="button">Map</button><button id="show-list" type="button">List</button></div></div></div><div class="map-wrap"><div id="hospital-map" aria-label="Map of nearby care centres"></div><div class="map-overlay">${icon('map', 14)} MapLibre care map</div></div></div><aside class="hospital-results"><div class="results-heading"><div><h2>Nearby care centres</h2><p id="results-summary" aria-live="polite">Use your location or search an area to view nearby centres.</p></div><label class="filter-control" for="care-filter"><span>Filter</span><select id="care-filter"><option value="all">All care</option><option value="hospital">Hospitals</option><option value="clinic">Clinics</option></select></label></div><div id="hospital-list" class="hospital-list"><div class="review-card"><p class="status-note">Your results will appear after you choose a location method.</p></div></div></aside></div><div class="flow-actions"><button id="location-back" class="btn-secondary btn-icon">${icon('arrow-left', 16)} Back</button><button id="location-next" class="btn-primary btn-icon" disabled>Continue with selected centre ${icon('arrow-right', 16)}</button></div>`;
             const status = target.querySelector('#map-status');
             target.querySelector('#care-filter').onchange = () => { if (state.userCoords) renderMap(state.userCoords.lat, state.userCoords.lng); };
             target.querySelector('#location-back').onclick = () => setStep(1);
@@ -133,11 +119,15 @@
             target.querySelector('#show-map').onclick = () => setMapMode('map');
             target.querySelector('#show-list').onclick = () => setMapMode('list');
             target.querySelector('#use-location').onclick = useDeviceLocation;
+            target.querySelector('#location-search-form').onsubmit = event => {
+                event.preventDefault();
+                searchLocation(target.querySelector('#location-query').value.trim());
+            };
             setMapMode('map');
             if (state.tempHospitals?.length && state.userCoords) {
                 populateHospitals(state.userCoords.lat, state.userCoords.lng, 'Live location', false);
             } else {
-                useDeviceLocation();
+                status.textContent = 'Choose device location or search by city, neighbourhood, or PIN code.';
             }
 
             function setMapMode(mode) {
@@ -194,7 +184,10 @@
                 state.tempHospitals = hospitals.map(hospital => ({ ...hospital, distance: distanceKm({ lat, lng }, hospital) })).sort((a, b) => a.distance - b.distance);
                 state.searchRadius = mapResult.radius || 5000;
                 persistDraft();
-                status.textContent = isFallback ? 'Showing care preview around Hyderabad.' : `${state.tempHospitals.length} care centres found within ${Math.round((state.searchRadius || 5000) / 1000)} km.`;
+                const demoCount = state.tempHospitals.filter(hospital => hospital.source === 'Illustrative demo centre').length;
+                status.textContent = isFallback
+                    ? 'Showing fictional demo centres around Hyderabad.'
+                    : `${state.tempHospitals.length} results within ${Math.round((state.searchRadius || 5000) / 1000)} km${demoCount ? `, including ${demoCount} fictional demo centre${demoCount === 1 ? '' : 's'}` : ''}.`;
                 target.querySelector('#map-accuracy').textContent = state.userCoords?.accuracy < 10000 ? `GPS +/-${Math.round(state.userCoords.accuracy)} m` : 'Search-based location';
                 renderMap(lat, lng);
             }
@@ -219,7 +212,7 @@
                     new window.maplibregl.Marker({ element: userElement }).setLngLat([lng, lat]).setPopup(new window.maplibregl.Popup().setText('Your selected location')).addTo(map);
 
                     visibleHospitals.forEach((hospital, index) => {
-                        const meta = getDrivingMeta(hospital.distance);
+                        const isPublicListing = hospital.source === 'OpenStreetMap';
                         const element = document.createElement('button');
                         element.type = 'button';
                         element.className = 'smartcare-hospital-marker';
@@ -229,9 +222,9 @@
                         const popupHtml = `
                             <strong>${esc(hospital.name)}</strong><br>
                             ${esc(hospital.type || 'Care centre')}<br>
-                            ${icon('car', 12)} ~${meta.mins} mins drive (${hospital.distance.toFixed(1)} km)<br>
-                            <span class="traffic-badge traffic-${meta.trafficType}">${meta.trafficLabel}</span><br>
-                            <a style="display:inline-block;margin-top:.45rem;font-size:.74rem;font-weight:700;color:var(--teal)" href="https://www.google.com/maps/dir/?api=1&destination=${hospital.lat},${hospital.lng}" target="_blank">Open Navigation →</a>
+                            ${hospital.distance.toFixed(1)} km straight-line distance<br>
+                            <small>${isPublicListing ? 'OpenStreetMap listing' : 'Fictional demo centre'}</small><br>
+                            ${isPublicListing ? `<a style="display:inline-block;margin-top:.45rem;font-size:.74rem;font-weight:700;color:var(--teal)" href="https://www.google.com/maps/dir/?api=1&destination=${hospital.lat},${hospital.lng}" target="_blank" rel="noopener noreferrer">Open directions →</a>` : '<small>No real-world directions</small>'}
                         `;
 
                         const marker = new window.maplibregl.Marker({ element }).setLngLat([hospital.lng, hospital.lat]).setPopup(new window.maplibregl.Popup({ offset: 20 }).setHTML(popupHtml)).addTo(map);
@@ -250,28 +243,29 @@
                 }
 
                 const list = target.querySelector('#hospital-list');
-                target.querySelector('#results-summary').textContent = `${visibleHospitals.length} options, sorted by distance & drive time`;
+                target.querySelector('#results-summary').textContent = `${visibleHospitals.length} options, sorted by straight-line distance`;
 
                 list.innerHTML = visibleHospitals.map((hospital, index) => {
                     const hours = hospital.openingHours === '24/7' ? 'Open 24 hours' : (hospital.openingHours || 'Hours not listed');
-                    const meta = getDrivingMeta(hospital.distance);
+                    const isPublicListing = hospital.source === 'OpenStreetMap';
                     return `
-                        <button class="hospital-option ${patientData.hospital === hospital.name ? 'selected' : ''}" data-hospital-id="${esc(hospital.id)}" aria-pressed="${patientData.hospital === hospital.name}">
-                            <div class="hospital-option-header">
-                                <span><strong><span style="color:var(--teal);margin-right:.3rem">${index + 1}</span>${esc(hospital.name)}</strong><small>${esc(hospital.type || 'Care centre')} · ${hours}</small></span>
-                                <span class="hospital-distance">${hospital.distance.toFixed(1)} km</span>
-                            </div>
+                        <article class="hospital-option ${patientData.hospital === hospital.name ? 'selected' : ''}">
+                            <button class="hospital-select-button" type="button" data-hospital-id="${esc(hospital.id)}" aria-pressed="${patientData.hospital === hospital.name}">
+                                <span class="hospital-option-header">
+                                <span><strong><span style="color:var(--teal);margin-right:.3rem">${index + 1}</span>${esc(hospital.name)}</strong><small>${esc(hospital.type || 'Care centre')} · ${esc(hours)}</small></span>
+                                    <span class="hospital-distance">${hospital.distance.toFixed(1)} km</span>
+                                </span>
+                            </button>
                             <div class="hospital-card-meta">
-                                <span style="color:var(--muted);font-size:.7rem">${icon('car', 12)} ~${meta.mins} min</span>
-                                <span class="traffic-badge traffic-${meta.trafficType}">${meta.trafficLabel}</span>
-                                <a class="hospital-ext-nav" href="https://www.google.com/maps/dir/?api=1&destination=${hospital.lat},${hospital.lng}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">
+                                <span style="color:var(--muted);font-size:.7rem">${icon(isPublicListing ? 'map-pin' : 'flask-conical', 12)} ${isPublicListing ? 'OpenStreetMap listing' : 'Fictional demo centre'}</span>
+                                ${isPublicListing ? `<a class="hospital-ext-nav" href="https://www.google.com/maps/dir/?api=1&destination=${hospital.lat},${hospital.lng}" target="_blank" rel="noopener noreferrer">
                                     ${icon('navigation', 12)} Google Maps
                                 </a>
-                                <a class="hospital-ext-nav" href="https://maps.apple.com/?daddr=${hospital.lat},${hospital.lng}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">
+                                <a class="hospital-ext-nav" href="https://maps.apple.com/?daddr=${hospital.lat},${hospital.lng}" target="_blank" rel="noopener noreferrer">
                                     ${icon('map-pin', 12)} Apple Maps
-                                </a>
+                                </a>` : '<span class="status-note">No real-world directions</span>'}
                             </div>
-                        </button>
+                        </article>
                     `;
                 }).join('');
 
@@ -297,10 +291,10 @@
                     const hospital = state.tempHospitals.find(item => String(item.id) === String(id));
                     if (!hospital) return;
                     updatePatientData('hospital', hospital.name);
-                    target.querySelectorAll('.hospital-option').forEach(item => {
-                        const selected = item.dataset.hospitalId === String(id);
-                        item.classList.toggle('selected', selected);
-                        item.setAttribute('aria-pressed', selected);
+                    target.querySelectorAll('[data-hospital-id]').forEach(button => {
+                        const selected = button.dataset.hospitalId === String(id);
+                        button.closest('.hospital-option')?.classList.toggle('selected', selected);
+                        button.setAttribute('aria-pressed', selected);
                     });
                     const markerNode = markerNodes.find(item => String(item.hospital.id) === String(id));
                     if (markerNode && map) {
@@ -313,17 +307,14 @@
         }
 
         function renderDetails(target) {
-            const estimate = patientData.fee ? `₹${patientData.fee}` : 'Calculated next';
+            updatePatientData('fee', 125);
+            updatePatientData('triage', 'Unassessed');
             const suggestions = [['Fever', 'Fever for two days'], ['Cold and cough', 'Cold and cough'], ['Stomach pain', 'Stomach pain'], ['Routine check-up', 'Routine check-up']];
-            target.innerHTML = `<div class="review-grid"><div><div class="field"><label for="symptoms">What brings you in today? <span>*</span></label><textarea id="symptoms" maxlength="500" placeholder="Tell us briefly what you need help with...">${esc(patientData.symptoms)}</textarea><span class="hint">If this is an emergency, call your local emergency number immediately.</span><div class="symptom-suggestions" aria-label="Common symptom suggestions"><span class="suggestion-label">Try a suggestion</span>${suggestions.map(([label, value]) => `<button class="symptom-suggestion" type="button" data-symptoms="${esc(value)}">${icon('plus', 13)} ${label}</button>`).join('')}</div><span id="symptom-count" class="hint symptom-count"></span></div><div class="field" style="margin-top:1rem"><label>Review your care centre</label><div class="review-card"><div class="summary-row"><span>Centre</span><strong>${esc(patientData.hospital || 'Not selected')}</strong></div><div class="summary-row"><span>Area</span><strong>${esc(patientData.area || 'Not selected')}</strong></div><div class="summary-row"><span>Patient</span><strong>${esc(patientData.name)}, ${esc(patientData.age)}</strong></div></div></div></div><aside class="estimate-card"><small>Demo visit estimate</small><strong id="fee-estimate">${estimate}</strong><p>Estimated from urgency signals in the description. The care centre confirms the final charge.</p><div class="pricing-note"><span>Routine</span><strong>₹125</strong><span>Common symptoms</span><strong>₹275</strong><span>Urgent signals</span><strong>₹450</strong></div><div class="estimate-rule"></div><small>Expected queue window</small><strong class="estimate-window">15–25 min</strong></aside></div><div class="flow-actions"><button id="details-back" class="btn-secondary btn-icon">${icon('arrow-left', 16)} Back</button><button id="details-next" class="btn-primary btn-icon">Review and reserve ${icon('arrow-right', 16)}</button></div>`;
+            target.innerHTML = `<div class="care-safety-notice" role="note">${icon('triangle-alert', 20)}<div><strong>SmartCare cannot assess emergencies</strong><span>If you believe you need urgent or emergency care, contact local emergency services now instead of using this demo booking flow.</span></div></div><div class="review-grid"><div><div class="field"><label for="symptoms">What brings you in today? <span>*</span></label><textarea id="symptoms" maxlength="500" placeholder="Tell us briefly what you need help with...">${esc(patientData.symptoms)}</textarea><span class="hint">This description is not used to make a clinical triage decision.</span><div class="symptom-suggestions" aria-label="Common symptom suggestions"><span class="suggestion-label">Try a suggestion</span>${suggestions.map(([label, value]) => `<button class="symptom-suggestion" type="button" data-symptoms="${esc(value)}">${icon('plus', 13)} ${label}</button>`).join('')}</div><span id="symptom-count" class="hint symptom-count"></span></div><div class="field" style="margin-top:1rem"><label>Review your care centre</label><div class="review-card"><div class="summary-row"><span>Centre</span><strong>${esc(patientData.hospital || 'Not selected')}</strong></div><div class="summary-row"><span>Area</span><strong>${esc(patientData.area || 'Not selected')}</strong></div><div class="summary-row"><span>Patient</span><strong>${esc(patientData.name)}, ${esc(patientData.age)}</strong></div></div></div></div><aside class="estimate-card"><small>Illustrative demo fee</small><strong id="fee-estimate">₹125</strong><p>Sample display only—not a quote, invoice, or symptom-based clinical decision. The care centre sets actual charges.</p><div class="estimate-rule"></div><small>Illustrative queue window</small><strong class="estimate-window">15–25 min sample</strong><p>Actual position appears after booking and may change.</p></aside></div><div class="flow-actions"><button id="details-back" class="btn-secondary btn-icon">${icon('arrow-left', 16)} Back</button><button id="details-next" class="btn-primary btn-icon">Review and reserve ${icon('arrow-right', 16)}</button></div>`;
             const symptoms = target.querySelector('#symptoms');
             const count = target.querySelector('#symptom-count');
             const updateSymptoms = event => {
                 updatePatientData('symptoms', event.target.value);
-                const result = calculateFee(event.target.value);
-                updatePatientData('fee', result.fee);
-                updatePatientData('triage', result.triage);
-                target.querySelector('#fee-estimate').textContent = `₹${result.fee}`;
                 count.textContent = `${event.target.value.length}/500`;
             };
             count.textContent = `${symptoms.value.length}/500`;
@@ -336,33 +327,46 @@
             target.querySelector('#details-back').onclick = () => setStep(2);
             target.querySelector('#details-next').onclick = () => {
                 if (!patientData.symptoms.trim()) return showInlineError(target, 'Describe what brings you in today before reserving your visit.');
-                const result = calculateFee(patientData.symptoms);
-                updatePatientData('fee', result.fee);
-                updatePatientData('triage', result.triage);
                 reserveVisit();
             };
         }
 
         function confirmation() {
-            const booking = state.lastBookingId || `SC-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+            const confirmedVisit = state.patientVisits.find(visit => String(visit.id) === String(state.lastBookingId))
+                || state.patientVisits.find(visit => ['booked', 'waiting', 'called', 'in_progress'].includes(String(visit.status || '').toLowerCase()));
+            const booking = state.lastBookingId || confirmedVisit?.reference || confirmedVisit?.id;
+            if (!booking) {
+                return `<div class="success-state">
+                    <div class="success-icon">${icon('calendar-x', 34)}</div>
+                    <div class="eyebrow eyebrow-dark success-eyebrow"><span class="eyebrow-dot"></span> No reservation found</div>
+                    <h1>Start a new booking.</h1>
+                    <p>This confirmation route does not have a saved reservation for the signed-in patient.</p>
+                    <div class="confirmation-actions" style="display:flex;gap:.75rem;margin-top:1.25rem;width:100%;flex-wrap:wrap">
+                        <button id="btn-book-another" class="btn-primary">${icon('calendar-plus', 16)} Start booking</button>
+                        <button id="btn-view-dashboard" class="btn-secondary">${icon('layout-dashboard', 16)} View dashboard</button>
+                    </div>
+                </div>`;
+            }
+            const confirmedHospital = confirmedVisit?.hospital || patientData.hospital || 'SmartCare Community Hospital';
+            const confirmedPatient = patientData.name || 'Patient';
             const qrUrl = window.App.UI.generateQRCodeDataUrl(booking);
             return `
                 <div class="success-state">
                     <div class="success-icon">${icon('check', 34)}</div>
                     <div class="eyebrow eyebrow-dark success-eyebrow"><span class="eyebrow-dot"></span> Reservation received</div>
                     <h1>You're on the list.</h1>
-                    <p>Show this digital QR code ticket or reference ID when you arrive at the care centre for instant reception check-in.</p>
+                    <p>This prototype QR and reference can be scanned in the SmartCare demo workspace; it is not a real care-centre confirmation.</p>
                     
                     <div class="review-card confirmation-review" style="padding:1.5rem">
-                        <div class="summary-row"><span>Care centre</span><strong>${esc(patientData.hospital)}</strong></div>
-                        <div class="summary-row"><span>Queue window</span><strong>15-25 minutes</strong></div>
-                        <div class="summary-row"><span>Patient</span><strong>${esc(patientData.name)}</strong></div>
+                        <div class="summary-row"><span>Care centre</span><strong>${esc(confirmedHospital)}</strong></div>
+                        <div class="summary-row"><span>Initial demo estimate</span><strong>15–25 minutes</strong></div>
+                        <div class="summary-row"><span>Patient</span><strong>${esc(confirmedPatient)}</strong></div>
                         
                         <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px dashed var(--line);display:flex;flex-direction:column;align-items:center;gap:.75rem">
                             <img src="${qrUrl}" alt="Check-in QR Code" style="width:160px;height:160px;border-radius:.6rem;border:1px solid var(--line);background:#fff;padding:.35rem;box-shadow:0 4px 14px rgba(0,0,0,.08)">
                             <span style="font-size:.75rem;font-weight:700;color:var(--teal)">${icon('qr-code', 14)} Digital Scan Ticket</span>
                             
-                            <div class="token-card" style="width:100%;max-width:320px;justify-content:center;margin-top:.25rem">
+                            <div class="token-card" data-reference="${esc(booking)}" style="width:100%;max-width:320px;justify-content:center;margin-top:.25rem">
                                 <div>
                                     <small>Ticket Reference String</small>
                                     <strong>${esc(booking)}</strong>
@@ -374,9 +378,9 @@
                                 ${icon('circle-help', 16)} What happens next?
                             </strong>
                             <ol style="margin:0;padding-left:1.2rem;display:grid;gap:.55rem;font-size:.82rem;color:var(--muted);line-height:1.5">
-                                <li><strong>Arrive at care centre:</strong> Head to <strong>${esc(patientData.hospital)}</strong> within your estimated 15–25 min queue window.</li>
-                                <li><strong>Present your QR Code:</strong> Show this digital QR ticket or reference ID (<strong>${esc(booking)}</strong>) at the reception desk.</li>
-                                <li><strong>Instant Scan Check-in:</strong> The hospital team scans your QR code using their camera scanner to check you in instantly and call your number.</li>
+                                <li><strong>Check the dashboard:</strong> Review the current demo queue status before travelling.</li>
+                                <li><strong>For prototype testing:</strong> Open <strong>${esc(confirmedHospital)}</strong> in a provider demo and scan reference <strong>${esc(booking)}</strong>.</li>
+                                <li><strong>For real care:</strong> Contact the care centre directly to confirm availability, charges, and arrival instructions.</li>
                             </ol>
                         </div>
                     </div>
@@ -394,7 +398,7 @@
             if (token) {
                 const copyReference = async () => {
                     try {
-                        await navigator.clipboard.writeText(state.lastBookingId || '');
+                        await navigator.clipboard.writeText(token.dataset.reference || '');
                         token.classList.add('copied');
                         token.setAttribute('aria-label', 'Reservation reference copied');
                     } catch {
@@ -423,7 +427,7 @@
                 };
             }
             const viewDash = container.querySelector('#btn-view-dashboard');
-            if (viewDash) viewDash.onclick = () => setView('patient-dashboard');
+            if (viewDash) viewDash.onclick = () => setView('patientDashboard');
             const testDoc = container.querySelector('#btn-test-doctor');
             if (testDoc) testDoc.onclick = () => { setAuthTarget('doctor'); setView('doctor'); };
             if (window.lucide) window.lucide.createIcons();
@@ -442,9 +446,12 @@
                     state: patientData.state || 'Telangana',
                     city: patientData.city || 'Hyderabad'
                 });
-            } catch {
-                state.lastBookingId = `SC-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
-                state.localBooking = true;
+            } catch (error) {
+                button.disabled = false;
+                button.innerHTML = `Review and reserve ${icon('arrow-right', 16)}`;
+                showInlineError(container.querySelector('#step-content'), error.message || 'We could not reserve this visit. Check your connection and try again.');
+                if (window.lucide) window.lucide.createIcons();
+                return;
             }
             rememberVisit();
             setStep(4);
@@ -465,7 +472,7 @@
                     ...hospital,
                     type: hospital.type.toLowerCase(),
                     distance: distanceKm({ lat, lng }, hospital),
-                    openingHours: '24/7'
+                    openingHours: 'Hours not verified'
                 }));
                 Object.assign(patientData, { area: 'Hyderabad', hospital: 'SmartCare Community Hospital', country: 'India', state: 'Telangana', city: 'Hyderabad' });
                 persistDraft();

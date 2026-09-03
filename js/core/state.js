@@ -22,23 +22,122 @@
         emergencyProtocols: []
     };
 
-    function getMedicalHistory() {
-        const stored = readStorage(historyKey);
-        if (stored && Array.isArray(stored.effectiveMedications) && Array.isArray(stored.allergiesAndAvoid)) return stored;
-        try { window.localStorage.setItem(historyKey, JSON.stringify(defaultMedicalHistory)); } catch {}
-        return defaultMedicalHistory;
+    const demoMedicalHistory = {
+        lastUpdated: '18 Jul 2026, 10:30 am',
+        previousProvider: {
+            doctorName: 'Dr Meera Shah',
+            hospitalName: 'SmartCare Community Hospital',
+            city: 'Hyderabad',
+            contactPhone: '+91 40 4000 1200'
+        },
+        diseases: [
+            { id: 'demo-condition-1', diseaseName: 'Mild asthma', diagnosedSince: '2019', status: 'Managed' }
+        ],
+        personalPreferences: [
+            { id: 'demo-preference-1', category: 'Communication', preference: 'Explain medication changes before prescribing' }
+        ],
+        effectiveMedications: [
+            { id: 'demo-medication-1', medicineName: 'Salbutamol inhaler', dosage: '100 mcg as needed', conditionTreated: 'Asthma symptoms', notes: 'Use with spacer as previously advised' }
+        ],
+        allergiesAndAvoid: [
+            { id: 'demo-allergy-1', substance: 'Penicillin', severity: 'Moderate', reactionDescription: 'Reported skin rash; clinician verification required' }
+        ],
+        careConditions: [
+            { id: 'demo-care-1', category: 'Respiratory care', instruction: 'Check inhaler use and oxygen saturation during respiratory visits' }
+        ],
+        emergencyProtocols: [
+            { id: 'demo-protocol-1', triggerCondition: 'Severe breathing difficulty', actionSteps: 'Seek emergency assessment immediately and follow the treating clinician\'s acute asthma protocol' }
+        ]
+    };
+
+    const validMedicalHistory = value => value && Array.isArray(value.effectiveMedications) && Array.isArray(value.allergiesAndAvoid);
+    const cloneData = value => JSON.parse(JSON.stringify(value));
+    function medicalHistoryKey(ownerEmail = state?.loggedEmail) {
+        const owner = String(ownerEmail || 'guest').trim().toLowerCase();
+        return `${historyKey}:${owner || 'guest'}`;
+    }
+
+    function getMedicalHistory(ownerEmail = state.loggedEmail) {
+        const normalizedOwner = String(ownerEmail || '').trim().toLowerCase();
+        const scopedKey = medicalHistoryKey(normalizedOwner);
+        const stored = readStorage(scopedKey);
+        if (validMedicalHistory(stored)) return stored;
+        const legacy = readStorage(historyKey);
+        if (validMedicalHistory(legacy)) {
+            try {
+                window.localStorage.setItem(scopedKey, JSON.stringify(legacy));
+                window.localStorage.removeItem(historyKey);
+            } catch {}
+            return legacy;
+        }
+        const initial = cloneData(normalizedOwner === 'patient@smartcare.demo' ? demoMedicalHistory : defaultMedicalHistory);
+        try { window.localStorage.setItem(scopedKey, JSON.stringify(initial)); } catch {}
+        return initial;
     }
 
     function saveMedicalHistory(history) {
-        try { window.localStorage.setItem(historyKey, JSON.stringify(history)); } catch {}
+        try { window.localStorage.setItem(medicalHistoryKey(), JSON.stringify(history)); } catch {}
         notify();
+    }
+
+    function registerMedicalPassport(passportId) {
+        const cleanId = String(passportId || '').trim();
+        if (!cleanId || state.loggedRole !== 'patient' || !state.loggedEmail) return;
+        try { window.localStorage.setItem(`smartcare.passportOwner:${cleanId}`, state.loggedEmail.toLowerCase()); } catch {}
+    }
+
+    function getMedicalPassport(scannedValue) {
+        if (!['doctor', 'staff'].includes(state.loggedRole)) return null;
+        const raw = String(scannedValue || '').trim();
+        let passportId = raw;
+        try {
+            const url = new URL(raw, window.location.origin);
+            passportId = url.searchParams.get('passportId') || url.searchParams.get('pin') || raw;
+        } catch {}
+        if (!passportId.startsWith('SC-PASSPORT-')) return null;
+        let owner = '';
+        try { owner = window.localStorage.getItem(`smartcare.passportOwner:${passportId}`) || ''; } catch {}
+        if (!owner && passportId === 'SC-PASSPORT-8924') owner = 'patient@smartcare.demo';
+        if (!owner) return null;
+        const savedProfile = readStorage(`smartcare.patientProfile_${owner}`) || {};
+        const profile = owner === 'patient@smartcare.demo'
+            ? { name: 'Asha Rao', age: '32', gender: 'Female', city: 'Hyderabad', ...savedProfile }
+            : { name: owner.split('@')[0].replace(/[._-]/g, ' '), age: 'Not provided', gender: 'Not specified', city: 'Not provided', ...savedProfile };
+        return { passportId, profile, history: getMedicalHistory(owner) };
     }
     const emptyPatientData = () => ({ name: '', age: '', gender: '', doctorPref: '', area: '', symptoms: '', hospital: '', country: '', state: '', city: '' });
     const readStorage = key => { try { return JSON.parse(window.localStorage.getItem(key) || 'null'); } catch { return null; } };
-    const savedDraft = readStorage(draftKey);
+    let legacyDraft = readStorage(draftKey);
     const patientVisitKey = 'smartcare.patientVisits';
-    const savedVisits = readStorage(patientVisitKey);
+    let legacyVisits = readStorage(patientVisitKey);
     const defaultVisits = [{ id: 'visit-demo-001', hospital: 'SmartCare Community Hospital', city: 'Hyderabad', reason: 'General consultation', date: '18 Jul 2026', status: 'Completed', reference: 'SC-DEMO18' }, { id: 'visit-demo-002', hospital: 'Green Cross Medical Centre', city: 'Hyderabad', reason: 'Follow-up consultation', date: '04 Jun 2026', status: 'Completed', reference: 'SC-DEMO04' }];
+    const prescriptionsKey = 'smartcare.prescriptions';
+    const defaultPrescriptions = {
+        'visit-demo-001': {
+            assessment: 'Seasonal upper respiratory symptoms; demo clinical summary only.',
+            medicines: [{ name: 'Paracetamol', strength: '500 mg', dosage: 'One tablet when needed', duration: 'Up to 3 days', instructions: 'Take after food; follow clinician guidance' }],
+            labSummary: 'Demo CBC summary: parameters shown within the sample reference range.',
+            providerName: 'Dr Meera Shah',
+            issuedAt: '18 Jul 2026',
+            demo: true
+        }
+    };
+
+    function getPrescription(visitId) {
+        const id = String(visitId || '');
+        const stored = readStorage(prescriptionsKey) || {};
+        return stored[id] || defaultPrescriptions[id] || null;
+    }
+
+    function savePrescription(visitId, prescription) {
+        const id = String(visitId || '');
+        if (!id) throw new Error('A visit reference is required.');
+        const stored = readStorage(prescriptionsKey) || {};
+        stored[id] = { ...prescription, visitId: id, demo: true };
+        try { window.localStorage.setItem(prescriptionsKey, JSON.stringify(stored)); } catch { throw new Error('The demo prescription could not be saved on this device.'); }
+        notify();
+        return stored[id];
+    }
     
     const donationsKey = 'smartcare.donations';
     const defaultDonations = {
@@ -83,14 +182,53 @@
     }
 
     const state = {
-        view: 'landing', route: '/', activeTab: '', step: Number(savedDraft?.step) || 1, infoPage: 'about',
-        patientData: { ...emptyPatientData(), ...(savedDraft?.patientData || {}) },
-        patientVisits: Array.isArray(savedVisits) && savedVisits.length ? savedVisits : defaultVisits,
-        userCoords: savedDraft?.userCoords || null, tempHospitals: savedDraft?.tempHospitals || [], searchRadius: savedDraft?.searchRadius || 0,
+        view: 'landing', route: '/', activeTab: '', step: 1, infoPage: 'about',
+        patientData: emptyPatientData(),
+        patientVisits: [],
+        userCoords: null, tempHospitals: [], searchRadius: 0,
         queue: [], loggedHospital: '', loggedCountry: '', loggedState: '', loggedCity: '', isLogged: false, loggedEmail: '', loggedRole: '', auth: { targetRole: 'patient' }
     };
     const listeners = [];
     let fullQueue = [];
+
+    const accountStorageKey = (base, email = state.loggedEmail) => `${base}:${String(email || 'guest').trim().toLowerCase() || 'guest'}`;
+    function loadPatientAccount(email) {
+        const normalizedEmail = String(email || '').trim().toLowerCase();
+        const scopedDraftKey = accountStorageKey(draftKey, normalizedEmail);
+        let draft = readStorage(scopedDraftKey);
+        if (!draft && legacyDraft) {
+            draft = legacyDraft;
+            try {
+                window.localStorage.setItem(scopedDraftKey, JSON.stringify(draft));
+                window.localStorage.removeItem(draftKey);
+            } catch {}
+            legacyDraft = null;
+        }
+        state.step = Math.max(1, Math.min(4, Number(draft?.step) || 1));
+        state.patientData = { ...emptyPatientData(), ...(draft?.patientData || {}) };
+        state.userCoords = draft?.userCoords || null;
+        state.tempHospitals = Array.isArray(draft?.tempHospitals) ? draft.tempHospitals : [];
+        state.searchRadius = Number(draft?.searchRadius) || 0;
+
+        const scopedVisitsKey = accountStorageKey(patientVisitKey, normalizedEmail);
+        let visits = readStorage(scopedVisitsKey);
+        if (!Array.isArray(visits) && Array.isArray(legacyVisits)) {
+            visits = legacyVisits;
+            try {
+                window.localStorage.setItem(scopedVisitsKey, JSON.stringify(visits));
+                window.localStorage.removeItem(patientVisitKey);
+            } catch {}
+            legacyVisits = null;
+        }
+        state.patientVisits = Array.isArray(visits) ? visits : normalizedEmail === 'patient@smartcare.demo' ? cloneData(defaultVisits) : [];
+    }
+
+    function loadPatientProfile(email) {
+        const saved = readStorage(`smartcare.patientProfile_${email}`);
+        if (saved) Object.assign(state.patientData, saved);
+        else if (String(email).toLowerCase() === 'patient@smartcare.demo') Object.assign(state.patientData, { name: 'Asha Rao', age: '32', gender: 'Female', bloodGroup: 'O+', city: 'Hyderabad', doctorPref: 'General consultation' });
+        else if (!state.patientData.name) state.patientData.name = String(email).split('@')[0].replace(/[._-]/g, ' ');
+    }
 
     function subscribe(callback) { listeners.push(callback); }
     function notify() { listeners.forEach(callback => callback(state)); }
@@ -151,12 +289,12 @@
     }
     function persistDraft() {
         try {
-            window.localStorage.setItem(draftKey, JSON.stringify({
+            window.localStorage.setItem(accountStorageKey(draftKey), JSON.stringify({
                 step: state.step, patientData: state.patientData, userCoords: state.userCoords, tempHospitals: state.tempHospitals, searchRadius: state.searchRadius
             }));
         } catch { /* storage optional */ }
     }
-    function clearDraft() { try { window.localStorage.removeItem(draftKey); } catch {} }
+    function clearDraft() { try { window.localStorage.removeItem(accountStorageKey(draftKey)); } catch {} }
     function persistSession() {
         try {
             if (state.isLogged) {
@@ -172,6 +310,7 @@
         const session = readStorage(sessionKey);
         if (session && session.expiresAt && session.expiresAt > Date.now()) {
             state.isLogged = true; state.loggedEmail = session.email || ''; state.loggedRole = session.role || ''; state.loggedHospital = session.hospital || ''; state.loggedCountry = session.country || ''; state.loggedState = session.state || ''; state.loggedCity = session.city || ''; state.sessionExpiresAt = session.expiresAt;
+            if (state.loggedRole === 'patient') { loadPatientAccount(state.loggedEmail); loadPatientProfile(state.loggedEmail); }
         } else if (session) {
             try { window.localStorage.removeItem(sessionKey); } catch {}
         }
@@ -277,7 +416,7 @@
     function setStep(newStep) { state.step = Math.max(1, Math.min(4, Number(newStep) || 1)); if (state.step < 4) persistDraft(); else clearDraft(); if (state.view === 'patientDashboard' || state.activeTab === 'apply') { navigate(`/dashboard/patient/apply/${state.step}`); } else { notify(); } }
     function setAuthTarget(role) { state.auth.targetRole = ['patient', 'doctor', 'staff'].includes(role) ? role : 'patient'; }
     function updatePatientData(key, value, shouldNotify = false) { state.patientData[key] = value; persistDraft(); if (shouldNotify) notify(); }
-    function recordPatientVisit(visit) { state.patientVisits = [visit, ...state.patientVisits.filter(item => item.id !== visit.id)].slice(0, 12); try { window.localStorage.setItem(patientVisitKey, JSON.stringify(state.patientVisits)); } catch { /* local history is optional */ } }
+    function recordPatientVisit(visit) { state.patientVisits = [visit, ...state.patientVisits.filter(item => item.id !== visit.id)].slice(0, 12); try { window.localStorage.setItem(accountStorageKey(patientVisitKey), JSON.stringify(state.patientVisits)); } catch { /* local history is optional */ } }
     function updateQueue(newQueue) {
         fullQueue = Array.isArray(newQueue) ? newQueue : [];
         const isAdmin = state.loggedRole === 'staff';
@@ -294,9 +433,8 @@
         state.loggedRole = role;
         state.sessionExpiresAt = Date.now() + (window.App.Config?.sessionTtlMs || 28800000);
         if (role === 'patient') {
-            const saved = readStorage(`smartcare.patientProfile_${email}`);
-            if (saved) Object.assign(state.patientData, saved);
-            else if (!state.patientData.name) state.patientData.name = email.split('@')[0].replace(/[._-]/g, ' ');
+            loadPatientAccount(email);
+            loadPatientProfile(email);
         }
         persistSession();
         notify();
@@ -348,5 +486,5 @@
     syncRoute(true, false);
     window.setInterval(() => { if (state.isLogged && state.sessionExpiresAt && state.sessionExpiresAt <= Date.now()) logout(); }, 60000);
     if (window.App.DB) initSync(); else window.addEventListener('load', () => { if (window.App.DB) initSync(); });
-    window.App.Store = { state, subscribe, setView, navigate, navigateTab, syncRoute, setStep, setAuthTarget, updatePatientData, updateQueue, setLoggedLocation, setLogin, recordPatientVisit, logout, getRevenue, getQueueMetrics, getNextPatient, sortQueue, transitionPatient, persistDraft, hrefFor, hrefForTab, getDonationsData, saveDonationsData, addHospitalDonation, addPatientDonation, getMedicalHistory, saveMedicalHistory };
+    window.App.Store = { state, subscribe, setView, navigate, navigateTab, syncRoute, setStep, setAuthTarget, updatePatientData, updateQueue, setLoggedLocation, setLogin, recordPatientVisit, logout, getRevenue, getQueueMetrics, getNextPatient, sortQueue, transitionPatient, persistDraft, hrefFor, hrefForTab, getDonationsData, saveDonationsData, addHospitalDonation, addPatientDonation, getMedicalHistory, saveMedicalHistory, registerMedicalPassport, getMedicalPassport, getPrescription, savePrescription };
 })();

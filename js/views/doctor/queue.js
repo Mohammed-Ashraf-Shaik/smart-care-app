@@ -101,7 +101,7 @@
         Array.from(workspaceMain.children).forEach(child => workspaceContent.appendChild(child));
         workspaceMain.append(workspaceNav, workspaceContent);
 
-        const priorityClass = value => value === 'Red' ? 'priority-red' : value === 'Yellow' ? 'priority-yellow' : 'priority-green';
+        const priorityClass = value => value === 'Red' ? 'priority-red' : value === 'Yellow' ? 'priority-yellow' : value === 'Green' ? 'priority-green' : 'priority-neutral';
         const statusLabel = value => ({ waiting: 'Waiting', called: 'Called', in_progress: 'In consultation', completed: 'Completed' }[String(value || 'waiting').toLowerCase()] || 'Active');
         const statusClass = value => `queue-status-${String(value || 'waiting').toLowerCase().replace('_', '-')}`;
         const nextAction = patient => ({ waiting: ['called', 'Call next'], called: ['in_progress', 'Start visit'], in_progress: ['completed', 'Complete'] }[String(patient.status || 'waiting').toLowerCase()] || [null, 'Updated']);
@@ -120,8 +120,8 @@
                     <div class="provider-empty">
                         ${icon('inbox', 30)}
                         <p>No queue entries match those filters.</p>
-                        <a class="btn-primary btn-icon" data-route="/dashboard/patient/apply/1" href="/dashboard/patient/apply/1">
-                            Preview patient flow ${icon('arrow-right', 16)}
+                        <a class="btn-primary btn-icon" data-route="${overviewRoute}" href="${overviewRoute}">
+                            ${isStaff ? 'Register a walk-in' : 'Return to overview'} ${icon('arrow-right', 16)}
                         </a>
                     </div>
                 `;
@@ -137,6 +137,7 @@
                                 <th>Reason for visit</th>
                                 <th>Priority</th>
                                 <th>Status</th>
+                                <th>Clinician queue</th>
                                 <th>Centre</th>
                                 <th>Action</th>
                             </tr>
@@ -146,12 +147,13 @@
                                 const [action, label] = nextAction(patient);
                                 return `
                                     <tr>
-                                        <td><strong>${index + 1}. ${esc(patient.name || 'Patient')}</strong><small>${esc(patient.age || '—')} years · ${esc(patient.gender || 'Not specified')}</small></td>
-                                        <td>${esc(patient.problem || patient.symptoms || 'General consultation')}</td>
-                                        <td><span class="priority-chip ${priorityClass(patient.triage)}">${esc(patient.triage || 'Green')}</span></td>
-                                        <td><span class="queue-status ${statusClass(patient.status)}">${statusLabel(patient.status)}</span></td>
-                                        <td>${esc(patient.hospital || state.loggedHospital || 'Care centre')}<small>${esc(patient.city || state.loggedCity || 'Location pending')}</small></td>
-                                        <td>${action ? `<button class="text-link queue-action" type="button" data-action="${action}" data-id="${esc(patient.id)}">${label}</button>` : `<span class="queue-status">${label}</span>`}</td>
+                                        <td data-label="Patient"><span class="queue-cell-content"><strong>${index + 1}. ${esc(patient.name || 'Patient')}</strong><small>${esc(patient.age || '—')} years · ${esc(patient.gender || 'Not specified')}</small></span></td>
+                                        <td data-label="Reason"><span class="queue-cell-content">${esc(patient.problem || patient.symptoms || 'General consultation')}</span></td>
+                                        <td data-label="Priority"><span class="queue-cell-content"><span class="priority-chip ${priorityClass(patient.triage)}">${esc(patient.triage || 'Unassessed')}</span></span></td>
+                                        <td data-label="Status"><span class="queue-cell-content"><span class="queue-status ${statusClass(patient.status)}">${statusLabel(patient.status)}</span></span></td>
+                                        <td data-label="Clinician"><span class="queue-cell-content">${esc(patient.doctorPref || patient.doctor_pref || 'General care')}</span></td>
+                                        <td data-label="Centre"><span class="queue-cell-content">${esc(patient.hospital || state.loggedHospital || 'Care centre')}<small>${esc(patient.city || state.loggedCity || 'Location pending')}</small></span></td>
+                                        <td data-label="Action"><span class="queue-cell-content">${action ? `<button class="text-link queue-action" type="button" data-action="${action}" data-id="${esc(patient.id)}">${label}</button>` : `<span class="queue-status">${label}</span>`}</span></td>
                                     </tr>
                                 `;
                             }).join('')}
@@ -187,6 +189,12 @@
         if (scanBtn) {
             scanBtn.onclick = () => {
                 window.App.UI.showQRScannerModal(async (code) => {
+                    const passport = window.App.Store.getMedicalPassport(code);
+                    if (passport) {
+                        window.App.UI.showMedicalPassportModal(passport);
+                        window.App.UI.toast(`Opened ${passport.profile.name}'s read-only Medical Passport.`, 'success');
+                        return;
+                    }
                     const match = state.queue.find(p => String(p.id) === String(code) || String(p.reference || '').toUpperCase() === String(code).toUpperCase());
                     if (match) {
                         const targetStatus = match.status === 'called' ? 'in_progress' : 'called';
