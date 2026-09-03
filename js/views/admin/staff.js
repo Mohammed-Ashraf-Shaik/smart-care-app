@@ -3,10 +3,11 @@
     const esc = (value = '') => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
 
     window.App.Views.Staff = function () {
-        const { state, setView, getQueueMetrics, logout } = window.App.Store;
+        const { state, setView, getQueueMetrics, logout, getCareTeam } = window.App.Store;
         const container = document.createElement('div');
         container.className = 'flow-shell workspace-shell';
         const metrics = getQueueMetrics();
+        const careTeam = getCareTeam();
         const activeTab = state.activeTab || '';
         const defaultRooms = [
             ['Consultation 01', 'Internal medicine', 'In use'],
@@ -92,8 +93,8 @@
         const workspaceNav = document.createElement('nav');
         workspaceNav.className = 'workspace-tabs';
         workspaceNav.setAttribute('aria-label', 'Admin workspace navigation');
-        const helpRoute = state.loggedRole === 'doctor' ? '/dashboard/doctor/help' : '/dashboard/admin/help';
-        const donRoute = state.loggedRole === 'doctor' ? '/dashboard/doctor/donations' : '/dashboard/admin/donations';
+        const helpRoute = state.loggedRole === 'doctor' ? '/dashboard/hospital/help' : '/dashboard/admin/help';
+        const donRoute = state.loggedRole === 'doctor' ? '/dashboard/hospital/donations' : '/dashboard/admin/donations';
 
         workspaceNav.innerHTML = `
             <a class="${activeTab === '' ? 'active' : ''}" href="/dashboard/admin" data-route="/dashboard/admin">${icon('layout-dashboard', 16)}<span>Operations</span></a>
@@ -168,9 +169,7 @@
                 <div class="field full">
                     <label for="walkin-clinician">Clinician queue <span>*</span></label>
                     <select id="walkin-clinician" name="doctorPref" required>
-                        <option value="Dr Meera Shah - Internal medicine">Dr Meera Shah - Internal medicine</option>
-                        <option value="Dr Arjun Rao - General care">Dr Arjun Rao - General care</option>
-                        <option value="Triage clinician - Emergency and acute care">Triage clinician - Emergency and acute care</option>
+                        ${careTeam.map(member => `<option value="${esc(member.name)}">${esc(member.name)} - ${esc(member.specialty)}</option>`).join('')}
                     </select>
                 </div>
                 <div class="field full">
@@ -207,6 +206,7 @@
             const form = event.currentTarget;
             const submitButton = form.querySelector('button[type="submit"]');
             const fields = new FormData(form);
+            const clinician = careTeam.find(member => member.name === fields.get('doctorPref')) || careTeam[0];
             submitButton.disabled = true;
             submitButton.textContent = 'Adding to queue...';
             try {
@@ -215,7 +215,13 @@
                     age: fields.get('age'),
                     gender: fields.get('gender'),
                     triage: fields.get('triage'),
-                    doctorPref: fields.get('doctorPref'),
+                    doctorPref: clinician.name,
+                    doctorId: clinician.id,
+                    doctorName: clinician.name,
+                    department: clinician.department,
+                    consultationType: 'Walk-in consultation',
+                    appointmentDate: new Date().toISOString().slice(0, 10),
+                    appointmentSlot: 'Next available',
                     symptoms: String(fields.get('symptoms') || '').trim(),
                     area: 'Front desk walk-in',
                     hospital: state.loggedHospital || 'SmartCare Community Hospital',

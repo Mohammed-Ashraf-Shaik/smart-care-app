@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#0a3b69">
     <meta name="description" content="SmartCare makes finding care and joining a hospital queue simpler.">
     <script>
@@ -56,9 +56,11 @@
 </head>
 
 <body>
-    <a href="#app" class="skip-link">Skip to main content</a>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <div id="google_translate_element" style="display:none"></div>
-    <div id="app" aria-live="polite"></div>
+    <div id="main-content" role="main" tabindex="-1">
+        <div id="app" aria-live="polite"></div>
+    </div>
 
     <script type="module" src="js/main.js"></script>
 </body>

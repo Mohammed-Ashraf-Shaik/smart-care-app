@@ -18,7 +18,7 @@
             document.head.appendChild(base);
         })();
     </script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#0a3b69">
     <meta name="description" content="Page not found — SmartCare">
     <title>404 | SmartCare</title>
@@ -37,6 +37,8 @@
             --shadow: 0 4px 24px rgba(10,59,105,.08);
         }
         html, body { height: 100%; }
+        .skip-link { position: fixed; z-index: 1000; left: 1rem; top: -4rem; padding: .75rem 1rem; border-radius: .6rem; background: #fff; color: var(--teal-dark); font-weight: 700; }
+        .skip-link:focus { top: 1rem; }
         body {
             font-family: 'Noto Sans', system-ui, sans-serif;
             background: var(--canvas);
@@ -245,13 +247,27 @@
         footer a:hover { text-decoration: underline; }
 
         @media (max-width: 480px) {
+            html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+            body { font-size: 1rem; line-height: 1.6; }
+            .topbar { padding: .75rem; gap: .65rem; }
+            .brand { min-width: 0; }
+            .brand-name { font-size: 1rem; }
+            .brand-caption { font-size: .75rem; line-height: 1.3; overflow-wrap: anywhere; }
+            .home-btn { min-height: 2.75rem; padding: .6rem .75rem; font-size: .875rem; line-height: 1.3; text-align: center; }
+            main { padding: 1rem .75rem 2.5rem; }
             .card { padding: 1.5rem 1.25rem; border-radius: 1.2rem; }
+            .eyebrow, .suggestions-label { font-size: .75rem; line-height: 1.4; }
+            h1 { max-width: 100%; font-size: clamp(2rem, 12vw, 2.75rem); line-height: 1.05; text-wrap: balance; overflow-wrap: anywhere; }
+            .subtitle { font-size: .9375rem; line-height: 1.65; text-wrap: pretty; }
             .actions { flex-direction: column; align-items: stretch; }
-            .actions > * { text-align: center; justify-content: center; }
+            .actions > * { min-height: 2.75rem; font-size: .875rem; line-height: 1.3; text-align: center; justify-content: center; }
+            .suggestion-link { min-height: 2.75rem; font-size: .875rem; line-height: 1.4; }
+            footer { padding: 1rem .75rem; font-size: .8125rem; line-height: 1.55; }
         }
     </style>
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Skip to main content</a>
     <header>
         <div class="topbar">
                 <a class="brand" href="./">
@@ -270,7 +286,7 @@
         </div>
     </header>
 
-    <main>
+    <main id="main-content" tabindex="-1">
         <div class="card">
             <div class="icon-wrap">
                 <svg viewBox="0 0 24 24"><line x1="3" y1="3" x2="21" y2="21"/><circle cx="11" cy="11" r="8"/></svg>
@@ -301,7 +317,7 @@
                 </a>
                 <a class="suggestion-link" href="login?role=doctor">
                     <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-                    Provider portal
+                    Hospital portal
                 </a>
                 <a class="suggestion-link" href="about">
                     <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>

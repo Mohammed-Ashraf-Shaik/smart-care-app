@@ -17,7 +17,7 @@
                         <p class="footer-heading">Explore</p>
                         <a data-route="/about" href="/about">About us</a>
                         <a data-route="/dashboard/patient/apply/1" href="/dashboard/patient/apply/1">Patient portal</a>
-                        <a data-route="/login" href="/login">Provider portal</a>
+                        <a data-route="/login" href="/login">Hospital portal</a>
                         <a data-route="/donate" href="/donate">Community donation</a>
                     </div>
                     <div class="footer-col">
@@ -277,7 +277,7 @@
                 </div>
                 <div class="prescription-modal-body" style="text-align:center">
                     <p style="margin:0 0 1rem;font-size:.8rem;color:var(--muted)">
-                        Scan an appointment ticket to check in, or a Medical Passport to open its read-only clinical summary.
+                        Scan an appointment ticket to check in, or a Medical History code to open its read-only clinical summary.
                     </p>
                     <div id="qr-camera-reader" style="width:100%;max-width:380px;min-height:250px;margin:0 auto 1rem;border-radius:.8rem;overflow:hidden;border:1px dashed var(--teal);background:#000"></div>
                     
@@ -370,14 +370,14 @@
         backdrop.innerHTML = `
             <div class="prescription-modal passport-review-modal" role="dialog" aria-modal="true" aria-labelledby="passport-review-title">
                 <div class="prescription-modal-header">
-                    <h3 id="passport-review-title">${icon('shield-plus', 18)} Emergency Medical Passport</h3>
-                    <button type="button" class="btn-ghost modal-close-button" id="close-passport-review" aria-label="Close Medical Passport">${icon('x', 18)}</button>
+                    <h3 id="passport-review-title">${icon('shield-plus', 18)} Shared Medical History</h3>
+                    <button type="button" class="btn-ghost modal-close-button" id="close-passport-review" aria-label="Close Medical History">${icon('x', 18)}</button>
                 </div>
                 <div class="prescription-modal-body">
                     <div class="passport-review-banner">
                         <div><small>Patient</small><strong>${esc(profile.name || 'Patient')}</strong></div>
                         <div><small>Age / Gender</small><strong>${esc(profile.age || 'Not provided')} / ${esc(profile.gender || 'Not specified')}</strong></div>
-                        <div><small>Passport ID</small><strong>${esc(passport.passportId || 'Not provided')}</strong></div>
+                        <div><small>History Share ID</small><strong>${esc(passport.passportId || 'Not provided')}</strong></div>
                         <div><small>Last updated</small><strong>${esc(history.lastUpdated || 'Not recorded')}</strong></div>
                     </div>
                     <section class="passport-provider-summary" aria-label="Previous provider">
@@ -560,15 +560,15 @@
         patient: [
             { icon: 'layout-dashboard', label: 'Overview',   route: '/dashboard/patient',             attr: 'data-route' },
             { icon: 'calendar-plus',    label: 'Book',        route: '/dashboard/patient/apply/1',     attr: 'data-tab',   tab: 'apply', tabRoute: '/dashboard/patient' },
-            { icon: 'file-text',        label: 'Passport',    route: '/dashboard/patient/history',     attr: 'data-route' },
+            { icon: 'file-text',        label: 'History',     route: '/dashboard/patient/history',     attr: 'data-route' },
             { icon: 'clipboard-list',   label: 'Visits',      route: '/dashboard/patient/visits',      attr: 'data-tab',   tab: 'visits', tabRoute: '/dashboard/patient' },
             { icon: 'log-out',          label: 'Sign out',    route: null,                             attr: 'signout' },
         ],
         doctor: [
-            { icon: 'layout-dashboard', label: 'Overview',   route: '/dashboard/doctor',              attr: 'data-route' },
+            { icon: 'layout-dashboard', label: 'Overview',   route: '/dashboard/hospital',            attr: 'data-route' },
             { icon: 'list-ordered',     label: 'Queue',       route: '/dashboard/queue',               attr: 'data-route' },
             { icon: 'bar-chart-3',      label: 'Analytics',   route: '/dashboard/analytics',           attr: 'data-route' },
-            { icon: 'heart-handshake',  label: 'Donations',   route: '/dashboard/doctor/donations',    attr: 'data-route' },
+            { icon: 'heart-handshake',  label: 'Donations',   route: '/dashboard/hospital/donations',  attr: 'data-route' },
             { icon: 'log-out',          label: 'Sign out',    route: null,                             attr: 'signout' },
         ],
         staff: [

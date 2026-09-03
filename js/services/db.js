@@ -6,6 +6,7 @@
 
     if (!supabaseEnabled) {
         const queueKey = 'smartcare.demoQueue';
+        const accountsKey = 'smartcare.localAccounts';
         const defaultQueue = [{
             id: 'SC-DEMO001',
             name: 'Maya Singh',
@@ -27,14 +28,27 @@
 
         const storedQueue = readStorage(queueKey);
         const demoQueue = Array.isArray(storedQueue) && storedQueue.length ? storedQueue : defaultQueue;
-
-        function saveDemoQueue() {
+        const seededVisit = demoQueue.find(item => item.id === 'SC-DEMO001' && String(item.status || '').toLowerCase() === 'waiting');
+        if (seededVisit && Date.now() - new Date(seededVisit.created_at || 0).getTime() > 2 * 60 * 60 * 1000) {
+            seededVisit.created_at = new Date(Date.now() - 18 * 60000).toISOString();
             try { window.localStorage.setItem(queueKey, JSON.stringify(demoQueue)); } catch {}
         }
 
+        function saveDemoQueue() {
+            try { window.localStorage.setItem(queueKey, JSON.stringify(demoQueue)); } catch {}
+            window.dispatchEvent(new CustomEvent('smartcare:queue-updated', { detail: [...demoQueue] }));
+        }
+
         const demoUsers = {
+            'patient@smartcare.demo': { email: 'patient@smartcare.demo', password: 'demo1234', role: 'patient', name: 'Asha Rao', hospital: 'SmartCare Community Hospital', country: 'India', state: 'Telangana', city: 'Hyderabad' },
             'hospital@smartcare.demo': { email: 'hospital@smartcare.demo', password: 'demo1234', role: 'doctor', hospital: 'SmartCare Community Hospital', country: 'India', state: 'Telangana', city: 'Hyderabad' },
             'admin@smartcare.demo': { email: 'admin@smartcare.demo', password: 'demo1234', role: 'staff', hospital: 'SmartCare Community Hospital', country: 'India', state: 'Telangana', city: 'Hyderabad' }
+        };
+        const savedAccounts = readStorage(accountsKey);
+        const localUsers = { ...demoUsers, ...(savedAccounts && typeof savedAccounts === 'object' ? savedAccounts : {}) };
+        const saveAccounts = () => {
+            const registeredUsers = Object.fromEntries(Object.entries(localUsers).filter(([email]) => !demoUsers[email]));
+            try { window.localStorage.setItem(accountsKey, JSON.stringify(registeredUsers)); } catch {}
         };
         const demoBloodCentres = [
             { id: 'blood-demo-1', name: 'SmartCare Community Hospital Blood Bank', area: 'Banjara Hills, Hyderabad', city: 'hyderabad', supported_groups: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'], hours: 'Open today · 09:00–17:00', note: 'Supports all common blood groups.' },
@@ -43,25 +57,48 @@
         ];
 
         window.App.DB = {
-            checkEmailExists: async email => ({ success: !!demoUsers[String(email).toLowerCase()] }),
+            checkEmailExists: async email => ({ success: !!localUsers[String(email).toLowerCase()] }),
             checkCredentials: async (hospital, email, password, role) => {
-                const user = demoUsers[String(email).toLowerCase()];
-                return user && user.password === password && user.role === role
+                const user = localUsers[String(email).toLowerCase()];
+                const hospitalMatches = role === 'patient' || !hospital || String(user?.hospital || '').toLowerCase() === String(hospital).toLowerCase();
+                return user && user.password === password && user.role === role && hospitalMatches
                     ? { success: true, user: { email: user.email, role: user.role, hospital: user.hospital, country: user.country, state: user.state, city: user.city } }
-                    : { success: false, error: 'Demo mode: use one of the supplied demo accounts.' };
+                    : { success: false, error: 'The email, password, portal, or care centre does not match this account.' };
             },
             registerProfessional: async profData => {
                 const email = String(profData.email || '').toLowerCase();
-                if (demoUsers[email]) return { success: false, error: 'A demo account with this email already exists.' };
+                if (localUsers[email]) return { success: false, error: 'An account with this email already exists.' };
                 const user = { email, password: profData.password, role: profData.role, hospital: profData.hospital, country: 'India', state: 'Telangana', city: 'Hyderabad' };
-                demoUsers[email] = user;
+                localUsers[email] = user;
+                saveAccounts();
                 return { success: true, user: { email, role: user.role, hospital: user.hospital, country: user.country, state: user.state, city: user.city } };
+            },
+            registerPatient: async patientData => {
+                const email = String(patientData.email || '').toLowerCase();
+                if (localUsers[email]) return { success: false, error: 'An account with this email already exists.' };
+                const user = { email, password: patientData.password, role: 'patient', name: patientData.name, hospital: '', country: 'India', state: 'Telangana', city: patientData.city || 'Hyderabad' };
+                localUsers[email] = user;
+                saveAccounts();
+                return { success: true, user: { email, role: 'patient', name: user.name, country: user.country, state: user.state, city: user.city } };
             },
             verifyPasswordHint: async () => ({ success: false, error: 'Password recovery is unavailable in local demo mode.' }),
             resetPassword: async () => ({ success: false, error: 'Password recovery is unavailable in local demo mode.' }),
             updatePassword: async () => ({ success: false, error: 'Password recovery is unavailable in local demo mode.' }),
             fetchQueue: async () => [...demoQueue],
-            listenToQueue: () => () => {},
+            listenToQueue: onUpdate => {
+                const localHandler = event => onUpdate(event.detail || []);
+                const storageHandler = event => {
+                    if (event.key !== queueKey) return;
+                    const nextQueue = readStorage(queueKey);
+                    onUpdate(Array.isArray(nextQueue) ? nextQueue : []);
+                };
+                window.addEventListener('smartcare:queue-updated', localHandler);
+                window.addEventListener('storage', storageHandler);
+                return () => {
+                    window.removeEventListener('smartcare:queue-updated', localHandler);
+                    window.removeEventListener('storage', storageHandler);
+                };
+            },
             signOut: async () => {},
             getCurrentUser: async () => null,
             listenToAuth: () => () => {},
@@ -76,6 +113,16 @@
                     gender: patientData.gender || 'Not specified',
                     doctorPref: patientData.doctorPref || 'General consultation',
                     doctor_pref: patientData.doctorPref || 'General consultation',
+                    department: patientData.department || 'General medicine',
+                    doctorId: patientData.doctorId || '',
+                    doctorName: patientData.doctorName || patientData.doctorPref || 'Next available clinician',
+                    consultationType: patientData.consultationType || 'In-person consultation',
+                    appointmentDate: patientData.appointmentDate || new Date().toISOString().slice(0, 10),
+                    appointmentSlot: patientData.appointmentSlot || 'Next available',
+                    patientEmail: patientData.patientEmail || '',
+                    queueHospital: patientData.queueHospital || patientData.hospital || 'SmartCare Community Hospital',
+                    requestedHospital: patientData.requestedHospital || patientData.hospital || 'SmartCare Community Hospital',
+                    demoMirrored: patientData.demoMirrored === true,
                     area: patientData.area || 'Hyderabad',
                     symptoms: patientData.symptoms || 'General consultation',
                     problem: patientData.symptoms || 'General consultation',
@@ -130,8 +177,8 @@
             const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
             if (sessionError || !sessionData.session?.user) return null;
             const { data: profile, error: profileError } = await supabase.from('professionals').select('id,email,hospital,role,country,state,city').eq('id', sessionData.session.user.id).maybeSingle();
-            if (profileError || !profile) return null;
-            return { session: sessionData.session, user: sessionData.session.user, profile };
+            if (profileError) return null;
+            return { session: sessionData.session, user: sessionData.session.user, profile: profile || { email: sessionData.session.user.email, role: 'patient', hospital: '', country: 'India', state: '', city: '' } };
         },
         listenToAuth: callback => {
             const { data } = supabase.auth.onAuthStateChange((_event, session) => callback(session));
@@ -162,6 +209,7 @@
         checkCredentials: async (hospital, email, password, role) => {
             const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email: email.toLowerCase(), password });
             if (authError || !authData.user) return { success: false, error: 'Invalid credentials. Please check your email and password.' };
+            if (role === 'patient') return { success: true, user: { email: authData.user.email, role: 'patient', hospital: '', country: 'India', state: '', city: '' } };
             const { data: profile, error: profileError } = await supabase.from('professionals').select('id,email,hospital,role,country,state,city').eq('id', authData.user.id).maybeSingle();
             if (profileError || !profile || profile.role !== role) { await supabase.auth.signOut(); return { success: false, error: 'This account is not enabled for the selected portal.' }; }
             if (String(hospital || '').trim().toLowerCase() !== String(profile.hospital || '').trim().toLowerCase()) { await supabase.auth.signOut(); return { success: false, error: 'The care centre does not match this account.' }; }
@@ -174,6 +222,12 @@
             if (error) { await supabase.auth.signOut(); if (error.code === '23505') return { success: false, error: 'An account with this email already exists.' }; return { success: false, error: error.message }; }
             await supabase.auth.signOut();
             return { success: true, user: data[0] };
+        },
+        registerPatient: async patientData => {
+            const { data: authData, error: authError } = await supabase.auth.signUp({ email: patientData.email.toLowerCase(), password: patientData.password, options: { data: { name: patientData.name, role: 'patient' } } });
+            if (authError || !authData.user) return { success: false, error: authError?.message || 'Account creation failed.' };
+            await supabase.auth.signOut();
+            return { success: true, user: { email: patientData.email.toLowerCase(), name: patientData.name, role: 'patient' } };
         },
         verifyPasswordHint: async () => ({ success: false, error: 'Use the secure email recovery link instead.' }),
         resetPassword: async email => {

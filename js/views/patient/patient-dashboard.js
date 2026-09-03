@@ -3,19 +3,19 @@
     const esc = (value = '') => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
 
     window.App.Views.PatientDashboard = function () {
-        const { state, setView, navigate, logout, recordPatientVisit, sortQueue } = window.App.Store;
+        const { state, setView, navigate, logout, recordPatientVisit, sortQueue, updatePatientData, getAppointmentSlots } = window.App.Store;
         const container = document.createElement('div');
         container.className = 'flow-shell workspace-shell patient-workspace-shell';
         const patientData = state.patientData || {};
-        const patientName = patientData.name || (state.loggedEmail || 'Patient').split('@')[0].replace(/[._-]/g, ' ');
+        const patientName = patientData.name || (state.loggedEmail === 'patient@smartcare.demo' ? 'Asha Rao' : (state.loggedEmail || 'Patient').split('@')[0].replace(/[._-]/g, ' '));
         const latestVisit = state.patientVisits[0];
         const activeTab = state.activeTab || '';
         const isApplyTab = activeTab === 'apply';
         const showOverview = (activeTab === 'overview' || activeTab === '') && !isApplyTab;
         const showVisits = activeTab === 'visits';
         const showProfile = activeTab === 'profile';
-        const activeVisit = state.patientVisits.find(visit => !['completed', 'cancelled', 'no-show'].includes(String(visit.status || '').toLowerCase()));
-        const visitStatusLabel = value => ({ booked: 'Booked', waiting: 'Waiting for the centre', called: 'Please proceed to reception', in_progress: 'In consultation', completed: 'Completed', cancelled: 'Cancelled' }[String(value || 'booked').toLowerCase()] || 'Booked');
+        const activeVisit = state.patientVisits.find(visit => !['completed', 'cancelled', 'withdrawn', 'no-show'].includes(String(visit.status || '').toLowerCase()));
+        const visitStatusLabel = value => ({ booked: 'Booked', waiting: 'Waiting for the centre', called: 'Please proceed to reception', in_progress: 'In consultation', completed: 'Completed', cancelled: 'Cancelled', withdrawn: 'Withdrawn from queue' }[String(value || 'booked').toLowerCase()] || 'Booked');
         const activeQueue = sortQueue(state.queue);
         const liveQueueEntry = activeVisit ? activeQueue.find(entry => String(entry.id) === String(activeVisit.id)) : null;
         const liveQueueIndex = liveQueueEntry ? activeQueue.findIndex(entry => String(entry.id) === String(liveQueueEntry.id)) : -1;
@@ -51,7 +51,8 @@
                 <div class="appointment-copy">
                     <span class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> Next appointment</span>
                     <h2>${esc(activeVisit.hospital || 'SmartCare centre')}</h2>
-                    <p>${esc(activeVisit.reason || 'General consultation')} · ${esc(activeVisit.date || 'Date pending')} · ${esc(activeVisit.city || state.patientData.city || 'Hyderabad')}</p>
+                    <p>${esc(activeVisit.department || 'General medicine')} | ${esc(activeVisit.doctorName || 'Next available clinician')}</p>
+                    <small>${esc(activeVisit.consultationType || 'In-person consultation')} | ${esc(activeVisit.appointmentDate || activeVisit.date || 'Date pending')} at ${esc(activeVisit.appointmentSlot || 'Next available')}</small>
                     <small>Reference: <strong>${esc(activeVisit.id || 'SC-DEMO')}</strong></small>
                     <div class="appointment-telemetry" aria-live="polite">
                         <span><small>Live position</small><strong>${esc(queuePosition)}</strong></span>
@@ -65,7 +66,7 @@
                         <button type="button" class="btn-secondary btn-icon btn-view-rx" data-visit-id="${esc(activeVisit.id)}" style="font-size:.72rem;min-height:2.2rem;padding:.35rem .65rem">
                             ${icon('file-text', 14)} Clinical slip
                         </button>
-                        <button id="cancel-appointment" class="text-link text-link-dark" type="button">Cancel</button>
+                        <button id="manage-appointment" class="btn-secondary btn-icon" type="button">${icon('calendar-cog', 14)} Manage</button>
                     </div>
                 </div>
             </section>` : `
@@ -220,7 +221,7 @@
         workspaceNav.innerHTML = `
             <a class="${activeTab === 'overview' || activeTab === '' ? 'active' : ''}" href="/dashboard/patient" data-route="/dashboard/patient">${icon('layout-dashboard', 16)}<span>Overview</span></a>
             <a class="${isApplyTab ? 'active' : ''}" href="/dashboard/patient/apply/1" data-route="/dashboard/patient/apply/1">${icon('calendar-plus', 16)}<span>Book appointment</span></a>
-            <a href="/dashboard/patient/history" data-route="/dashboard/patient/history">${icon('file-text', 16)}<span>Medical Passport</span></a>
+            <a href="/dashboard/patient/history" data-route="/dashboard/patient/history">${icon('file-text', 16)}<span>Medical History</span></a>
             <a class="${activeTab === 'visits' ? 'active' : ''}" href="/dashboard/patient?tab=visits" data-tab="visits" data-tab-route="/dashboard/patient">${icon('clipboard-check', 16)}<span>Previous visits</span></a>
             <a class="${activeTab === 'profile' ? 'active' : ''}" href="/dashboard/patient?tab=profile" data-tab="profile" data-tab-route="/dashboard/patient">${icon('user-round', 16)}<span>Profile</span></a>
             <div class="nav-divider"></div>
@@ -253,19 +254,64 @@
             };
         });
 
-        const cancelButton = container.querySelector('#cancel-appointment');
-        if (cancelButton && activeVisit) cancelButton.onclick = async () => {
-            cancelButton.disabled = true;
-            try {
-                if (activeVisit.id && window.App.DB?.updatePatient) await window.App.DB.updatePatient(activeVisit.id, { status: 'cancelled' });
-                recordPatientVisit({ ...activeVisit, status: 'Cancelled' });
-                window.App.UI.toast('Demo booking cancelled.', 'success');
-                navigate('/dashboard/patient');
-            } catch (error) {
-                cancelButton.disabled = false;
-                window.App.UI.toast(error.message || 'We could not cancel this booking.', 'error');
-            }
-        };
+        const manageButton = container.querySelector('#manage-appointment');
+        if (manageButton && activeVisit) manageButton.onclick = () => showAppointmentManager(activeVisit, manageButton);
+
+        function showAppointmentManager(visit, trigger) {
+            const slots = getAppointmentSlots();
+            const currentSlotValue = `${visit.appointmentDate || slots[0].date}|${visit.appointmentSlot || slots[0].slot}`;
+            const canReschedule = !['called', 'in_progress'].includes(liveStatus);
+            const isFutureAppointment = String(visit.appointmentDate || '') > new Date().toISOString().slice(0, 10);
+            const exitStatus = isFutureAppointment ? 'cancelled' : 'withdrawn';
+            const exitLabel = isFutureAppointment ? 'Cancel appointment' : 'Withdraw from queue';
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop';
+            backdrop.innerHTML = `<section class="modal-card appointment-manager" role="dialog" aria-modal="true" aria-labelledby="appointment-manager-title"><div class="modal-heading"><div><h2 id="appointment-manager-title">Manage appointment</h2><p>${esc(visit.hospital || 'SmartCare centre')} | ${esc(visit.doctorName || 'Clinician assignment pending')}</p></div><button type="button" class="btn-ghost modal-close-button" data-close-manager aria-label="Close appointment manager">${icon('x', 18)}</button></div><form id="reschedule-form" class="appointment-manager-form"><div class="field"><label for="reschedule-slot">Choose another available slot</label><select id="reschedule-slot" ${canReschedule ? '' : 'disabled'}>${slots.map(slot => `<option value="${esc(slot.value)}" ${slot.value === currentSlotValue ? 'selected' : ''}>${esc(slot.label)}</option>`).join('')}</select><span class="hint">${canReschedule ? 'Demo slots update both the patient record and hospital queue.' : 'This visit cannot be rescheduled after the hospital calls the patient.'}</span></div><div class="modal-actions"><button type="button" class="btn-secondary" data-close-manager>Keep current booking</button><button type="submit" class="btn-primary btn-icon" ${canReschedule ? '' : 'disabled'}>${icon('calendar-clock', 15)} Save new time</button></div></form><div class="appointment-danger-zone"><div><strong>${exitLabel}</strong><p>This removes the visit from the active hospital queue. The record remains in Previous visits.</p></div><button id="begin-withdraw" class="btn-danger" type="button">${exitLabel}</button><div id="withdraw-confirmation" class="withdraw-confirmation" hidden><p>Confirm that you want to ${exitLabel.toLowerCase()}.</p><div><button class="btn-secondary" id="keep-appointment" type="button">Keep appointment</button><button class="btn-danger" id="confirm-withdraw" type="button">Confirm ${exitLabel.toLowerCase()}</button></div></div></div><p id="appointment-manager-status" class="inline-status" role="status" aria-live="polite"></p></section>`;
+            document.body.appendChild(backdrop);
+            const close = () => { backdrop.remove(); trigger.focus(); };
+            backdrop.querySelectorAll('[data-close-manager]').forEach(button => button.onclick = close);
+            backdrop.onclick = event => { if (event.target === backdrop) close(); };
+            backdrop.onkeydown = event => { if (event.key === 'Escape') close(); };
+            backdrop.querySelector('#reschedule-form').onsubmit = async event => {
+                event.preventDefault();
+                const submit = event.currentTarget.querySelector('button[type="submit"]');
+                const selected = slots.find(slot => slot.value === backdrop.querySelector('#reschedule-slot').value) || slots[0];
+                submit.disabled = true;
+                submit.textContent = 'Saving...';
+                try {
+                    await window.App.DB.updatePatient(visit.id, { appointmentDate: selected.date, appointmentSlot: selected.slot, status: 'waiting' });
+                    recordPatientVisit({ ...visit, appointmentDate: selected.date, appointmentSlot: selected.slot, status: 'Waiting' });
+                    close();
+                    window.App.UI.toast('Appointment time updated in the patient and hospital views.', 'success');
+                    navigate('/dashboard/patient');
+                } catch (error) {
+                    submit.disabled = false;
+                    submit.textContent = 'Save new time';
+                    backdrop.querySelector('#appointment-manager-status').textContent = error.message || 'We could not reschedule this appointment.';
+                }
+            };
+            const confirmation = backdrop.querySelector('#withdraw-confirmation');
+            backdrop.querySelector('#begin-withdraw').onclick = () => { confirmation.hidden = false; backdrop.querySelector('#confirm-withdraw').focus(); };
+            backdrop.querySelector('#keep-appointment').onclick = () => { confirmation.hidden = true; backdrop.querySelector('#begin-withdraw').focus(); };
+            backdrop.querySelector('#confirm-withdraw').onclick = async event => {
+                const button = event.currentTarget;
+                button.disabled = true;
+                button.textContent = 'Updating...';
+                try {
+                    await window.App.DB.updatePatient(visit.id, { status: exitStatus });
+                    recordPatientVisit({ ...visit, status: exitStatus === 'cancelled' ? 'Cancelled' : 'Withdrawn' });
+                    close();
+                    window.App.UI.toast(exitStatus === 'cancelled' ? 'Appointment cancelled.' : 'Visit withdrawn from the active queue.', 'success');
+                    navigate('/dashboard/patient');
+                } catch (error) {
+                    button.disabled = false;
+                    button.textContent = `Confirm ${exitLabel.toLowerCase()}`;
+                    backdrop.querySelector('#appointment-manager-status').textContent = error.message || 'We could not update this appointment.';
+                }
+            };
+            if (window.lucide) window.lucide.createIcons();
+            backdrop.querySelector('[data-close-manager]')?.focus();
+        }
 
         const profileForm = container.querySelector('#profile-form');
         if (profileForm) {

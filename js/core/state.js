@@ -1,6 +1,6 @@
 (function () {
-    const routeMap = { landing: '/', patientDashboard: '/dashboard/patient', patient: '/dashboard/patient/apply/1', login: '/login', doctor: '/dashboard/doctor', queue: '/dashboard/queue', staff: '/dashboard/admin', analytics: '/dashboard/analytics', patientDonations: '/dashboard/patient/donations', patientHistory: '/dashboard/patient/history', doctorDonations: '/dashboard/doctor/donations', donations: '/donate', about: '/about', terms: '/terms', privacy: '/privacy', notFound: '/404' };
-    const pathMap = { '/': 'landing', '/apply': 'patientDashboard', '/dashboard/patient/apply': 'patientDashboard', '/login': 'login', '/dashboard/patient': 'patientDashboard', '/dashboard/patient/visits': 'patientDashboard', '/dashboard/patient/profile': 'patientDashboard', '/dashboard/patient/history': 'patientHistory', '/dashboard/patient/donations': 'patientDonations', '/dashboard/patient/help': 'about', '/dashboard/doctor': 'doctor', '/dashboard/doctor/donations': 'doctorDonations', '/dashboard/doctor/help': 'about', '/dashboard/hospital': 'doctor', '/dashboard/queue': 'queue', '/dashboard/admin': 'staff', '/dashboard/admin/rooms': 'staff', '/dashboard/admin/donations': 'doctorDonations', '/dashboard/admin/help': 'about', '/dashboard/analytics': 'analytics', '/dashboard/analytics/help': 'about', '/donate': 'donations', '/donate/blood': 'donations', '/donate/organ': 'donations', '/about': 'about', '/terms': 'terms', '/privacy': 'privacy', '/404': 'notFound' };
+    const routeMap = { landing: '/', patientDashboard: '/dashboard/patient', patient: '/dashboard/patient/apply/1', login: '/login', doctor: '/dashboard/hospital', queue: '/dashboard/queue', staff: '/dashboard/admin', analytics: '/dashboard/analytics', patientDonations: '/dashboard/patient/donations', patientHistory: '/dashboard/patient/history', doctorDonations: '/dashboard/hospital/donations', donations: '/donate', about: '/about', terms: '/terms', privacy: '/privacy', notFound: '/404' };
+    const pathMap = { '/': 'landing', '/apply': 'patientDashboard', '/dashboard/patient/apply': 'patientDashboard', '/login': 'login', '/dashboard/patient': 'patientDashboard', '/dashboard/patient/visits': 'patientDashboard', '/dashboard/patient/profile': 'patientDashboard', '/dashboard/patient/history': 'patientHistory', '/dashboard/patient/donations': 'patientDonations', '/dashboard/patient/help': 'about', '/dashboard/doctor': 'doctor', '/dashboard/doctor/donations': 'doctorDonations', '/dashboard/doctor/help': 'about', '/dashboard/hospital': 'doctor', '/dashboard/hospital/donations': 'doctorDonations', '/dashboard/hospital/help': 'about', '/dashboard/queue': 'queue', '/dashboard/admin': 'staff', '/dashboard/admin/rooms': 'staff', '/dashboard/admin/donations': 'doctorDonations', '/dashboard/admin/help': 'about', '/dashboard/analytics': 'analytics', '/dashboard/analytics/help': 'about', '/donate': 'donations', '/donate/blood': 'donations', '/donate/organ': 'donations', '/about': 'about', '/terms': 'terms', '/privacy': 'privacy', '/404': 'notFound' };
     const basePath = window.SMARTCARE_BASE_PATH || '';
     const draftKey = 'smartcare.patientDraft';
     const sessionKey = 'smartcare.session';
@@ -105,7 +105,29 @@
             : { name: owner.split('@')[0].replace(/[._-]/g, ' '), age: 'Not provided', gender: 'Not specified', city: 'Not provided', ...savedProfile };
         return { passportId, profile, history: getMedicalHistory(owner) };
     }
-    const emptyPatientData = () => ({ name: '', age: '', gender: '', doctorPref: '', area: '', symptoms: '', hospital: '', country: '', state: '', city: '' });
+    const careTeam = [
+        { id: 'meera-shah', name: 'Dr Meera Shah', department: 'General medicine', specialty: 'Internal medicine', room: 'Consultation 01', availability: 'Available' },
+        { id: 'arjun-rao', name: 'Dr Arjun Rao', department: 'General medicine', specialty: 'Family care', room: 'Consultation 02', availability: 'Available' },
+        { id: 'nisha-verma', name: 'Dr Nisha Verma', department: 'Paediatrics', specialty: 'Child health', room: 'Consultation 03', availability: 'Available from 11:30' },
+        { id: 'kavya-iyer', name: 'Dr Kavya Iyer', department: 'Women\'s health', specialty: 'Gynaecology', room: 'Consultation 04', availability: 'Available from 14:00' },
+        { id: 'vikram-desai', name: 'Dr Vikram Desai', department: 'Orthopaedics', specialty: 'Bone and joint care', room: 'Consultation 05', availability: 'Available tomorrow' }
+    ];
+    const getCareTeam = () => cloneData(careTeam);
+    function getAppointmentSlots() {
+        const dateKey = offset => {
+            const date = new Date();
+            date.setDate(date.getDate() + offset);
+            return date.toISOString().slice(0, 10);
+        };
+        return [
+            { value: `${dateKey(0)}|Next available`, date: dateKey(0), slot: 'Next available', label: 'Today - next available' },
+            { value: `${dateKey(0)}|16:30`, date: dateKey(0), slot: '16:30', label: 'Today - 4:30 pm' },
+            { value: `${dateKey(1)}|09:30`, date: dateKey(1), slot: '09:30', label: 'Tomorrow - 9:30 am' },
+            { value: `${dateKey(1)}|11:00`, date: dateKey(1), slot: '11:00', label: 'Tomorrow - 11:00 am' },
+            { value: `${dateKey(2)}|14:30`, date: dateKey(2), slot: '14:30', label: 'In two days - 2:30 pm' }
+        ];
+    }
+    const emptyPatientData = () => ({ name: '', age: '', gender: '', doctorPref: '', department: '', doctorId: '', doctorName: '', consultationType: '', appointmentDate: '', appointmentSlot: '', area: '', symptoms: '', symptomSelections: [], customSymptomTags: [], customSymptoms: '', hospital: '', country: '', state: '', city: '' });
     const readStorage = key => { try { return JSON.parse(window.localStorage.getItem(key) || 'null'); } catch { return null; } };
     let legacyDraft = readStorage(draftKey);
     const patientVisitKey = 'smartcare.patientVisits';
@@ -185,7 +207,7 @@
         view: 'landing', route: '/', activeTab: '', step: 1, infoPage: 'about',
         patientData: emptyPatientData(),
         patientVisits: [],
-        userCoords: null, tempHospitals: [], searchRadius: 0,
+        userCoords: null, tempHospitals: [], searchRadius: 0, careResultsFetchedAt: '',
         queue: [], loggedHospital: '', loggedCountry: '', loggedState: '', loggedCity: '', isLogged: false, loggedEmail: '', loggedRole: '', auth: { targetRole: 'patient' }
     };
     const listeners = [];
@@ -209,6 +231,7 @@
         state.userCoords = draft?.userCoords || null;
         state.tempHospitals = Array.isArray(draft?.tempHospitals) ? draft.tempHospitals : [];
         state.searchRadius = Number(draft?.searchRadius) || 0;
+        state.careResultsFetchedAt = draft?.careResultsFetchedAt || '';
 
         const scopedVisitsKey = accountStorageKey(patientVisitKey, normalizedEmail);
         let visits = readStorage(scopedVisitsKey);
@@ -226,8 +249,7 @@
     function loadPatientProfile(email) {
         const saved = readStorage(`smartcare.patientProfile_${email}`);
         if (saved) Object.assign(state.patientData, saved);
-        else if (String(email).toLowerCase() === 'patient@smartcare.demo') Object.assign(state.patientData, { name: 'Asha Rao', age: '32', gender: 'Female', bloodGroup: 'O+', city: 'Hyderabad', doctorPref: 'General consultation' });
-        else if (!state.patientData.name) state.patientData.name = String(email).split('@')[0].replace(/[._-]/g, ' ');
+        else if (String(email).toLowerCase() !== 'patient@smartcare.demo' && !state.patientData.name) state.patientData.name = String(email).split('@')[0].replace(/[._-]/g, ' ');
     }
 
     function subscribe(callback) { listeners.push(callback); }
@@ -278,7 +300,7 @@
         const path = stripBasePath(pathname);
         if (path === '/dashboard/patient' || path.startsWith('/dashboard/patient/')) return ['patient'];
         if (path === '/dashboard/admin' || path.startsWith('/dashboard/admin/')) return ['staff'];
-        if (path === '/dashboard/doctor' || path.startsWith('/dashboard/doctor/') || path === '/dashboard/hospital') return ['doctor'];
+        if (path === '/dashboard/doctor' || path.startsWith('/dashboard/doctor/') || path === '/dashboard/hospital' || path.startsWith('/dashboard/hospital/')) return ['doctor'];
         if (path === '/dashboard/queue' || path === '/dashboard/analytics') return ['doctor', 'staff'];
         return requiredRole(view);
     }
@@ -290,7 +312,7 @@
     function persistDraft() {
         try {
             window.localStorage.setItem(accountStorageKey(draftKey), JSON.stringify({
-                step: state.step, patientData: state.patientData, userCoords: state.userCoords, tempHospitals: state.tempHospitals, searchRadius: state.searchRadius
+                step: state.step, patientData: state.patientData, userCoords: state.userCoords, tempHospitals: state.tempHospitals, searchRadius: state.searchRadius, careResultsFetchedAt: state.careResultsFetchedAt
             }));
         } catch { /* storage optional */ }
     }
@@ -416,15 +438,42 @@
     function setStep(newStep) { state.step = Math.max(1, Math.min(4, Number(newStep) || 1)); if (state.step < 4) persistDraft(); else clearDraft(); if (state.view === 'patientDashboard' || state.activeTab === 'apply') { navigate(`/dashboard/patient/apply/${state.step}`); } else { notify(); } }
     function setAuthTarget(role) { state.auth.targetRole = ['patient', 'doctor', 'staff'].includes(role) ? role : 'patient'; }
     function updatePatientData(key, value, shouldNotify = false) { state.patientData[key] = value; persistDraft(); if (shouldNotify) notify(); }
-    function recordPatientVisit(visit) { state.patientVisits = [visit, ...state.patientVisits.filter(item => item.id !== visit.id)].slice(0, 12); try { window.localStorage.setItem(accountStorageKey(patientVisitKey), JSON.stringify(state.patientVisits)); } catch { /* local history is optional */ } }
+    function recordPatientVisit(visit) { state.patientVisits = [visit, ...state.patientVisits.filter(item => String(item.id) !== String(visit.id))].slice(0, 12); try { window.localStorage.setItem(accountStorageKey(patientVisitKey), JSON.stringify(state.patientVisits)); } catch { /* local history is optional */ } }
     function updateQueue(newQueue) {
         fullQueue = Array.isArray(newQueue) ? newQueue : [];
         const isAdmin = state.loggedRole === 'staff';
-        const scopedQueue = !isAdmin && state.loggedHospital && state.loggedCity
-            ? fullQueue.filter(patient => (patient.hospital === state.loggedHospital || !patient.hospital) && String(patient.city || 'Hyderabad').toLowerCase() === String(state.loggedCity || 'Hyderabad').toLowerCase())
-            : fullQueue;
-        state.queue = scopedQueue.filter(patient => !['completed', 'cancelled', 'no-show'].includes(String(patient.status || '').toLowerCase()));
-        if (['doctor', 'staff', 'queue', 'analytics'].includes(state.view)) notify();
+        const isPatient = state.loggedRole === 'patient';
+        const patientVisitIds = new Set(state.patientVisits.map(visit => String(visit.id)));
+        const patientEmail = String(state.loggedEmail || '').toLowerCase();
+        const patientQueue = fullQueue.filter(patient => String(patient.patientEmail || '').toLowerCase() === patientEmail || patientVisitIds.has(String(patient.id)));
+        if (isPatient && patientQueue.length) {
+            let historyChanged = false;
+            state.patientVisits = state.patientVisits.map(visit => {
+                const queueVisit = patientQueue.find(patient => String(patient.id) === String(visit.id));
+                if (!queueVisit) return visit;
+                const nextVisit = {
+                    ...visit,
+                    status: queueVisit.status || visit.status,
+                    department: queueVisit.department || visit.department,
+                    doctorName: queueVisit.doctorName || queueVisit.doctor_name || visit.doctorName,
+                    consultationType: queueVisit.consultationType || queueVisit.consultation_type || visit.consultationType,
+                    appointmentDate: queueVisit.appointmentDate || queueVisit.appointment_date || visit.appointmentDate,
+                    appointmentSlot: queueVisit.appointmentSlot || queueVisit.appointment_slot || visit.appointmentSlot
+                };
+                if (JSON.stringify(nextVisit) !== JSON.stringify(visit)) historyChanged = true;
+                return nextVisit;
+            });
+            if (historyChanged) {
+                try { window.localStorage.setItem(accountStorageKey(patientVisitKey), JSON.stringify(state.patientVisits)); } catch {}
+            }
+        }
+        const scopedQueue = isPatient
+            ? patientQueue
+            : !isAdmin && state.loggedHospital && state.loggedCity
+                ? fullQueue.filter(patient => (patient.queueHospital || patient.hospital) === state.loggedHospital && String(patient.city || 'Hyderabad').toLowerCase() === String(state.loggedCity || 'Hyderabad').toLowerCase())
+                : fullQueue;
+        state.queue = scopedQueue.filter(patient => !['completed', 'cancelled', 'withdrawn', 'no-show'].includes(String(patient.status || '').toLowerCase()));
+        if (['patientDashboard', 'doctor', 'staff', 'queue', 'analytics'].includes(state.view)) notify();
     }
     function setLoggedLocation(country, stateName, city, hospital) { state.loggedCountry = country; state.loggedState = stateName; state.loggedCity = city; state.loggedHospital = hospital; updateQueue(fullQueue); persistSession(); }
     function setLogin(email, role = 'patient') {
@@ -435,17 +484,22 @@
         if (role === 'patient') {
             loadPatientAccount(email);
             loadPatientProfile(email);
-        }
+        } else state.patientVisits = [];
+        updateQueue(fullQueue);
         persistSession();
         notify();
     }
     function applyRemoteSession(remote) {
         const profile = remote?.profile;
-        if (!profile || !['doctor', 'staff'].includes(profile.role)) return false;
-        state.isLogged = true; state.loggedEmail = profile.email || remote.user?.email || ''; state.loggedRole = profile.role; state.loggedHospital = profile.hospital || ''; state.loggedCountry = profile.country || ''; state.loggedState = profile.state || ''; state.loggedCity = profile.city || ''; state.sessionExpiresAt = remote.session?.expires_at ? remote.session.expires_at * 1000 : Date.now() + (window.App.Config?.sessionTtlMs || 28800000); updateQueue(fullQueue); return true;
+        if (!profile || !['patient', 'doctor', 'staff'].includes(profile.role)) return false;
+        state.isLogged = true; state.loggedEmail = profile.email || remote.user?.email || ''; state.loggedRole = profile.role; state.loggedHospital = profile.hospital || ''; state.loggedCountry = profile.country || ''; state.loggedState = profile.state || ''; state.loggedCity = profile.city || ''; state.sessionExpiresAt = remote.session?.expires_at ? remote.session.expires_at * 1000 : Date.now() + (window.App.Config?.sessionTtlMs || 28800000);
+        if (profile.role === 'patient') { loadPatientAccount(state.loggedEmail); loadPatientProfile(state.loggedEmail); }
+        else state.patientVisits = [];
+        updateQueue(fullQueue);
+        return true;
     }
     function logout() { window.App.DB?.signOut?.(); state.isLogged = false; state.loggedEmail = ''; state.loggedRole = ''; state.loggedHospital = ''; state.loggedCountry = ''; state.loggedState = ''; state.loggedCity = ''; state.sessionExpiresAt = 0; try { window.localStorage.removeItem(sessionKey); } catch {} navigate('/'); }
-    function resetPatient() { state.step = 1; state.patientData = emptyPatientData(); state.userCoords = null; state.tempHospitals = []; state.searchRadius = 0; clearDraft(); }
+    function resetPatient() { state.step = 1; state.patientData = emptyPatientData(); state.userCoords = null; state.tempHospitals = []; state.searchRadius = 0; state.careResultsFetchedAt = ''; clearDraft(); }
     function getRevenue() { return state.queue.reduce((total, patient) => total + (Number(patient.fee) || 0), 0); }
     function queueStatus(patient) { return String(patient?.status || 'waiting').toLowerCase(); }
     function queuePriority(patient) { return { red: 0, yellow: 1, green: 2 }[String(patient?.triage || 'Green').toLowerCase()] ?? 3; }
@@ -464,7 +518,7 @@
             const freshQueue = await window.App.DB.fetchQueue();
             updateQueue(freshQueue);
             const visitStatus = { called: 'Called', in_progress: 'In consultation', completed: 'Completed' }[nextStatus];
-            const historyVisit = state.patientVisits.find(visit => String(visit.id) === String(id));
+            const historyVisit = state.loggedRole === 'patient' ? state.patientVisits.find(visit => String(visit.id) === String(id)) : null;
             if (visitStatus && historyVisit) recordPatientVisit({ ...historyVisit, status: visitStatus });
             return { success: true };
         } catch (error) {
@@ -472,7 +526,7 @@
         }
     }
     function getQueueMetrics() {
-        const waiting = state.queue.filter(patient => !['completed', 'cancelled', 'no-show'].includes(String(patient.status || '').toLowerCase()));
+        const waiting = state.queue.filter(patient => !['completed', 'cancelled', 'withdrawn', 'no-show'].includes(String(patient.status || '').toLowerCase()));
         const waits = waiting.map(patient => Math.max(0, Math.round((Date.now() - new Date(patient.created_at || Date.now()).getTime()) / 60000))).filter(Number.isFinite);
         const averageWait = waits.length ? Math.round(waits.reduce((sum, value) => sum + value, 0) / waits.length) : 0;
         const waitingOnly = waiting.filter(patient => queueStatus(patient) === 'waiting');
@@ -486,5 +540,5 @@
     syncRoute(true, false);
     window.setInterval(() => { if (state.isLogged && state.sessionExpiresAt && state.sessionExpiresAt <= Date.now()) logout(); }, 60000);
     if (window.App.DB) initSync(); else window.addEventListener('load', () => { if (window.App.DB) initSync(); });
-    window.App.Store = { state, subscribe, setView, navigate, navigateTab, syncRoute, setStep, setAuthTarget, updatePatientData, updateQueue, setLoggedLocation, setLogin, recordPatientVisit, logout, getRevenue, getQueueMetrics, getNextPatient, sortQueue, transitionPatient, persistDraft, hrefFor, hrefForTab, getDonationsData, saveDonationsData, addHospitalDonation, addPatientDonation, getMedicalHistory, saveMedicalHistory, registerMedicalPassport, getMedicalPassport, getPrescription, savePrescription };
+    window.App.Store = { state, subscribe, setView, navigate, navigateTab, syncRoute, setStep, setAuthTarget, updatePatientData, updateQueue, setLoggedLocation, setLogin, recordPatientVisit, logout, getRevenue, getQueueMetrics, getNextPatient, sortQueue, transitionPatient, persistDraft, hrefFor, hrefForTab, getDonationsData, saveDonationsData, addHospitalDonation, addPatientDonation, getMedicalHistory, saveMedicalHistory, registerMedicalPassport, getMedicalPassport, getPrescription, savePrescription, getCareTeam, getAppointmentSlots };
 })();

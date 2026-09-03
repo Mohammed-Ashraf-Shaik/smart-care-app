@@ -10,10 +10,10 @@
         let selectedRange = 'today'; // 'today' | 'week' | 'month'
 
         const isStaff = state.loggedRole === 'staff';
-        const overviewRoute = state.loggedRole === 'doctor' ? '/dashboard/doctor' : '/dashboard/admin';
+        const overviewRoute = state.loggedRole === 'doctor' ? '/dashboard/hospital' : '/dashboard/admin';
         const overviewLabel = state.loggedRole === 'doctor' ? 'Overview' : 'Operations';
-        const helpRoute = state.loggedRole === 'doctor' ? '/dashboard/doctor/help' : '/dashboard/admin/help';
-        const donRoute = state.loggedRole === 'doctor' ? '/dashboard/doctor/donations' : '/dashboard/admin/donations';
+        const helpRoute = state.loggedRole === 'doctor' ? '/dashboard/hospital/help' : '/dashboard/admin/help';
+        const donRoute = state.loggedRole === 'doctor' ? '/dashboard/hospital/donations' : '/dashboard/admin/donations';
 
         function getRangeData(range) {
             const baseMetrics = getQueueMetrics();

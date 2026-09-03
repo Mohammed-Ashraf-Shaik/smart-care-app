@@ -12,7 +12,7 @@
                 </a>
                 <nav class="nav-links" aria-label="Primary navigation">
                     <a href="#how-it-works">How it works</a>
-                    <a href="#for-providers">For providers</a>
+                    <a href="#for-providers">For hospitals</a>
                     <a data-route="/donate" href="/donate">Donation</a>
                     <a href="#trust">Why SmartCare</a>
                 </nav>
@@ -42,7 +42,7 @@
                         <div class="hero-facts" aria-label="SmartCare facts">
                             <div><strong>4 steps</strong><span>patient booking flow</span></div>
                             <div><strong>3 roles</strong><span>ready for demo</span></div>
-                            <div><strong>1 profile</strong><span>portable health passport</span></div>
+                            <div><strong>1 profile</strong><span>portable medical history</span></div>
                         </div>
                     </div>
                     <div class="hero-side" aria-label="Nearby care preview">
@@ -100,9 +100,9 @@
                         </article>
                     </div>
                 </section>
-                <section id="for-providers" class="portal-split section-portals" data-section="provider-portals" aria-label="Provider portals">
+                <section id="for-providers" class="portal-split section-portals" data-section="provider-portals" aria-label="Hospital portals">
                     <article class="portal-panel portal-patient">
-                        <div class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> Doctor / Provider</div>
+                        <div class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> Hospital care team</div>
                         <h2>Move each clinical handoff forward.</h2>
                         <p>Review the assigned queue, call the next patient, scan tickets, and follow visits through consultation.</p>
                         <button class="btn-primary btn-icon" id="open-doctor-portal" type="button">Open doctor sign-in ${icon('arrow-right', 16)}</button>

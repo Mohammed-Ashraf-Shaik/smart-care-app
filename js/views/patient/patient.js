@@ -2,12 +2,6 @@
     const icon = (name, size = 18) => `<i data-lucide="${name}" width="${size}" height="${size}"></i>`;
     const esc = (value = '') => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[character]));
     
-    const fallbackHospitals = (lat, lng) => [
-        { id: 'fallback-1', name: 'SmartCare Community Hospital', type: 'Hospital', lat: lat + .018, lng: lng + .014, source: 'Illustrative demo centre' },
-        { id: 'fallback-2', name: 'Green Cross Community Clinic', type: 'Clinic', lat: lat - .013, lng: lng + .022, source: 'Illustrative demo centre' },
-        { id: 'fallback-3', name: 'CityCare Family Clinic', type: 'Clinic', lat: lat + .008, lng: lng - .024, source: 'Illustrative demo centre' }
-    ];
-
     const distanceKm = (a, b) => {
         const radians = Math.PI / 180;
         const dLat = (b.lat - a.lat) * radians;
@@ -23,12 +17,13 @@
     };
 
     window.App.Views.Patient = function (isEmbedded = false) {
-        const { state, setStep, updatePatientData, recordPatientVisit, setView, persistDraft } = window.App.Store;
+        const { state, setStep, updatePatientData, recordPatientVisit, setView, persistDraft, getCareTeam, getAppointmentSlots } = window.App.Store;
         const { step, patientData } = state;
         const container = document.createElement('div');
         container.className = isEmbedded ? 'patient-application-shell embedded-application-shell' : 'flow-shell patient-application-shell';
         let map;
         let markerNodes = [];
+        let saveStatusTimer;
         const steps = ['Your profile', 'Find care', 'Visit details', 'Confirmed'];
 
         container.innerHTML = isEmbedded
@@ -72,7 +67,7 @@
                     <nav class="flow-topbar-nav" aria-label="Application navigation">
                         <a data-route="/" href="/">Home</a>
                         <a data-route="/dashboard/patient/apply/1" href="/dashboard/patient/apply/1" class="active">Patient application</a>
-                        <a data-route="/login" href="/login">Provider portal</a>
+                        <a data-route="/login" href="/login">Hospital portal</a>
                         <a data-route="/about" href="/about">About</a>
                     </nav>
                     <div class="flow-topbar-actions">
@@ -91,7 +86,15 @@
         function activeFlow() {
             const title = step === 1 ? 'Tell us a little about you.' : step === 2 ? 'Choose care that fits.' : 'Make your visit count.';
             const description = step === 1 ? 'This helps the care team prepare before you arrive.' : step === 2 ? 'We use your location only to show nearby options.' : 'Share the essentials and we will prepare your queue place.';
-            return `<div class="flow-header"><div><div class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> New care visit</div><h1>${title}</h1><p>${description}</p></div><div><span class="status-eyebrow status-muted">Step ${step} of 4</span><span class="draft-note">Saved on this device</span></div></div>${stepper()}<div id="step-content"></div>`;
+            return `<div class="flow-header"><div><div class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> New care visit</div><h1>${title}</h1><p>${description}</p></div><div><span class="status-eyebrow status-muted">Step ${step} of 4</span><span id="draft-status" class="draft-note" role="status" aria-live="polite">Draft saved on this device</span></div></div>${stepper()}<div id="step-content"></div>`;
+        }
+
+        function markDraftSaved() {
+            const status = container.querySelector('#draft-status');
+            if (!status) return;
+            status.textContent = 'Saving changes...';
+            window.clearTimeout(saveStatusTimer);
+            saveStatusTimer = window.setTimeout(() => { status.textContent = 'Saved just now'; }, 350);
         }
 
         function stepper() {
@@ -99,12 +102,35 @@
         }
 
         function renderProfile(target) {
-            target.innerHTML = `<div class="form-grid"><div class="field"><label for="patient-name">Full name <span>*</span></label><input id="patient-name" autocomplete="name" value="${esc(patientData.name)}" placeholder="e.g. Asha Rao" required></div><div class="field"><label for="patient-age">Age <span>*</span></label><input id="patient-age" type="number" min="0" max="120" inputmode="numeric" value="${esc(patientData.age)}" placeholder="e.g. 32" required></div><div class="field full"><label>Preferred care type</label><div class="choice-grid">${[['General consultation', 'stethoscope'], ['Women\'s health', 'heart'], ['Child care', 'baby']].map(([label, iconName], index) => `<div class="choice"><input id="pref-${index}" type="radio" name="pref" value="${label}" ${patientData.doctorPref === label ? 'checked' : ''}><label for="pref-${index}">${icon(iconName, 16)} ${label}</label></div>`).join('')}</div><span class="hint">You can change this at the care centre.</span></div></div><div class="flow-actions"><span class="status-note">Your information is used only for this visit.</span><button id="profile-next" class="btn-primary btn-icon">Continue ${icon('arrow-right', 16)}</button></div>`;
-            target.querySelector('#patient-name').oninput = event => updatePatientData('name', event.target.value);
-            target.querySelector('#patient-age').oninput = event => updatePatientData('age', event.target.value);
-            target.querySelectorAll('input[name="pref"]').forEach(input => input.onchange = event => updatePatientData('doctorPref', event.target.value));
-            target.querySelector('#profile-next').onclick = () => {
-                if (!patientData.name.trim() || !patientData.age || Number(patientData.age) < 0 || Number(patientData.age) > 120) return showInlineError(target, 'Add a valid name and an age between 0 and 120 to continue.');
+            target.innerHTML = `<form id="patient-profile-step" novalidate><div class="form-grid"><div class="field"><label for="patient-name">Full name <span>*</span></label><input id="patient-name" autocomplete="name" minlength="2" maxlength="80" value="${esc(patientData.name)}" placeholder="e.g. Asha Rao" required></div><div class="field"><label for="patient-age">Age <span>*</span></label><input id="patient-age" type="number" min="1" max="120" step="1" inputmode="numeric" value="${esc(patientData.age)}" placeholder="e.g. 32" required></div><fieldset class="field full"><legend>Preferred care type <span>*</span></legend><div class="choice-grid">${[['General consultation', 'stethoscope'], ['Women\'s health', 'heart'], ['Child care', 'baby']].map(([label, iconName], index) => `<div class="choice"><input id="pref-${index}" type="radio" name="pref" value="${label}" ${patientData.doctorPref === label ? 'checked' : ''} ${index === 0 ? 'required' : ''}><label for="pref-${index}">${icon(iconName, 16)} ${label}</label></div>`).join('')}</div><span class="hint">Choose one option. You can change it at the care centre.</span></fieldset></div><div class="flow-actions"><span class="status-note">Required fields are marked with an asterisk.</span><button id="profile-next" class="btn-primary btn-icon" type="submit">Continue ${icon('arrow-right', 16)}</button></div></form>`;
+            const form = target.querySelector('#patient-profile-step');
+            const nameInput = target.querySelector('#patient-name');
+            const ageInput = target.querySelector('#patient-age');
+            const preferenceInputs = [...target.querySelectorAll('input[name="pref"]')];
+            const clearError = () => target.querySelector('.inline-error')?.remove();
+            nameInput.oninput = event => { clearError(); updatePatientData('name', event.target.value); markDraftSaved(); };
+            ageInput.oninput = event => { clearError(); updatePatientData('age', event.target.value); markDraftSaved(); };
+            preferenceInputs.forEach(input => input.onchange = event => { clearError(); updatePatientData('doctorPref', event.target.value); markDraftSaved(); });
+            form.onsubmit = event => {
+                event.preventDefault();
+                const name = nameInput.value.trim();
+                const age = Number(ageInput.value);
+                const preference = preferenceInputs.find(input => input.checked)?.value || '';
+                if (!name || name.length < 2) {
+                    nameInput.focus();
+                    return showInlineError(target, 'Enter your full name using at least 2 characters.');
+                }
+                if (!ageInput.value || !Number.isInteger(age) || age < 1 || age > 120) {
+                    ageInput.focus();
+                    return showInlineError(target, 'Enter a whole-number age between 1 and 120.');
+                }
+                if (!preference) {
+                    preferenceInputs[0]?.focus();
+                    return showInlineError(target, 'Choose a preferred care type before continuing.');
+                }
+                updatePatientData('name', name);
+                updatePatientData('age', String(age));
+                updatePatientData('doctorPref', preference);
                 setStep(2);
             };
         }
@@ -125,7 +151,7 @@
             };
             setMapMode('map');
             if (state.tempHospitals?.length && state.userCoords) {
-                populateHospitals(state.userCoords.lat, state.userCoords.lng, 'Live location', false);
+                populateHospitals(state.userCoords.lat, state.userCoords.lng);
             } else {
                 status.textContent = 'Choose device location or search by city, neighbourhood, or PIN code.';
             }
@@ -156,7 +182,7 @@
                     persistDraft();
                     button.disabled = false;
                     status.textContent = `Location detected${patientData.city ? ` near ${patientData.city}` : ''}. Showing nearby care centres.`;
-                    await populateHospitals(lat, lng, 'Live location');
+                    await populateHospitals(lat, lng);
                 }, () => {
                     button.disabled = false;
                     status.textContent = 'Location permission was not granted. Search for a city instead.';
@@ -174,22 +200,28 @@
                 patientData.city = coords?.city || query;
                 state.userCoords = { lat: resolved.lat, lng: resolved.lng, accuracy: coords ? 100 : 10000 };
                 persistDraft();
-                await populateHospitals(resolved.lat, resolved.lng, query, !coords);
+                await populateHospitals(resolved.lat, resolved.lng);
             }
 
-            async function populateHospitals(lat, lng, label, isFallback = false) {
+            async function populateHospitals(lat, lng) {
+                const list = target.querySelector('#hospital-list');
+                const results = target.querySelector('.hospital-results');
+                results?.setAttribute('aria-busy', 'true');
+                target.querySelector('#results-summary').textContent = 'Loading nearby care listings...';
+                list.innerHTML = Array.from({ length: 4 }, () => `<div class="hospital-result-skeleton" aria-hidden="true"><span></span><span></span><span></span></div>`).join('');
                 let mapResult = { results: [], radius: 0 };
                 try { mapResult = await window.App.API.getNearbyHospitals(lat, lng); } catch {}
-                const hospitals = mapResult.results?.length ? mapResult.results : fallbackHospitals(lat, lng);
+                const hospitals = mapResult.results || [];
                 state.tempHospitals = hospitals.map(hospital => ({ ...hospital, distance: distanceKm({ lat, lng }, hospital) })).sort((a, b) => a.distance - b.distance);
                 state.searchRadius = mapResult.radius || 5000;
+                state.careResultsFetchedAt = new Date().toISOString();
                 persistDraft();
-                const demoCount = state.tempHospitals.filter(hospital => hospital.source === 'Illustrative demo centre').length;
-                status.textContent = isFallback
-                    ? 'Showing fictional demo centres around Hyderabad.'
-                    : `${state.tempHospitals.length} results within ${Math.round((state.searchRadius || 5000) / 1000)} km${demoCount ? `, including ${demoCount} fictional demo centre${demoCount === 1 ? '' : 's'}` : ''}.`;
+                status.textContent = state.tempHospitals.length
+                    ? `${state.tempHospitals.length} OpenStreetMap care listings found within ${Math.round((state.searchRadius || 5000) / 1000)} km.`
+                    : `No named hospitals or clinics were found in OpenStreetMap within ${Math.round((state.searchRadius || 5000) / 1000)} km. Try another area.`;
                 target.querySelector('#map-accuracy').textContent = state.userCoords?.accuracy < 10000 ? `GPS +/-${Math.round(state.userCoords.accuracy)} m` : 'Search-based location';
                 renderMap(lat, lng);
+                results?.setAttribute('aria-busy', 'false');
             }
 
             function renderMap(lat, lng) {
@@ -243,9 +275,12 @@
                 }
 
                 const list = target.querySelector('#hospital-list');
-                target.querySelector('#results-summary').textContent = `${visibleHospitals.length} options, sorted by straight-line distance`;
+                const fetchedLabel = state.careResultsFetchedAt ? new Date(state.careResultsFetchedAt).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' }) : 'just now';
+                target.querySelector('#results-summary').textContent = visibleHospitals.length
+                    ? `${visibleHospitals.length} OpenStreetMap listings, straight-line distance, updated ${fetchedLabel}`
+                    : 'No matching OpenStreetMap listings found';
 
-                list.innerHTML = visibleHospitals.map((hospital, index) => {
+                list.innerHTML = visibleHospitals.length ? visibleHospitals.map((hospital, index) => {
                     const hours = hospital.openingHours === '24/7' ? 'Open 24 hours' : (hospital.openingHours || 'Hours not listed');
                     const isPublicListing = hospital.source === 'OpenStreetMap';
                     return `
@@ -267,7 +302,7 @@
                             </div>
                         </article>
                     `;
-                }).join('');
+                }).join('') : `<div class="provider-empty">${icon('map-pin-off', 28)}<p>No named care centres found. Search a nearby city, neighbourhood, or PIN code.</p></div>`;
 
                 list.querySelectorAll('[data-hospital-id]').forEach(button => {
                     button.onclick = () => selectHospital(button.dataset.hospitalId);
@@ -291,6 +326,7 @@
                     const hospital = state.tempHospitals.find(item => String(item.id) === String(id));
                     if (!hospital) return;
                     updatePatientData('hospital', hospital.name);
+                    markDraftSaved();
                     target.querySelectorAll('[data-hospital-id]').forEach(button => {
                         const selected = button.dataset.hospitalId === String(id);
                         button.closest('.hospital-option')?.classList.toggle('selected', selected);
@@ -309,26 +345,178 @@
         function renderDetails(target) {
             updatePatientData('fee', 125);
             updatePatientData('triage', 'Unassessed');
-            const suggestions = [['Fever', 'Fever for two days'], ['Cold and cough', 'Cold and cough'], ['Stomach pain', 'Stomach pain'], ['Routine check-up', 'Routine check-up']];
-            target.innerHTML = `<div class="care-safety-notice" role="note">${icon('triangle-alert', 20)}<div><strong>SmartCare cannot assess emergencies</strong><span>If you believe you need urgent or emergency care, contact local emergency services now instead of using this demo booking flow.</span></div></div><div class="review-grid"><div><div class="field"><label for="symptoms">What brings you in today? <span>*</span></label><textarea id="symptoms" maxlength="500" placeholder="Tell us briefly what you need help with...">${esc(patientData.symptoms)}</textarea><span class="hint">This description is not used to make a clinical triage decision.</span><div class="symptom-suggestions" aria-label="Common symptom suggestions"><span class="suggestion-label">Try a suggestion</span>${suggestions.map(([label, value]) => `<button class="symptom-suggestion" type="button" data-symptoms="${esc(value)}">${icon('plus', 13)} ${label}</button>`).join('')}</div><span id="symptom-count" class="hint symptom-count"></span></div><div class="field" style="margin-top:1rem"><label>Review your care centre</label><div class="review-card"><div class="summary-row"><span>Centre</span><strong>${esc(patientData.hospital || 'Not selected')}</strong></div><div class="summary-row"><span>Area</span><strong>${esc(patientData.area || 'Not selected')}</strong></div><div class="summary-row"><span>Patient</span><strong>${esc(patientData.name)}, ${esc(patientData.age)}</strong></div></div></div></div><aside class="estimate-card"><small>Illustrative demo fee</small><strong id="fee-estimate">₹125</strong><p>Sample display only—not a quote, invoice, or symptom-based clinical decision. The care centre sets actual charges.</p><div class="estimate-rule"></div><small>Illustrative queue window</small><strong class="estimate-window">15–25 min sample</strong><p>Actual position appears after booking and may change.</p></aside></div><div class="flow-actions"><button id="details-back" class="btn-secondary btn-icon">${icon('arrow-left', 16)} Back</button><button id="details-next" class="btn-primary btn-icon">Review and reserve ${icon('arrow-right', 16)}</button></div>`;
-            const symptoms = target.querySelector('#symptoms');
+            const careTeam = getCareTeam();
+            const appointmentSlots = getAppointmentSlots();
+            const departments = [...new Set(careTeam.map(member => member.department))];
+            const suggestions = ['Fever', 'Cold and cough', 'Stomach pain', 'Headache', 'Fatigue', 'Nausea', 'Routine check-up'];
+            const selectedSymptoms = new Set((Array.isArray(patientData.symptomSelections) ? patientData.symptomSelections : []).filter(item => suggestions.includes(item)));
+            const customTags = new Set((Array.isArray(patientData.customSymptomTags) ? patientData.customSymptomTags : []).map(item => String(item).trim()).filter(Boolean));
+            const initialCustomSymptoms = patientData.customSymptoms || (!selectedSymptoms.size && !customTags.size ? patientData.symptoms : '');
+            const preferredDepartment = { 'Women\'s health': 'Women\'s health', 'Child care': 'Paediatrics' }[patientData.doctorPref] || 'General medicine';
+            const department = departments.includes(patientData.department) ? patientData.department : preferredDepartment;
+            const departmentDoctors = careTeam.filter(member => member.department === department);
+            const currentDoctor = departmentDoctors.find(member => member.id === patientData.doctorId) || departmentDoctors[0];
+            const currentSlot = appointmentSlots.find(item => item.date === patientData.appointmentDate && item.slot === patientData.appointmentSlot) || appointmentSlots[0];
+            updatePatientData('department', department);
+            updatePatientData('doctorId', currentDoctor.id);
+            updatePatientData('doctorName', currentDoctor.name);
+            updatePatientData('doctorPref', currentDoctor.name);
+            updatePatientData('consultationType', patientData.consultationType || 'In-person consultation');
+            updatePatientData('appointmentDate', currentSlot.date);
+            updatePatientData('appointmentSlot', currentSlot.slot);
+            const demoMirror = state.loggedEmail === 'patient@smartcare.demo';
+            target.innerHTML = `<div class="care-safety-notice" role="note">${icon('triangle-alert', 20)}<div><strong>SmartCare cannot assess emergencies</strong><span>If you believe you need urgent or emergency care, contact local emergency services now instead of using this demo booking flow.</span></div></div>${demoMirror ? `<div class="demo-routing-note" role="note">${icon('presentation', 18)}<div><strong>Presentation mode is connected</strong><span>Your selected centre stays on the patient booking. A mirrored queue entry also appears in the SmartCare Community Hospital demo workspace.</span></div></div>` : ''}<div class="review-grid"><div><section class="care-selection-section" aria-labelledby="care-team-title"><div class="section-heading-compact"><h2 id="care-team-title">Choose your care team</h2><p>Demo availability is shown for presentation. A connected hospital would supply live schedules.</p></div><div class="care-selection-grid"><div class="field"><label for="visit-department">Department <span>*</span></label><select id="visit-department">${departments.map(name => `<option value="${esc(name)}" ${name === department ? 'selected' : ''}>${esc(name)}</option>`).join('')}</select></div><div class="field"><label for="visit-doctor">Clinician <span>*</span></label><select id="visit-doctor"></select><span id="doctor-availability" class="hint"></span></div><div class="field"><label for="consultation-type">Consultation type <span>*</span></label><select id="consultation-type"><option ${patientData.consultationType === 'In-person consultation' ? 'selected' : ''}>In-person consultation</option><option ${patientData.consultationType === 'Follow-up consultation' ? 'selected' : ''}>Follow-up consultation</option><option ${patientData.consultationType === 'Join walk-in queue' ? 'selected' : ''}>Join walk-in queue</option></select></div><div class="field"><label for="appointment-slot">Available slot <span>*</span></label><select id="appointment-slot">${appointmentSlots.map(item => `<option value="${esc(item.value)}" ${item.value === currentSlot.value ? 'selected' : ''}>${esc(item.label)}</option>`).join('')}</select></div></div></section><div class="field symptom-search-field"><fieldset class="symptom-picker"><legend>What brings you in today? <span>*</span></legend><span id="symptom-help" class="hint">Choose any number of common symptoms or add your own. This information does not make a clinical triage decision.</span><form id="symptom-add-form" class="symptom-add-form"><label class="sr-only" for="symptom-search">Search or add a symptom</label><input id="symptom-search" type="search" maxlength="60" autocomplete="off" placeholder="Search symptoms or type your own"><button id="add-custom-symptom" class="btn-secondary btn-icon" type="submit">${icon('plus', 15)} Add custom</button></form><div class="symptom-suggestions" role="group" aria-label="Common symptoms">${suggestions.map(label => {
+                const isSelected = selectedSymptoms.has(label);
+                return `<button class="symptom-suggestion${isSelected ? ' active' : ''}" type="button" data-symptom="${esc(label)}" aria-pressed="${isSelected}">${icon(isSelected ? 'check' : 'plus', 14)} <span>${esc(label)}</span></button>`;
+            }).join('')}</div><p id="symptom-no-results" class="symptom-no-results" hidden>No common symptom matches. Use Add custom to keep your entry.</p><div id="custom-symptom-tags" class="custom-symptom-tags" aria-live="polite"></div></fieldset></div><div class="field symptom-custom-field"><label for="custom-symptoms">Additional details <small>(optional)</small></label><textarea id="custom-symptoms" maxlength="300" aria-describedby="custom-symptom-help symptom-count" placeholder="When did this start, and what should the care team know?">${esc(initialCustomSymptoms)}</textarea><span id="custom-symptom-help" class="hint">Add timing or context. Do not enter emergency information here.</span><span id="symptom-count" class="hint symptom-count"></span></div><section class="booking-summary-card" aria-labelledby="booking-summary-title"><h2 id="booking-summary-title">Booking summary</h2><div class="summary-row"><span>Patient</span><strong>${esc(patientData.name)}, ${esc(patientData.age)}</strong></div><div class="summary-row"><span>Care centre</span><strong>${esc(patientData.hospital || 'Not selected')}</strong></div><div class="summary-row"><span>Department</span><strong id="summary-department"></strong></div><div class="summary-row"><span>Clinician</span><strong id="summary-doctor"></strong></div><div class="summary-row"><span>Consultation</span><strong id="summary-consultation"></strong></div><div class="summary-row"><span>Time</span><strong id="summary-slot"></strong></div></section></div><aside class="estimate-card"><small>Illustrative demo fee</small><strong id="fee-estimate">₹125</strong><p>Sample display only, not a quote or invoice. The care centre sets actual charges.</p><div class="estimate-rule"></div><small>Queue estimate</small><strong class="estimate-window">Shown after booking</strong><p>The live position changes as the hospital updates its queue.</p></aside></div><div class="flow-actions"><button id="details-back" class="btn-secondary btn-icon" type="button">${icon('arrow-left', 16)} Back</button><button id="details-next" class="btn-primary btn-icon" type="button">Review booking ${icon('arrow-right', 16)}</button></div>`;
+            const departmentSelect = target.querySelector('#visit-department');
+            const doctorSelect = target.querySelector('#visit-doctor');
+            const consultationSelect = target.querySelector('#consultation-type');
+            const slotSelect = target.querySelector('#appointment-slot');
+            const searchInput = target.querySelector('#symptom-search');
+            const addCustomButton = target.querySelector('#add-custom-symptom');
+            const customSymptoms = target.querySelector('#custom-symptoms');
             const count = target.querySelector('#symptom-count');
-            const updateSymptoms = event => {
-                updatePatientData('symptoms', event.target.value);
-                count.textContent = `${event.target.value.length}/500`;
+
+            const refreshSummary = () => {
+                const selectedSlot = appointmentSlots.find(item => item.value === slotSelect.value) || appointmentSlots[0];
+                target.querySelector('#summary-department').textContent = patientData.department;
+                target.querySelector('#summary-doctor').textContent = patientData.doctorName;
+                target.querySelector('#summary-consultation').textContent = patientData.consultationType;
+                target.querySelector('#summary-slot').textContent = selectedSlot.label;
             };
-            count.textContent = `${symptoms.value.length}/500`;
-            symptoms.oninput = updateSymptoms;
-            target.querySelectorAll('.symptom-suggestion').forEach(button => button.onclick = () => {
-                symptoms.value = button.dataset.symptoms;
-                updateSymptoms({ target: symptoms });
-                symptoms.focus();
-            });
+
+            const renderDoctorOptions = preferredDoctorId => {
+                const doctors = careTeam.filter(member => member.department === departmentSelect.value);
+                const selected = doctors.find(member => member.id === preferredDoctorId) || doctors[0];
+                doctorSelect.innerHTML = doctors.map(member => `<option value="${esc(member.id)}" ${member.id === selected.id ? 'selected' : ''}>${esc(member.name)} - ${esc(member.specialty)}</option>`).join('');
+                updatePatientData('department', departmentSelect.value);
+                updatePatientData('doctorId', selected.id);
+                updatePatientData('doctorName', selected.name);
+                updatePatientData('doctorPref', selected.name);
+                target.querySelector('#doctor-availability').textContent = `${selected.room}. ${selected.availability}.`;
+                refreshSummary();
+            };
+
+            const syncSymptoms = () => {
+                const customValue = customSymptoms.value.trim();
+                updatePatientData('symptomSelections', [...selectedSymptoms]);
+                updatePatientData('customSymptomTags', [...customTags]);
+                updatePatientData('customSymptoms', customSymptoms.value);
+                updatePatientData('symptoms', [...selectedSymptoms, ...customTags, customValue].filter(Boolean).join('; '));
+                count.textContent = `${customSymptoms.value.length}/300`;
+                target.querySelector('.inline-error')?.remove();
+                markDraftSaved();
+            };
+
+            const renderCustomTags = () => {
+                const tagRegion = target.querySelector('#custom-symptom-tags');
+                tagRegion.innerHTML = [...customTags].map(tag => `<button class="custom-symptom-tag" type="button" data-custom-symptom="${esc(tag)}" aria-label="Remove custom symptom ${esc(tag)}"><span>${esc(tag)}</span>${icon('x', 13)}</button>`).join('');
+                tagRegion.querySelectorAll('[data-custom-symptom]').forEach(button => button.onclick = () => {
+                    customTags.delete(button.dataset.customSymptom);
+                    renderCustomTags();
+                    syncSymptoms();
+                });
+                if (window.lucide) window.lucide.createIcons();
+            };
+
+            const filterSuggestions = () => {
+                const query = searchInput.value.trim().toLowerCase();
+                let visible = 0;
+                target.querySelectorAll('.symptom-suggestion').forEach(button => {
+                    const matches = !query || button.dataset.symptom.toLowerCase().includes(query);
+                    button.hidden = !matches;
+                    if (matches) visible += 1;
+                });
+                target.querySelector('#symptom-no-results').hidden = visible > 0 || !query;
+                addCustomButton.disabled = !query;
+            };
+
+            const toggleSuggestion = button => {
+                const symptom = button.dataset.symptom;
+                if (selectedSymptoms.has(symptom)) selectedSymptoms.delete(symptom);
+                else selectedSymptoms.add(symptom);
+                const isSelected = selectedSymptoms.has(symptom);
+                button.classList.toggle('active', isSelected);
+                button.setAttribute('aria-pressed', String(isSelected));
+                button.innerHTML = `${icon(isSelected ? 'check' : 'plus', 14)} <span>${esc(symptom)}</span>`;
+                syncSymptoms();
+                if (window.lucide) window.lucide.createIcons();
+            };
+
+            const addCustomSymptom = () => {
+                const value = searchInput.value.trim();
+                if (!value) return;
+                const matchingSuggestion = [...target.querySelectorAll('.symptom-suggestion')].find(button => button.dataset.symptom.toLowerCase() === value.toLowerCase());
+                if (matchingSuggestion) toggleSuggestion(matchingSuggestion);
+                else if ([...customTags].some(tag => tag.toLowerCase() === value.toLowerCase())) showInlineError(target, 'That custom symptom is already included.');
+                else if (customTags.size >= 8) showInlineError(target, 'You can add up to 8 custom symptom tags. Use Additional details for more context.');
+                else {
+                    customTags.add(value);
+                    renderCustomTags();
+                    syncSymptoms();
+                }
+                searchInput.value = '';
+                filterSuggestions();
+                searchInput.focus();
+            };
+
+            renderDoctorOptions(currentDoctor.id);
+            consultationSelect.onchange = () => { updatePatientData('consultationType', consultationSelect.value); refreshSummary(); markDraftSaved(); };
+            slotSelect.onchange = () => {
+                const selectedSlot = appointmentSlots.find(item => item.value === slotSelect.value) || appointmentSlots[0];
+                updatePatientData('appointmentDate', selectedSlot.date);
+                updatePatientData('appointmentSlot', selectedSlot.slot);
+                refreshSummary();
+                markDraftSaved();
+            };
+            departmentSelect.onchange = () => { renderDoctorOptions(); markDraftSaved(); };
+            doctorSelect.onchange = () => {
+                const member = careTeam.find(item => item.id === doctorSelect.value);
+                if (!member) return;
+                updatePatientData('doctorId', member.id);
+                updatePatientData('doctorName', member.name);
+                updatePatientData('doctorPref', member.name);
+                target.querySelector('#doctor-availability').textContent = `${member.room}. ${member.availability}.`;
+                refreshSummary();
+                markDraftSaved();
+            };
+            target.querySelector('#symptom-add-form').onsubmit = event => { event.preventDefault(); addCustomSymptom(); };
+            searchInput.oninput = filterSuggestions;
+            addCustomButton.disabled = true;
+            renderCustomTags();
+            count.textContent = `${customSymptoms.value.length}/300`;
+            customSymptoms.oninput = syncSymptoms;
+            target.querySelectorAll('.symptom-suggestion').forEach(button => button.onclick = () => toggleSuggestion(button));
             target.querySelector('#details-back').onclick = () => setStep(2);
             target.querySelector('#details-next').onclick = () => {
-                if (!patientData.symptoms.trim()) return showInlineError(target, 'Describe what brings you in today before reserving your visit.');
-                reserveVisit();
+                if (!patientData.department || !patientData.doctorId || !patientData.consultationType || !patientData.appointmentDate || !patientData.appointmentSlot) {
+                    showInlineError(target, 'Choose a department, clinician, consultation type, and available slot.');
+                    departmentSelect.focus();
+                    return;
+                }
+                if (!patientData.symptoms.trim()) {
+                    showInlineError(target, 'Select at least one symptom or describe what brings you in today.');
+                    searchInput.focus();
+                    return;
+                }
+                showBookingReview();
             };
+
+            function showBookingReview() {
+                const selectedSlot = appointmentSlots.find(item => item.date === patientData.appointmentDate && item.slot === patientData.appointmentSlot) || appointmentSlots[0];
+                const backdrop = document.createElement('div');
+                backdrop.className = 'modal-backdrop';
+                backdrop.innerHTML = `<section class="modal-card booking-review-modal" role="dialog" aria-modal="true" aria-labelledby="booking-review-title"><div class="modal-heading"><div><h2 id="booking-review-title">Confirm booking details</h2><p>Review the information below before adding this visit to the queue.</p></div><button class="btn-ghost modal-close-button" type="button" data-close-review aria-label="Close booking review">${icon('x', 18)}</button></div><div class="booking-review-list"><div class="summary-row"><span>Patient</span><strong>${esc(patientData.name)}, ${esc(patientData.age)}</strong></div><div class="summary-row"><span>Care centre</span><strong>${esc(patientData.hospital)}</strong></div><div class="summary-row"><span>Department</span><strong>${esc(patientData.department)}</strong></div><div class="summary-row"><span>Clinician</span><strong>${esc(patientData.doctorName)}</strong></div><div class="summary-row"><span>Consultation</span><strong>${esc(patientData.consultationType)}</strong></div><div class="summary-row"><span>Time</span><strong>${esc(selectedSlot.label)}</strong></div><div class="summary-row summary-row-stacked"><span>Reason for visit</span><strong>${esc(patientData.symptoms)}</strong></div>${demoMirror ? `<div class="demo-routing-note compact">${icon('presentation', 16)}<span>This demo visit will also appear in the SmartCare Community Hospital workspace.</span></div>` : ''}</div><div class="modal-actions"><button class="btn-secondary" type="button" data-close-review>Go back and edit</button><button class="btn-primary btn-icon" id="confirm-reservation" type="button">Confirm reservation ${icon('check', 16)}</button></div></section>`;
+                document.body.appendChild(backdrop);
+                const closeReview = () => { backdrop.remove(); target.querySelector('#details-next')?.focus(); };
+                backdrop.querySelectorAll('[data-close-review]').forEach(button => button.onclick = closeReview);
+                backdrop.onclick = event => { if (event.target === backdrop) closeReview(); };
+                backdrop.onkeydown = event => { if (event.key === 'Escape') closeReview(); };
+                backdrop.querySelector('#confirm-reservation').onclick = () => { backdrop.remove(); reserveVisit(); };
+                if (window.lucide) window.lucide.createIcons();
+                backdrop.querySelector('[data-close-review]')?.focus();
+            }
         }
 
         function confirmation() {
@@ -349,6 +537,8 @@
             }
             const confirmedHospital = confirmedVisit?.hospital || patientData.hospital || 'SmartCare Community Hospital';
             const confirmedPatient = patientData.name || 'Patient';
+            const appointmentSlots = getAppointmentSlots();
+            const confirmedSlot = appointmentSlots.find(item => item.date === (confirmedVisit?.appointmentDate || patientData.appointmentDate) && item.slot === (confirmedVisit?.appointmentSlot || patientData.appointmentSlot));
             const qrUrl = window.App.UI.generateQRCodeDataUrl(booking);
             return `
                 <div class="success-state">
@@ -359,8 +549,11 @@
                     
                     <div class="review-card confirmation-review" style="padding:1.5rem">
                         <div class="summary-row"><span>Care centre</span><strong>${esc(confirmedHospital)}</strong></div>
-                        <div class="summary-row"><span>Initial demo estimate</span><strong>15–25 minutes</strong></div>
                         <div class="summary-row"><span>Patient</span><strong>${esc(confirmedPatient)}</strong></div>
+                        <div class="summary-row"><span>Department</span><strong>${esc(confirmedVisit?.department || patientData.department || 'General medicine')}</strong></div>
+                        <div class="summary-row"><span>Clinician</span><strong>${esc(confirmedVisit?.doctorName || patientData.doctorName || 'Next available clinician')}</strong></div>
+                        <div class="summary-row"><span>Consultation</span><strong>${esc(confirmedVisit?.consultationType || patientData.consultationType || 'In-person consultation')}</strong></div>
+                        <div class="summary-row"><span>Scheduled for</span><strong>${esc(confirmedSlot?.label || `${confirmedVisit?.appointmentDate || patientData.appointmentDate || 'Today'} - ${confirmedVisit?.appointmentSlot || patientData.appointmentSlot || 'Next available'}`)}</strong></div>
                         
                         <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px dashed var(--line);display:flex;flex-direction:column;align-items:center;gap:.75rem">
                             <img src="${qrUrl}" alt="Check-in QR Code" style="width:160px;height:160px;border-radius:.6rem;border:1px solid var(--line);background:#fff;padding:.35rem;box-shadow:0 4px 14px rgba(0,0,0,.08)">
@@ -420,7 +613,16 @@
             if (bookAnother) {
                 bookAnother.onclick = () => {
                     patientData.symptoms = '';
+                    patientData.symptomSelections = [];
+                    patientData.customSymptomTags = [];
+                    patientData.customSymptoms = '';
                     patientData.hospital = '';
+                    patientData.department = '';
+                    patientData.doctorId = '';
+                    patientData.doctorName = '';
+                    patientData.consultationType = '';
+                    patientData.appointmentDate = '';
+                    patientData.appointmentSlot = '';
                     patientData.fee = 0;
                     persistDraft();
                     setStep(1);
@@ -439,16 +641,21 @@
             button.innerHTML = `${icon('loader-circle', 16)} Saving your reservation...`;
             if (window.lucide) window.lucide.createIcons();
             try {
+                const isDemoPatient = state.loggedEmail === 'patient@smartcare.demo';
                 state.lastBookingId = await window.App.DB.addPatient({
                     ...patientData,
                     hospital: patientData.hospital || 'SmartCare Community Hospital',
+                    requestedHospital: patientData.hospital || 'SmartCare Community Hospital',
+                    queueHospital: isDemoPatient ? 'SmartCare Community Hospital' : (patientData.hospital || 'SmartCare Community Hospital'),
+                    patientEmail: state.loggedEmail || '',
+                    demoMirrored: isDemoPatient,
                     country: patientData.country || 'India',
                     state: patientData.state || 'Telangana',
                     city: patientData.city || 'Hyderabad'
                 });
             } catch (error) {
                 button.disabled = false;
-                button.innerHTML = `Review and reserve ${icon('arrow-right', 16)}`;
+                button.innerHTML = `Review booking ${icon('arrow-right', 16)}`;
                 showInlineError(container.querySelector('#step-content'), error.message || 'We could not reserve this visit. Check your connection and try again.');
                 if (window.lucide) window.lucide.createIcons();
                 return;
@@ -468,19 +675,28 @@
                 const lat = 17.385, lng = 78.4867;
                 state.userCoords = { lat, lng, accuracy: 10000 };
                 state.searchRadius = 5000;
-                state.tempHospitals = fallbackHospitals(lat, lng).map((hospital) => ({
-                    ...hospital,
-                    type: hospital.type.toLowerCase(),
-                    distance: distanceKm({ lat, lng }, hospital),
-                    openingHours: 'Hours not verified'
-                }));
+                state.tempHospitals = [];
                 Object.assign(patientData, { area: 'Hyderabad', hospital: 'SmartCare Community Hospital', country: 'India', state: 'Telangana', city: 'Hyderabad' });
                 persistDraft();
                 setStep(3);
                 return;
             }
             if (step === 3) {
-                Object.assign(patientData, { symptoms: 'Routine fever and fatigue', fee: 275, triage: 'Yellow' });
+                Object.assign(patientData, {
+                    department: 'General medicine',
+                    doctorId: 'meera-shah',
+                    doctorName: 'Dr Meera Shah',
+                    doctorPref: 'Dr Meera Shah',
+                    consultationType: 'In-person consultation',
+                    appointmentDate: getAppointmentSlots()[0].date,
+                    appointmentSlot: getAppointmentSlots()[0].slot,
+                    symptomSelections: ['Fever', 'Fatigue'],
+                    customSymptomTags: ['Body aches'],
+                    customSymptoms: 'Symptoms started two days ago',
+                    symptoms: 'Fever; Fatigue; Body aches; Symptoms started two days ago',
+                    fee: 125,
+                    triage: 'Unassessed'
+                });
                 persistDraft();
                 setStep(3);
             }
@@ -494,7 +710,13 @@
                 reason: patientData.symptoms || patientData.doctorPref || 'General consultation',
                 date: new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
                 status: 'Booked',
-                reference: state.lastBookingId
+                reference: state.lastBookingId,
+                department: patientData.department,
+                doctorId: patientData.doctorId,
+                doctorName: patientData.doctorName,
+                consultationType: patientData.consultationType,
+                appointmentDate: patientData.appointmentDate,
+                appointmentSlot: patientData.appointmentSlot
             });
         }
 

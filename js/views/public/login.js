@@ -16,9 +16,9 @@
 
         function render() {
             const patient = role === 'patient';
-            const roleName = patient ? 'Patient portal' : role === 'doctor' ? 'Doctor & Provider workspace' : 'Hospital Operations portal';
-            const title = mode === 'signin' ? 'Sign in to your workspace' : mode === 'signup' ? (patient ? 'Create a patient profile' : 'Create a provider account') : mode === 'recovery' ? 'Recover your access' : 'Set a new password';
-            const description = mode === 'signin' ? (patient ? 'Use your email and password to continue.' : 'Use your work email and care centre details to continue.') : mode === 'signup' ? (patient ? 'Save a local demo profile for faster bookings on this device.' : 'Create a temporary provider account for this demo session.') : mode === 'recovery' ? 'We will email a secure password reset link.' : 'Choose a new password for your SmartCare account.';
+            const roleName = patient ? 'Patient portal' : role === 'doctor' ? 'Hospital care workspace' : 'Hospital Operations portal';
+            const title = mode === 'signin' ? 'Sign in to your workspace' : mode === 'signup' ? (patient ? 'Create a patient account' : 'Create a hospital account') : mode === 'recovery' ? 'Recover your access' : 'Set a new password';
+            const description = mode === 'signin' ? (patient ? 'Use your email and password to continue.' : 'Use your work email and care centre details to continue.') : mode === 'signup' ? (patient ? 'Create an account that persists in this browser for repeat demo visits.' : 'Create a hospital account that persists in this browser for presentation testing.') : mode === 'recovery' ? 'We will email a secure password reset link.' : 'Choose a new password for your SmartCare account.';
 
             container.innerHTML = `
                 <main class="auth-layout section-auth" data-section="portal-login" aria-labelledby="auth-title">
@@ -39,7 +39,7 @@
                         </div>
                         <div class="auth-role-switch" role="tablist" aria-label="Choose portal">
                             <button class="auth-role ${role === 'patient' ? 'active' : ''}" role="tab" aria-selected="${role === 'patient'}" data-role="patient" type="button">${icon('user-round', 15)} Patient</button>
-                            <button class="auth-role ${role === 'doctor' ? 'active' : ''}" role="tab" aria-selected="${role === 'doctor'}" data-role="doctor" type="button">${icon('stethoscope', 15)} Doctor / Provider</button>
+                            <button class="auth-role ${role === 'doctor' ? 'active' : ''}" role="tab" aria-selected="${role === 'doctor'}" data-role="doctor" type="button">${icon('hospital', 15)} Hospital</button>
                             <button class="auth-role ${role === 'staff' ? 'active' : ''}" role="tab" aria-selected="${role === 'staff'}" data-role="staff" type="button">${icon('building-2', 15)} Hospital Ops</button>
                         </div>
                         <div class="eyebrow" style="color:var(--teal)"><span class="eyebrow-dot"></span> ${roleName}</div>
@@ -88,8 +88,8 @@
                         ${patient ? 'Continue to patient portal' : `Sign in to ${role === 'doctor' ? 'hospital' : 'admin'} portal`} ${icon('arrow-right', 16)}
                     </button>
                     <div class="auth-switch">
-                        <span>${patient ? 'Are you a provider?' : 'New provider?'}</span>
-                        <button type="button" id="show-signup">${patient ? 'Open provider access' : 'Create an account'}</button>
+                        <span>${patient ? 'Part of a hospital team?' : 'New hospital user?'}</span>
+                        <button type="button" id="show-signup">${patient ? 'Open hospital access' : 'Create an account'}</button>
                     </div>
                 </form>
                 ${demoAccess()}
@@ -103,7 +103,7 @@
                     <p class="hint">Open a ready-to-use workspace instantly for evaluation &amp; presentation.</p>
                     <div class="demo-buttons">
                         <button type="button" class="text-link demo-button" data-demo-role="patient">${icon('user-round', 15)} Patient demo</button>
-                        <button type="button" class="text-link demo-button" data-demo-role="doctor">${icon('stethoscope', 15)} Doctor demo</button>
+                        <button type="button" class="text-link demo-button" data-demo-role="doctor">${icon('hospital', 15)} Hospital demo</button>
                         <button type="button" class="text-link demo-button" data-demo-role="staff">${icon('building-2', 15)} Hospital Ops demo</button>
                     </div>
                 </div>
@@ -137,7 +137,7 @@
                         </div>
                     </div>
                     <div class="field"><label for="auth-confirm">Confirm password <span>*</span></label><input id="auth-confirm" type="password" autocomplete="new-password" placeholder="Repeat your password" required></div>
-                    <button class="btn-primary auth-submit btn-icon" type="submit">${patient ? 'Create patient account' : 'Create provider account'} ${icon('arrow-right', 16)}</button>
+                    <button class="btn-primary auth-submit btn-icon" type="submit">${patient ? 'Create patient account' : 'Create hospital account'} ${icon('arrow-right', 16)}</button>
                     <div class="auth-switch"><span>Already registered?</span><button type="button" id="show-signin">Return to sign in</button></div>
                 </form>
                 ${demoAccess()}
@@ -223,18 +223,12 @@
                 const patient = role === 'patient';
                 if (!email || !email.includes('@') || (!patient && !facility) || !password) return showError(patient ? 'Enter your email and password.' : 'Enter your work email, care centre, and password.');
                 await runSubmit(async () => {
-                    if (patient) {
-                        setLoggedLocation('India', 'Telangana', 'Hyderabad', 'SmartCare Demo Clinic');
-                        setLogin(email, 'patient');
-                        setView('patientDashboard');
-                        return;
-                    }
                     const result = await window.App.DB.checkCredentials(facility, email, password, role);
                     if (!result.success) throw new Error(result.error || 'We could not sign you in.');
                     const user = result.user || {};
-                    setLoggedLocation(user.country || 'India', user.state || 'Telangana', user.city || 'Hyderabad', user.hospital || facility);
+                    setLoggedLocation(user.country || 'India', user.state || 'Telangana', user.city || 'Hyderabad', patient ? '' : (user.hospital || facility));
                     setLogin(email, role);
-                    setView(role);
+                    setView(patient ? 'patientDashboard' : role);
                 }, 'Signing you in…');
             };
         }
@@ -252,18 +246,20 @@
                 await runSubmit(async () => {
                     if (patient) {
                         const name = container.querySelector('#auth-name')?.value.trim() || email.split('@')[0];
-                        setLoggedLocation('India', 'Telangana', 'Hyderabad', 'SmartCare Community Hospital');
-                        setLogin(email, 'patient');
+                        const result = await window.App.DB.registerPatient({ email, password, name, city: 'Hyderabad' });
+                        if (!result.success) throw new Error(result.error || 'Account creation failed.');
                         try {
                             localStorage.setItem(`smartcare.patientProfile_${email}`, JSON.stringify({ name, email }));
                         } catch {}
-                        window.App.UI.toast(`Welcome ${name}! Your patient account is created.`, 'success');
+                        setLoggedLocation('India', 'Telangana', 'Hyderabad', 'SmartCare Community Hospital');
+                        setLogin(email, 'patient');
+                        window.App.UI.toast(`Welcome ${name}. Your patient account is ready.`, 'success');
                         setView('patientDashboard');
                         return;
                     }
                     const result = await window.App.DB.registerProfessional({ email, hospital: facility, password, role });
                     if (!result.success) throw new Error(result.error || 'Account creation failed.');
-                    message = 'Account created successfully! You can now sign in.';
+                    message = 'Account created. You can now sign in.';
                     messageType = 'success';
                     mode = 'signin';
                     password = '';
@@ -318,7 +314,7 @@
             role = demoRole;
             setAuthTarget(role);
             email = demoRole === 'patient' ? 'patient@smartcare.demo' : demoRole === 'doctor' ? 'hospital@smartcare.demo' : 'admin@smartcare.demo';
-            facility = demoRole === 'patient' ? 'SmartCare Demo Clinic' : 'SmartCare Community Hospital';
+            facility = demoRole === 'patient' ? '' : 'SmartCare Community Hospital';
             password = 'demo1234';
             mode = 'signin';
             message = '';

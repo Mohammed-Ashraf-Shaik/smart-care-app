@@ -6,7 +6,7 @@
         const { state, updateQueue, getQueueMetrics, sortQueue, transitionPatient, logout } = window.App.Store;
         const container = document.createElement('div');
         container.className = 'flow-shell workspace-shell';
-        const overviewRoute = state.loggedRole === 'doctor' ? '/dashboard/doctor' : '/dashboard/admin';
+        const overviewRoute = state.loggedRole === 'doctor' ? '/dashboard/hospital' : '/dashboard/admin';
         const overviewLabel = state.loggedRole === 'doctor' ? 'Overview' : 'Operations';
         const metrics = getQueueMetrics();
         const isStaff = state.loggedRole === 'staff';
@@ -82,8 +82,8 @@
         const workspaceNav = document.createElement('nav');
         workspaceNav.className = 'workspace-tabs';
         workspaceNav.setAttribute('aria-label', 'Care workspace navigation');
-        const helpRoute = state.loggedRole === 'doctor' ? '/dashboard/doctor/help' : '/dashboard/admin/help';
-        const donRoute = state.loggedRole === 'doctor' ? '/dashboard/doctor/donations' : '/dashboard/admin/donations';
+        const helpRoute = state.loggedRole === 'doctor' ? '/dashboard/hospital/help' : '/dashboard/admin/help';
+        const donRoute = state.loggedRole === 'doctor' ? '/dashboard/hospital/donations' : '/dashboard/admin/donations';
 
         workspaceNav.innerHTML = `
             <a href="${overviewRoute}" data-route="${overviewRoute}">${icon('layout-dashboard', 16)}<span>${overviewLabel}</span></a>
@@ -151,7 +151,7 @@
                                         <td data-label="Reason"><span class="queue-cell-content">${esc(patient.problem || patient.symptoms || 'General consultation')}</span></td>
                                         <td data-label="Priority"><span class="queue-cell-content"><span class="priority-chip ${priorityClass(patient.triage)}">${esc(patient.triage || 'Unassessed')}</span></span></td>
                                         <td data-label="Status"><span class="queue-cell-content"><span class="queue-status ${statusClass(patient.status)}">${statusLabel(patient.status)}</span></span></td>
-                                        <td data-label="Clinician"><span class="queue-cell-content">${esc(patient.doctorPref || patient.doctor_pref || 'General care')}</span></td>
+                                        <td data-label="Clinician"><span class="queue-cell-content">${esc(patient.doctorName || patient.doctor_name || patient.doctorPref || patient.doctor_pref || 'General care')}</span></td>
                                         <td data-label="Centre"><span class="queue-cell-content">${esc(patient.hospital || state.loggedHospital || 'Care centre')}<small>${esc(patient.city || state.loggedCity || 'Location pending')}</small></span></td>
                                         <td data-label="Action"><span class="queue-cell-content">${action ? `<button class="text-link queue-action" type="button" data-action="${action}" data-id="${esc(patient.id)}">${label}</button>` : `<span class="queue-status">${label}</span>`}</span></td>
                                     </tr>
@@ -192,7 +192,7 @@
                     const passport = window.App.Store.getMedicalPassport(code);
                     if (passport) {
                         window.App.UI.showMedicalPassportModal(passport);
-                        window.App.UI.toast(`Opened ${passport.profile.name}'s read-only Medical Passport.`, 'success');
+                        window.App.UI.toast(`Opened ${passport.profile.name}'s read-only Medical History.`, 'success');
                         return;
                     }
                     const match = state.queue.find(p => String(p.id) === String(code) || String(p.reference || '').toUpperCase() === String(code).toUpperCase());
@@ -200,12 +200,12 @@
                         const targetStatus = match.status === 'called' ? 'in_progress' : 'called';
                         const res = await transitionPatient(match.id, targetStatus);
                         if (res.success) {
-                            window.App.UI.toast(`Checked in ${match.name}! Status: ${statusLabel(targetStatus)}`, 'success');
+                            window.App.UI.toast(`Checked in ${match.name}. Status: ${statusLabel(targetStatus)}`, 'success');
                         } else {
                             window.App.UI.toast(res.error || `Checked in ${match.name}`, 'info');
                         }
                     } else {
-                        window.App.UI.toast(`Scanned Ticket ${code}. Patient check-in recorded!`, 'success');
+                        window.App.UI.toast(`No active queue entry matches ticket ${code}.`, 'error');
                     }
                     window.App.DB.fetchQueue().then(queue => { updateQueue(queue); renderRows(); }).catch(() => {});
                 });

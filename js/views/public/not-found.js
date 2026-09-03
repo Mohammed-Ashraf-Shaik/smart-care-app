@@ -26,7 +26,7 @@
                     <div class="not-found-pills">
                         <a class="suggestion-pill" data-route="/" href="/">${icon('home', 13)} Home</a>
                         <a class="suggestion-pill" data-route="/login" href="/login">${icon('log-in', 13)} Patient portal</a>
-                        <a class="suggestion-pill" data-route="/login" href="/login?role=doctor">${icon('activity', 13)} Provider portal</a>
+                        <a class="suggestion-pill" data-route="/login" href="/login?role=doctor">${icon('activity', 13)} Hospital portal</a>
                         <a class="suggestion-pill" data-route="/about" href="/about">${icon('circle-help', 13)} About SmartCare</a>
                     </div>
                 </div>

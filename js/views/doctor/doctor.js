@@ -114,7 +114,7 @@
     }
 
     window.App.Views.Doctor = function () {
-        const { state, setView, getQueueMetrics, getNextPatient, sortQueue, transitionPatient, logout } = window.App.Store;
+        const { state, setView, getQueueMetrics, getNextPatient, sortQueue, transitionPatient, logout, getCareTeam } = window.App.Store;
         const container = document.createElement('div');
         container.className = 'flow-shell workspace-shell';
         const metrics = getQueueMetrics();
@@ -124,6 +124,7 @@
         const currentAction = { waiting: ['called', 'Call next'], called: ['in_progress', 'Start visit'], in_progress: ['completed', 'Complete visit'] }[currentStatus] || [null, 'Queue ready'];
         const statusLabel = value => ({ waiting: 'Waiting', called: 'Called', in_progress: 'In consultation' }[String(value || 'waiting').toLowerCase()] || 'Active');
         const priorityClass = value => value === 'Red' ? 'priority-red' : value === 'Yellow' ? 'priority-yellow' : value === 'Green' ? 'priority-green' : 'priority-neutral';
+        const careTeam = getCareTeam();
         
         const rows = sortQueue(state.queue).map((patient, index) => `
             <tr>
@@ -131,7 +132,7 @@
                 <td data-label="Reason"><span class="queue-cell-content">${esc(patient.problem || patient.symptoms || 'General consultation')}</span></td>
                 <td data-label="Priority"><span class="queue-cell-content"><span class="priority-chip ${priorityClass(patient.triage)}">${esc(patient.triage || 'Unassessed')}</span></span></td>
                 <td data-label="Status"><span class="queue-cell-content"><span class="queue-status queue-status-${String(patient.status || 'waiting').toLowerCase().replace('_', '-')}">${statusLabel(patient.status)}</span></span></td>
-                <td data-label="Clinician"><span class="queue-cell-content">${esc(patient.doctorPref || patient.doctor_pref || 'General care')}</span></td>
+                <td data-label="Clinician"><span class="queue-cell-content">${esc(patient.doctorName || patient.doctor_name || patient.doctorPref || patient.doctor_pref || 'General care')}</span></td>
                 <td data-label="Centre"><span class="queue-cell-content">${esc(patient.hospital || state.loggedHospital || 'Care centre')}<small>${esc(patient.city || state.loggedCity || 'Location pending')}</small></span></td>
             </tr>
         `).join('');
@@ -154,14 +155,14 @@
                         <h1>Good care needs a clear queue.</h1>
                         <p>${esc(state.loggedHospital || 'Your care centre')} · ${esc(state.loggedCity || 'Location not set')}</p>
                     </div>
-                    <div class="provider-date">${new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })}<br><strong>${metrics.waiting} active visits</strong></div>
+                    <div class="provider-date">${new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })}<br><strong>${metrics.waiting} active ${metrics.waiting === 1 ? 'visit' : 'visits'}</strong></div>
                 </header>
                 <div class="provider-grid">
                     <section class="provider-hero">
                         <div class="eyebrow"><span class="eyebrow-dot"></span> ${currentStatus === 'in_progress' ? 'Current consultation' : 'Next in line'}</div>
                         <h2>${current ? esc(current.name) : 'Queue is clear'}</h2>
                         <p>${current ? `${esc(current.problem || current.symptoms || 'General consultation')} · ${statusLabel(current.status)}` : 'There are no patients waiting for this care centre right now.'}</p>
-                        ${current ? `<div class="provider-hero-meta"><span class="priority-chip ${priorityClass(current.triage)}">${esc(current.triage || 'Unassessed')} priority</span><span>${icon('stethoscope', 14)} ${esc(current.doctorPref || current.doctor_pref || 'General care')}</span></div>` : ''}
+                        ${current ? `<div class="provider-hero-meta"><span class="priority-chip ${priorityClass(current.triage)}">${esc(current.triage || 'Unassessed')} priority</span><span>${icon('stethoscope', 14)} ${esc(current.doctorName || current.doctor_name || current.doctorPref || current.doctor_pref || 'General care')}</span></div>` : ''}
                         <div class="provider-hero-actions">
                             <button id="complete-patient" class="btn-primary btn-icon" ${currentAction[0] ? '' : 'disabled'}>
                                 ${currentAction[1]} ${icon(currentStatus === 'in_progress' ? 'check' : 'arrow-right', 16)}
@@ -184,6 +185,13 @@
                         <div class="provider-stat"><span>Room status</span><strong>${currentStatus === 'in_progress' ? 'In use' : 'Open'}</strong><small>Consultation room 01</small></div>
                     </section>
                 </div>
+                <section class="provider-card care-team-card" aria-labelledby="care-team-heading">
+                    <div class="provider-card-heading"><div><h2 id="care-team-heading">Hospital care team</h2><p>Each clinician has a department, room, availability, and live queue count.</p></div><span class="status-eyebrow">${careTeam.length} clinicians</span></div>
+                    <div class="care-team-roster">${careTeam.map(member => {
+                        const assigned = state.queue.filter(patient => (patient.doctorName || patient.doctor_name || patient.doctorPref || patient.doctor_pref) === member.name).length;
+                        return `<article class="clinician-card"><div class="clinician-avatar" aria-hidden="true">${member.name.split(' ').slice(1).map(part => part[0]).join('').slice(0, 2)}</div><div><strong>${esc(member.name)}</strong><span>${esc(member.specialty)}</span><small>${esc(member.room)} | ${esc(member.availability)}</small></div><span class="clinician-queue-count"><strong>${assigned}</strong><small>active</small></span></article>`;
+                    }).join('')}</div>
+                </section>
                 <section class="provider-card">
                     <div class="provider-card-heading">
                         <div>
@@ -206,12 +214,12 @@
         workspaceNav.className = 'workspace-tabs';
         workspaceNav.setAttribute('aria-label', 'Hospital workspace navigation');
         workspaceNav.innerHTML = `
-            <a class="active" href="/dashboard/doctor" data-route="/dashboard/doctor">${icon('layout-dashboard', 16)}<span>Overview</span></a>
+            <a class="active" href="/dashboard/hospital" data-route="/dashboard/hospital">${icon('layout-dashboard', 16)}<span>Overview</span></a>
             <a href="/dashboard/queue" data-route="/dashboard/queue">${icon('list-ordered', 16)}<span>Queue</span></a>
             <a href="/dashboard/analytics" data-route="/dashboard/analytics">${icon('bar-chart-3', 16)}<span>Analytics</span></a>
             <div class="nav-divider"></div>
-            <a href="/dashboard/doctor/donations" data-route="/dashboard/doctor/donations">${icon('heart-handshake', 16)}<span>Donations</span></a>
-            <a href="/dashboard/doctor/help" data-route="/dashboard/doctor/help">${icon('circle-help', 16)}<span>Help</span></a>
+            <a href="/dashboard/hospital/donations" data-route="/dashboard/hospital/donations">${icon('heart-handshake', 16)}<span>Donations</span></a>
+            <a href="/dashboard/hospital/help" data-route="/dashboard/hospital/help">${icon('circle-help', 16)}<span>Help</span></a>
             <button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>
         `;
 
@@ -269,7 +277,7 @@
                     const passport = window.App.Store.getMedicalPassport(code);
                     if (passport) {
                         window.App.UI.showMedicalPassportModal(passport);
-                        window.App.UI.toast(`Opened ${passport.profile.name}'s read-only Medical Passport.`, 'success');
+                        window.App.UI.toast(`Opened ${passport.profile.name}'s read-only Medical History.`, 'success');
                         return;
                     }
                     const match = state.queue.find(p => String(p.id) === String(code) || String(p.reference || '').toUpperCase() === String(code).toUpperCase());

@@ -7,9 +7,9 @@
         const container = document.createElement('div');
         container.className = 'flow-shell workspace-shell';
         const isStaff = state.loggedRole === 'staff';
-        const overviewRoute = isStaff ? '/dashboard/admin' : '/dashboard/doctor';
-        const helpRoute = isStaff ? '/dashboard/admin/help' : '/dashboard/doctor/help';
-        const donationsRoute = isStaff ? '/dashboard/admin/donations' : '/dashboard/doctor/donations';
+        const overviewRoute = isStaff ? '/dashboard/admin' : '/dashboard/hospital';
+        const helpRoute = isStaff ? '/dashboard/admin/help' : '/dashboard/hospital/help';
+        const donationsRoute = isStaff ? '/dashboard/admin/donations' : '/dashboard/hospital/donations';
         const overviewLabel = isStaff ? 'Operations' : 'Overview';
 
         // Read state from URL
@@ -30,7 +30,7 @@
 
         function navHtml() {
             if (isStaff) return `<a href="/dashboard/admin" data-route="/dashboard/admin">${icon('layout-dashboard', 16)}<span>Operations</span></a><a href="/dashboard/admin?tab=rooms" data-tab="rooms" data-tab-route="/dashboard/admin">${icon('door-open', 16)}<span>Rooms</span></a><a href="/dashboard/queue" data-route="/dashboard/queue">${icon('list-ordered', 16)}<span>Queue</span></a><a href="/dashboard/analytics" data-route="/dashboard/analytics">${icon('bar-chart-3', 16)}<span>Analytics</span></a><div class="nav-divider"></div><a class="active" href="${donationsRoute}" data-route="${donationsRoute}">${icon('heart-handshake', 16)}<span>Donations</span></a><a href="${helpRoute}" data-route="${helpRoute}">${icon('circle-help', 16)}<span>Help</span></a><button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>`;
-            return `<a href="/dashboard/doctor" data-route="/dashboard/doctor">${icon('layout-dashboard', 16)}<span>Overview</span></a><a href="/dashboard/queue" data-route="/dashboard/queue">${icon('list-ordered', 16)}<span>Queue</span></a><a href="/dashboard/analytics" data-route="/dashboard/analytics">${icon('bar-chart-3', 16)}<span>Analytics</span></a><div class="nav-divider"></div><a class="active" href="${donationsRoute}" data-route="${donationsRoute}">${icon('heart-handshake', 16)}<span>Donations</span></a><a href="${helpRoute}" data-route="${helpRoute}">${icon('circle-help', 16)}<span>Help</span></a><button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>`;
+            return `<a href="/dashboard/hospital" data-route="/dashboard/hospital">${icon('layout-dashboard', 16)}<span>Overview</span></a><a href="/dashboard/queue" data-route="/dashboard/queue">${icon('list-ordered', 16)}<span>Queue</span></a><a href="/dashboard/analytics" data-route="/dashboard/analytics">${icon('bar-chart-3', 16)}<span>Analytics</span></a><div class="nav-divider"></div><a class="active" href="${donationsRoute}" data-route="${donationsRoute}">${icon('heart-handshake', 16)}<span>Donations</span></a><a href="${helpRoute}" data-route="${helpRoute}">${icon('circle-help', 16)}<span>Help</span></a><button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>`;
         }
 
         function render() {

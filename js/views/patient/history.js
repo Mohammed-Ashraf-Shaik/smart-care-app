@@ -49,7 +49,7 @@
                 <aside class="workspace-drawer workspace-tabs" data-section="patient-nav" aria-label="Patient workspace tabs">
                     <a href="/dashboard/patient" data-route="/dashboard/patient">${icon('layout-dashboard', 16)}<span>Overview</span></a>
                     <a href="/dashboard/patient/apply/1" data-route="/dashboard/patient/apply/1" data-tab="apply">${icon('calendar-plus', 16)}<span>Book appointment</span></a>
-                    <a class="active" href="/dashboard/patient/history" data-route="/dashboard/patient/history">${icon('file-text', 16)}<span>Medical Passport</span></a>
+                    <a class="active" href="/dashboard/patient/history" data-route="/dashboard/patient/history">${icon('file-text', 16)}<span>Medical History</span></a>
                     <a href="/dashboard/patient?tab=visits" data-tab="visits" data-tab-route="/dashboard/patient">${icon('clipboard-check', 16)}<span>Previous visits</span></a>
                     <a href="/dashboard/patient?tab=profile" data-tab="profile" data-tab-route="/dashboard/patient">${icon('user-round', 16)}<span>Profile</span></a>
                     <div class="nav-divider"></div>
@@ -58,13 +58,13 @@
                     <button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>
                 </aside>
 
-                <main class="workspace-content section-patient-history" data-section="patient-history" aria-label="Patient medical history passport" style="padding:1.25rem 1rem 4rem">
+                <main class="workspace-content section-patient-history" data-section="patient-history" aria-label="Patient medical history" style="padding:1.25rem 1rem 4rem">
                     
                     <!-- ON-SCREEN HEADER & BODY ACTIONS -->
                     <div class="flow-header print-hide" style="margin-bottom:1.5rem">
                         <div style="display:flex;justify-content:space-between;align-items:start;width:100%;flex-wrap:wrap;gap:1rem">
                             <div>
-                                <div class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> Health Passport (ID: ${esc(dynamicPassportId)})</div>
+                                <div class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> Medical History (Share ID: ${esc(dynamicPassportId)})</div>
                                 <h1 style="font-size:1.6rem;margin:.2rem 0">Patient Medical History</h1>
                                 <p style="font-size:.88rem;color:var(--muted)">Manage your medical records, effective medicines, allergies, and care preferences in one portable profile.</p>
                             </div>
@@ -82,7 +82,7 @@
                                 ${icon('download', 16)} <span>Download PDF Report</span>
                             </button>
                             <button id="qr-handoff-btn" class="btn-ghost btn-icon" type="button" style="min-height:2.4rem">
-                                ${icon('qr-code', 16)} <span>Doctor QR Handoff</span>
+                                ${icon('qr-code', 16)} <span>Share with hospital</span>
                             </button>
                         </div>
                     </div>
@@ -99,7 +99,7 @@
                             <div><small style="color:var(--muted);display:block">Full Name</small><strong>${esc(patientName)}</strong></div>
                             <div><small style="color:var(--muted);display:block">Age / Gender</small><strong>${esc(patientAge)} / ${esc(patientGender)}</strong></div>
                             <div><small style="color:var(--muted);display:block">City</small><strong>${esc(patientCity)}</strong></div>
-                            <div><small style="color:var(--muted);display:block">Passport Ref</small><strong>${esc(dynamicPassportId)}</strong></div>
+                            <div><small style="color:var(--muted);display:block">History Share ID</small><strong>${esc(dynamicPassportId)}</strong></div>
                         </div>
                     </div>
 
@@ -117,7 +117,7 @@
                                     </div>
                                 </div>
                                 <div style="text-align:right">
-                                    <span style="display:block;font-size:.82rem;color:#0a3b69;font-weight:800">PASSPORT ID: ${esc(dynamicPassportId)}</span>
+                                    <span style="display:block;font-size:.82rem;color:#0a3b69;font-weight:800">HISTORY SHARE ID: ${esc(dynamicPassportId)}</span>
                                     <span style="display:block;font-size:.74rem;color:#5a7a8e;font-weight:600">Report Date: ${esc(new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }))}</span>
                                 </div>
                             </div>
@@ -164,7 +164,7 @@
                             </div>
                         </div>
 
-                        <!-- 4-PILLAR HEALTH PASSPORT GRID -->
+                        <!-- 4-PILLAR MEDICAL HISTORY GRID -->
                         <div class="history-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(290px, 1fr));gap:1.25rem">
                             
                             <!-- PILLAR 1: EFFECTIVE MEDICATIONS -->
@@ -272,11 +272,11 @@
                         <div id="pdf-print-footer" class="print-only">
                             <div style="margin-top:2.5rem;padding-top:1rem;border-top:1.5px solid #d8e4ef;display:flex;justify-content:space-between;align-items:center;font-size:.72rem;color:#5a7a8e">
                                 <div>
-                                    <strong>Confidential Medical Document</strong> — Generated by SmartCare Healthcare Systems.
+                                    <strong>Confidential Medical Document</strong> - Generated by SmartCare Healthcare Systems.
                                     <br>For authorized clinical, emergency, &amp; attending physician use only.
                                 </div>
                                 <div style="text-align:right">
-                                    <strong>SmartCare Patient Health Passport · Page 1 of 1</strong>
+                                    <strong>SmartCare Patient Medical History | Page 1 of 1</strong>
                                     <br><span>https://mohammed-ashraf-shaik.github.io/smart-care-app/</span>
                                 </div>
                             </div>
@@ -284,7 +284,7 @@
 
                     </div>
 
-                    <!-- DYNAMIC ADD & EDIT PASSPORT MODAL OVERLAY -->
+                    <!-- DYNAMIC ADD AND EDIT MEDICAL HISTORY MODAL OVERLAY -->
                     <div id="edit-passport-modal" class="modal-overlay print-hide" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:999;place-items:center;padding:1rem">
                         <div class="modal-card" style="background:#fff;padding:1.5rem;border-radius:1.5rem;max-width:620px;width:100%;box-shadow:0 20px 40px rgba(0,0,0,0.2);max-height:88vh;overflow-y:auto">
                             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;padding-bottom:.5rem;border-bottom:1px solid var(--line)">
@@ -364,7 +364,7 @@
 
                                 <div style="display:flex;justify-content:flex-end;gap:.75rem;margin-top:1.5rem">
                                     <button id="cancel-edit-btn" type="button" class="btn-ghost">Cancel</button>
-                                    <button type="submit" class="btn-primary">Save Passport Updates</button>
+                                    <button type="submit" class="btn-primary">Save Medical History</button>
                                 </div>
                             </form>
                         </div>
@@ -377,13 +377,13 @@
                             <div style="width:3.5rem;height:3.5rem;margin:0 auto 1rem;display:grid;place-items:center;border-radius:1rem;background:#e8f4fb;color:var(--teal)">
                                 ${icon('qr-code', 28)}
                             </div>
-                            <h3 style="margin:0 0 .4rem;color:var(--teal-dark)">Doctor QR Handoff Code</h3>
-                            <p style="font-size:.8rem;color:var(--muted);margin-bottom:1.25rem">Ask the clinician to scan this code inside the SmartCare Doctor workspace to open a read-only demo summary.</p>
+                            <h3 style="margin:0 0 .4rem;color:var(--teal-dark)">Medical History Sharing Code</h3>
+                            <p style="font-size:.8rem;color:var(--muted);margin-bottom:1.25rem">Ask the clinician to scan this code inside the SmartCare Hospital workspace to open a read-only demo summary.</p>
 
                             <div id="qr-code-canvas" style="display:inline-block;padding:1rem;background:#fff;border:2px dashed var(--teal);border-radius:1rem;margin-bottom:1rem"></div>
 
                             <div style="background:var(--mint);padding:.75rem;border-radius:.8rem;margin-bottom:1.5rem">
-                                <small style="color:var(--muted);display:block;font-size:.72rem">Medical Passport ID</small>
+                                <small style="color:var(--muted);display:block;font-size:.72rem">Medical History share ID</small>
                                 <strong style="font-size:1.2rem;letter-spacing:.1em;color:var(--teal-dark)">${esc(dynamicPassportId)}</strong>
                             </div>
 
@@ -443,7 +443,7 @@
         if (editModal) {
             editModal.querySelector('.modal-card')?.setAttribute('role', 'dialog');
             editModal.querySelector('.modal-card')?.setAttribute('aria-modal', 'true');
-            editModal.querySelector('.modal-card')?.setAttribute('aria-label', 'Add or update Medical Passport records');
+            editModal.querySelector('.modal-card')?.setAttribute('aria-label', 'Add or update Medical History records');
             editModal.onclick = event => { if (event.target === editModal) closeEditModal(); };
             editModal.onkeydown = event => { if (event.key === 'Escape') closeEditModal(); };
         }
@@ -515,7 +515,7 @@
         if (qrModal) {
             qrModal.querySelector('.modal-card')?.setAttribute('role', 'dialog');
             qrModal.querySelector('.modal-card')?.setAttribute('aria-modal', 'true');
-            qrModal.querySelector('.modal-card')?.setAttribute('aria-label', 'Doctor QR handoff');
+            qrModal.querySelector('.modal-card')?.setAttribute('aria-label', 'Medical History sharing code');
             qrModal.onclick = event => { if (event.target === qrModal) closeQrModal(); };
             qrModal.onkeydown = event => { if (event.key === 'Escape') closeQrModal(); };
         }
