@@ -15,7 +15,7 @@
 
         function render() {
             const patient = role === 'patient';
-            const roleName = patient ? 'Patient portal' : role === 'doctor' ? 'Hospital portal' : 'Admin portal';
+            const roleName = patient ? 'Patient portal' : role === 'doctor' ? 'Doctor & Provider workspace' : 'Hospital Operations portal';
             const title = mode === 'signin' ? 'Sign in to your workspace' : mode === 'signup' ? 'Create a provider account' : mode === 'recovery' ? 'Recover your access' : 'Set a new password';
             const description = mode === 'signin' ? (patient ? 'Use your email and password to continue.' : 'Use your work email and care centre details to continue.') : mode === 'signup' ? 'Register your care centre once, then manage the live queue.' : mode === 'recovery' ? 'We will email a secure password reset link.' : 'Choose a new password for your SmartCare account.';
 
@@ -38,8 +38,8 @@
                         </div>
                         <div class="auth-role-switch" aria-label="Choose portal">
                             <button class="auth-role ${role === 'patient' ? 'active' : ''}" data-role="patient" type="button">${icon('user-round', 15)} Patient</button>
-                            <button class="auth-role ${role === 'doctor' ? 'active' : ''}" data-role="doctor" type="button">${icon('stethoscope', 15)} Hospital</button>
-                            <button class="auth-role ${role === 'staff' ? 'active' : ''}" data-role="staff" type="button">${icon('clipboard-list', 15)} Admin</button>
+                            <button class="auth-role ${role === 'doctor' ? 'active' : ''}" data-role="doctor" type="button">${icon('stethoscope', 15)} Doctor / Provider</button>
+                            <button class="auth-role ${role === 'staff' ? 'active' : ''}" data-role="staff" type="button">${icon('building-2', 15)} Hospital Ops</button>
                         </div>
                         <div class="eyebrow" style="color:var(--teal)"><span class="eyebrow-dot"></span> ${roleName}</div>
                         <h2 id="auth-title">${title}</h2>
@@ -98,12 +98,12 @@
         function demoAccess() {
             return `
                 <div class="demo-access">
-                    <p class="eyebrow" style="color:var(--teal)"><span class="eyebrow-dot"></span> Demo access</p>
-                    <p class="hint">Select a role to load a ready-to-use account. You still control the final sign-in.</p>
+                    <p class="eyebrow" style="color:var(--teal)"><span class="eyebrow-dot"></span> Quick Demo Sign-In</p>
+                    <p class="hint">Click a demo role to pre-fill ready-to-use credentials for evaluation &amp; presentation.</p>
                     <div class="demo-buttons">
                         <button type="button" class="text-link demo-button" data-demo-role="patient">${icon('user-round', 15)} Patient demo</button>
-                        <button type="button" class="text-link demo-button" data-demo-role="doctor">${icon('stethoscope', 15)} Hospital demo</button>
-                        <button type="button" class="text-link demo-button" data-demo-role="staff">${icon('clipboard-list', 15)} Admin demo</button>
+                        <button type="button" class="text-link demo-button" data-demo-role="doctor">${icon('stethoscope', 15)} Doctor demo</button>
+                        <button type="button" class="text-link demo-button" data-demo-role="staff">${icon('building-2', 15)} Hospital Ops demo</button>
                     </div>
                 </div>
             `;
