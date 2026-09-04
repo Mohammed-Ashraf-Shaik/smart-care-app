@@ -57,7 +57,8 @@
                         ${icon('menu', 18)}
                     </button>
                 ` : ''}
-                <div class="lang-dropdown-wrapper">
+                <div class="lang-dropdown-wrapper" title="Select language">
+                    <span class="lang-globe-icon">${icon('globe', 14)}</span>
                     <select class="lang-select-native" id="global-lang-select" aria-label="Select language">
                         <option value="en">English (EN)</option>
                         <option value="hi">हिन्दी (HI)</option>
@@ -606,23 +607,33 @@
         return `<nav class="mobile-bottom-nav" aria-label="Mobile navigation">${buttons}</nav>`;
     }
 
-    function bindMobileBottomNav(container) {
-        // Clean up previous bottom navs teleported to body
-        document.querySelectorAll('body > .mobile-bottom-nav').forEach(el => el.remove());
+    function syncMobileBottomNav(role, currentRoute) {
+        document.querySelectorAll('.mobile-bottom-nav').forEach(el => el.remove());
+        if (!window.App?.Store?.state?.isLogged) return;
 
-        const nav = container.querySelector('.mobile-bottom-nav');
+        const effectiveRole = role || window.App?.Store?.state?.loggedRole || 'patient';
+        const effectiveRoute = currentRoute || window.App?.Store?.state?.route || '/dashboard/patient';
+        const navHtml = mobileBottomNav(effectiveRole, effectiveRoute);
+
+        document.body.insertAdjacentHTML('beforeend', navHtml);
+        const nav = document.body.querySelector('.mobile-bottom-nav');
         if (!nav) return;
 
-        // Teleport mobile bottom nav to document.body so position:fixed is always relative to viewport
-        if (nav.parentElement !== document.body) {
-            document.body.appendChild(nav);
-        }
+        // Ensure SPA hrefs are properly mapped
+        nav.querySelectorAll('a[data-route]').forEach(link => {
+            if (window.App?.Store?.hrefFor) link.href = window.App.Store.hrefFor(link.dataset.route);
+        });
+        nav.querySelectorAll('a[data-tab]').forEach(link => {
+            if (window.App?.Store?.hrefForTab) link.href = window.App.Store.hrefForTab(link.dataset.tabRoute || effectiveRoute, link.dataset.tab);
+        });
 
         // Sign-out button
         const signoutBtn = nav.querySelector('[data-mobile-nav-signout]');
-
-        if (signoutBtn && window.App && window.App.Store && window.App.Store.logout) {
-            signoutBtn.onclick = window.App.Store.logout;
+        if (signoutBtn && window.App?.Store?.logout) {
+            signoutBtn.onclick = () => {
+                document.querySelectorAll('.mobile-bottom-nav').forEach(el => el.remove());
+                window.App.Store.logout();
+            };
         }
 
         // Auto-close sidebar drawer when a bottom nav item is tapped
@@ -642,5 +653,13 @@
         if (window.lucide) window.lucide.createIcons();
     }
 
-    window.App.UI = { icon, footer, toast, topbarControls, bindTopbarControls, mobileBottomNav, bindMobileBottomNav, generateQRCodeDataUrl, showQRScannerModal, showMedicalPassportModal, showPrescriptionModal };
+    function bindMobileBottomNav() {
+        if (!window.App?.Store?.state?.isLogged) {
+            document.querySelectorAll('.mobile-bottom-nav').forEach(el => el.remove());
+            return;
+        }
+        syncMobileBottomNav(window.App?.Store?.state?.loggedRole, window.App?.Store?.state?.route);
+    }
+
+    window.App.UI = { icon, footer, toast, topbarControls, bindTopbarControls, mobileBottomNav, bindMobileBottomNav, syncMobileBottomNav, generateQRCodeDataUrl, showQRScannerModal, showMedicalPassportModal, showPrescriptionModal };
 })();

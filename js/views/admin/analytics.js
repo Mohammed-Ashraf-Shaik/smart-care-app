@@ -303,8 +303,11 @@
             };
 
             window.App.UI.bindTopbarControls(container);
-            container.insertAdjacentHTML('beforeend', window.App.UI.mobileBottomNav(state.loggedRole, state.route));
-            window.App.UI.bindMobileBottomNav(container);
+            if (state.isLogged) {
+                window.App.UI.syncMobileBottomNav(state.loggedRole, state.route);
+            } else {
+                document.querySelectorAll('.mobile-bottom-nav').forEach(el => el.remove());
+            }
             if (window.lucide) window.lucide.createIcons();
         }
 

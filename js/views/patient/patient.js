@@ -43,9 +43,11 @@
         if (step === 3) renderDetails(target);
 
         window.App.UI.bindTopbarControls(container);
-        // Mobile bottom nav: highlight 'Book' as active on the booking wizard
-        container.insertAdjacentHTML('beforeend', window.App.UI.mobileBottomNav('patient', '/dashboard/patient/apply/1'));
-        window.App.UI.bindMobileBottomNav(container);
+        if (state.isLogged) {
+            window.App.UI.syncMobileBottomNav('patient', '/dashboard/patient/apply/1');
+        } else {
+            document.querySelectorAll('.mobile-bottom-nav').forEach(el => el.remove());
+        }
         if (window.lucide) window.lucide.createIcons();
         return container;
 
@@ -62,21 +64,15 @@
                 <div class="flow-topbar patient-topbar">
                     <a class="brand-lockup" data-route="/" href="/">
                         <span class="brand-mark">${icon('heart-pulse', 20)}</span>
-                        <span><span class="brand-name">SmartCare</span><span class="brand-caption">Patient application</span></span>
+                        <span><span class="brand-name">SmartCare</span><span class="brand-caption">Patient portal</span></span>
                     </a>
-                    <nav class="flow-topbar-nav" aria-label="Application navigation">
-                        <a data-route="/" href="/">Home</a>
-                        <a data-route="/dashboard/patient/apply/1" href="/dashboard/patient/apply/1" class="active">Patient application</a>
-                        <a data-route="/login" href="/login">Hospital portal</a>
-                        <a data-route="/about" href="/about">About</a>
-                    </nav>
                     <div class="flow-topbar-actions">
                         ${window.App.UI.topbarControls(true)}
                         <button id="patient-demo" class="btn-secondary btn-icon" type="button" ${step === 4 || (step === 3 && patientData.symptoms) ? 'disabled' : ''}>
                             ${icon('sparkles', 16)} ${demoLabel()}
                         </button>
                         <button id="btn-back-home" class="back-link" type="button">
-                            ${icon('arrow-left', 16)} ${step === 1 || step === 4 ? 'Home' : 'Back'}
+                            ${icon('arrow-left', 16)} ${step === 1 || step === 4 ? 'Back to home' : 'Back'}
                         </button>
                     </div>
                 </div>

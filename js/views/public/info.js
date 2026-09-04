@@ -169,9 +169,10 @@
             }
 
             window.App.UI.bindTopbarControls(container);
-            if (isWorkspace) {
-                container.insertAdjacentHTML('beforeend', window.App.UI.mobileBottomNav(state.loggedRole || 'patient', state.route));
-                window.App.UI.bindMobileBottomNav(container);
+            if (isWorkspace && state.isLogged) {
+                window.App.UI.syncMobileBottomNav(state.loggedRole || 'patient', state.route);
+            } else {
+                document.querySelectorAll('.mobile-bottom-nav').forEach(el => el.remove());
             }
 
             // Tab link interactions

@@ -33,17 +33,16 @@
 
         container.innerHTML = `
             <!-- STANDARD UNIFORM SHELL HEADER -->
-            <header class="flow-topbar print-hide" data-section="history-topbar">
-                <div class="topbar-left">
-                    <a class="brand-lockup" data-route="/" href="/">
-                        <span class="brand-mark">${icon('heart-pulse', 20)}</span>
-                        <span><span class="brand-name">SmartCare</span><span class="brand-caption">Patient Portal</span></span>
-                    </a>
-                </div>
-                <div class="topbar-actions">
+            <div class="flow-topbar print-hide" data-section="history-topbar">
+                <a class="brand-lockup" data-route="/" href="/">
+                    <span class="brand-mark">${icon('heart-pulse', 20)}</span>
+                    <span><span class="brand-name">SmartCare</span><span class="brand-caption">Patient portal</span></span>
+                </a>
+                <div class="flow-topbar-actions">
                     ${window.App.UI.topbarControls(true)}
+                    <a class="back-link" data-route="/" href="/">${icon('arrow-left', 16)} Back to home</a>
                 </div>
-            </header>
+            </div>
 
             <div class="provider-shell">
                 <aside class="workspace-drawer workspace-tabs" data-section="patient-nav" aria-label="Patient workspace tabs">
@@ -548,7 +547,12 @@
         if (closeQr) closeQr.onclick = closeQrModal;
         if (closeQrDone) closeQrDone.onclick = closeQrModal;
 
-        window.App.UI.bindMobileBottomNav(container);
+        window.App.UI.bindTopbarControls(container);
+        if (state.isLogged) {
+            window.App.UI.syncMobileBottomNav('patient', state.route);
+        } else {
+            document.querySelectorAll('.mobile-bottom-nav').forEach(el => el.remove());
+        }
         return container;
     };
 })();

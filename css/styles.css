@@ -1,3 +1,37 @@
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+html {
+    max-width: 100vw;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+body {
+    max-width: 100vw;
+    overflow-x: hidden;
+    margin: 0;
+    padding: 0;
+}
+
+#main-content,
+#app,
+.app-shell,
+.landing-main,
+.flow-shell,
+.workspace-shell,
+.workspace-content,
+.info-layout,
+.donation-page,
+.auth-layout,
+.auth-panel {
+    max-width: 100vw;
+    overflow-x: hidden;
+    box-sizing: border-box;
+}
+
 :root {
     --ink: #12304f;
     --muted: #5d7188;
@@ -73,9 +107,23 @@
 [data-theme="dark"] .symptom-suggestion,
 [data-theme="dark"] .demo-buttons button,
 [data-theme="dark"] .map-view-toggle button,
+[data-theme="dark"] .lang-dropdown-wrapper,
 [data-theme="dark"] .filter-control select {
     background: #152b44 !important;
     border-color: #26476d !important;
+    color: #74b3f0 !important;
+}
+
+[data-theme="dark"] .lang-select-native {
+    color: #e6f0fa !important;
+}
+
+[data-theme="dark"] .lang-select-native option {
+    background: #101e30;
+    color: #e6f0fa;
+}
+
+[data-theme="dark"] .lang-dropdown-icon {
     color: #74b3f0 !important;
 }
 
@@ -309,9 +357,12 @@ a { color: inherit; }
 .topbar-control-btn { display: inline-flex; align-items: center; justify-content: center; gap: .35rem; min-height: 2.2rem; padding: .35rem .65rem; border: 1px solid var(--line); border-radius: .6rem; background: var(--surface); color: var(--ink); font-size: .75rem; font-weight: 700; transition: border-color .18s ease, background .18s ease; }
 .topbar-control-btn:hover { border-color: var(--teal); color: var(--teal); background: var(--mint); }
 .mobile-menu-btn { display: inline-flex; }
-.lang-dropdown-wrapper { position: relative; display: inline-block; }
-.lang-select-native { appearance: none; -webkit-appearance: none; border: 1px solid var(--line); border-radius: .6rem; background: var(--surface); color: var(--ink); font-size: .75rem; font-weight: 700; padding: .45rem 1.6rem .45rem .65rem; cursor: pointer; }
-.lang-dropdown-icon { position: absolute; right: .5rem; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--muted); }
+.lang-dropdown-wrapper { position: relative; display: inline-flex; align-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: .6rem; padding: 0 .4rem 0 .55rem; min-height: 2.2rem; height: 2.2rem; box-shadow: 0 1px 3px rgba(10, 59, 105, 0.05); transition: border-color .18s ease, background .18s ease, box-shadow .18s ease; }
+.lang-dropdown-wrapper:hover, .lang-dropdown-wrapper:focus-within { border-color: var(--teal); background: var(--mint); box-shadow: 0 2px 8px rgba(15, 92, 168, 0.12); }
+.lang-globe-icon { display: flex; align-items: center; justify-content: center; color: var(--teal); margin-right: .25rem; flex-shrink: 0; pointer-events: none; }
+.lang-select-native { appearance: none; -webkit-appearance: none; -moz-appearance: none; border: 0 !important; background: transparent !important; color: var(--ink) !important; font-family: inherit; font-size: .75rem; font-weight: 700; padding: 0 1.25rem 0 .15rem; cursor: pointer; outline: none; height: 100%; line-height: 2.2rem; width: auto; max-width: 6.8rem; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+.lang-select-native option { background: var(--surface); color: var(--ink); font-weight: 600; }
+.lang-dropdown-icon { position: absolute; right: .45rem; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--muted); display: flex; align-items: center; justify-content: center; }
 
 /* Hide Google Translate ugly iframe banner */
 .goog-te-banner-frame.skiptranslate, .goog-te-banner-frame { display: none !important; }
@@ -1319,14 +1370,7 @@ html { scroll-behavior: smooth; }
 .rx-signature small { color: var(--muted); font-size: .68rem; }
 .prescription-modal-actions { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: 1rem 1.5rem; border-top: 1px solid var(--line); background: var(--canvas); }
 
-/* Print Styles for Medical Report */
-@media print {
-    body * { visibility: hidden !important; }
-    .prescription-modal, .prescription-modal * { visibility: visible !important; }
-    .prescription-modal { position: absolute; left: 0; top: 0; width: 100% !important; max-width: none !important; border: 0 !important; box-shadow: none !important; }
-    .prescription-modal-header, .prescription-modal-actions { display: none !important; }
-    .prescription-paper { border: 0 !important; padding: 0 !important; }
-}
+
 
 .splash-screen { min-height: 100vh; display: grid; place-items: center; padding: 1.5rem; color: #fff; background: var(--teal-dark); }
 .splash-inner { text-align: center; animation: splash-rise .7s ease both; }
@@ -1392,14 +1436,16 @@ html { scroll-behavior: smooth; }
 }
 
 @media (max-width: 640px) {
-    .shell-nav { flex-wrap: wrap; padding: 1rem; }
-    .nav-links { order: 3; flex: 1 0 100%; min-width: 0; overflow-x: auto; justify-content: flex-start; gap: 1rem; padding: .25rem 0 .1rem; scrollbar-width: thin; }
-    .nav-links a { flex: 0 0 auto; font-size: .76rem; }
+    .shell-nav { flex-wrap: wrap; padding: 0.85rem max(1.15rem, calc(1rem + env(safe-area-inset-left, 0px))); gap: 0.5rem; width: 100%; max-width: 100%; }
+    .nav-links { order: 3; flex: 1 0 100%; min-width: 0; overflow-x: auto; justify-content: flex-start; gap: 0.85rem; padding: .25rem 0 .1rem; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+    .nav-links a { flex: 0 0 auto; font-size: .78rem; white-space: nowrap; }
+    .nav-actions { flex-wrap: wrap; gap: 0.35rem; }
     .nav-actions .btn-secondary { display: none; }
-    .landing-main { padding: .25rem .75rem 1rem; }
-    .hero-frame { padding: 1rem; border-radius: 1.1rem; }
-    .hero-copy { padding: .5rem; }
-    .hero-copy h1 { margin-top: 1.5rem; font-size: clamp(2.7rem, 14vw, 4.2rem); }
+    .nav-actions .btn-ghost, .nav-actions .btn-primary { min-height: 2.25rem !important; padding: 0.35rem 0.65rem !important; font-size: 0.78rem !important; }
+    .landing-main { padding: .25rem max(1.15rem, calc(1rem + env(safe-area-inset-left, 0px))) 1rem; width: 100%; max-width: 100%; }
+    .hero-frame { padding: 1.15rem max(1.15rem, calc(1rem + env(safe-area-inset-left, 0px))); border-radius: 1.1rem; width: 100%; max-width: 100%; }
+    .hero-copy { padding: 0.5rem max(0.85rem, calc(0.5rem + env(safe-area-inset-left, 0px))); width: 100%; max-width: 100%; }
+    .hero-copy h1 { margin-top: 1rem; font-size: clamp(1.65rem, 6.5vw, 2.35rem); line-height: 1.15; max-width: 100%; }
     .hero-ctas .btn-saffron { flex: 1 1 100%; }
     .hero-facts { gap: .45rem; }
     .hero-facts strong { font-size: .95rem; }
@@ -1506,19 +1552,19 @@ html { scroll-behavior: smooth; }
 
 @media (max-width: 768px) {
     .mobile-bottom-nav {
-        display: flex;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 64px;
-        z-index: 300;
+        display: flex !important;
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        height: 64px !important;
+        z-index: 9999 !important;
         align-items: stretch;
         padding: 0;
         padding-bottom: env(safe-area-inset-bottom, 0);
         background: var(--surface);
         border-top: 1px solid var(--line);
-        box-shadow: 0 -4px 24px rgba(10, 40, 80, 0.1);
+        box-shadow: 0 -4px 24px rgba(10, 40, 80, 0.12);
     }
 
     .mobile-nav-btn {
@@ -1736,7 +1782,8 @@ html { scroll-behavior: smooth; }
     }
 
     .hero-title-wrap h1 {
-        font-size: 2.1rem !important;
+        font-size: clamp(1.65rem, 6.5vw, 2.1rem) !important;
+        line-height: 1.15 !important;
         margin-bottom: 0.5rem !important;
     }
 
@@ -1845,44 +1892,63 @@ html { scroll-behavior: smooth; }
         text-wrap: pretty;
     }
 
-    .flow-shell {
-        padding: .65rem .75rem calc(5.25rem + env(safe-area-inset-bottom, 0px));
+    .flow-shell,
+    .workspace-shell,
+    .patient-workspace-shell {
+        padding-left: max(1.15rem, calc(0.85rem + env(safe-area-inset-left, 0px))) !important;
+        padding-right: max(1.15rem, calc(0.85rem + env(safe-area-inset-right, 0px))) !important;
+        padding-top: .65rem;
+        padding-bottom: calc(5.25rem + env(safe-area-inset-bottom, 0px));
     }
 
     .flow-topbar {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) auto;
-        gap: .45rem .75rem;
-        padding: .55rem .25rem;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: .55rem .75rem;
+        padding: .75rem max(1rem, calc(0.75rem + env(safe-area-inset-left, 0px))) !important;
+        border-radius: 0 0 .9rem .9rem;
     }
 
     .flow-topbar > .brand-lockup {
         min-width: 0;
+        flex: 1 1 auto;
     }
 
     .flow-topbar-actions {
-        grid-column: 1 / -1;
-        width: 100%;
-        justify-content: space-between;
-        gap: .4rem;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: .45rem;
+        flex: 1 1 auto;
     }
 
     .flow-topbar-actions > .back-link {
-        flex: 0 0 2.75rem;
-        width: 2.75rem;
-        padding: .55rem;
-        font-size: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: .35rem;
+        padding: .45rem .65rem;
+        font-size: .78rem;
         white-space: nowrap;
+        border: 1px solid var(--line);
+        border-radius: .6rem;
+        background: var(--surface);
+        color: var(--teal-dark);
+        min-height: 2.2rem;
+        text-decoration: none;
     }
 
     .flow-topbar-actions > .back-link svg {
-        width: 1.1rem;
-        height: 1.1rem;
+        width: 1rem;
+        height: 1rem;
+        flex-shrink: 0;
     }
 
     .workspace-content {
-        padding-right: .75rem;
-        padding-left: .75rem;
+        padding-left: max(1.15rem, calc(0.85rem + env(safe-area-inset-left, 0px))) !important;
+        padding-right: max(1.15rem, calc(0.85rem + env(safe-area-inset-right, 0px))) !important;
     }
 
     .flow-card,
@@ -1890,7 +1956,7 @@ html { scroll-behavior: smooth; }
     .patient-history-overview-card,
     .donation-card,
     .info-card {
-        padding: 1rem;
+        padding: 1.15rem max(1.15rem, calc(1rem + env(safe-area-inset-left, 0px))) !important;
     }
 
     .flow-header {
@@ -1916,10 +1982,10 @@ html { scroll-behavior: smooth; }
     }
 
     .hero-copy h1 {
-        max-width: 11ch;
-        font-size: clamp(2.25rem, 11vw, 3.15rem);
-        line-height: 1.02;
-        letter-spacing: -.055em;
+        max-width: 100%;
+        font-size: clamp(1.65rem, 6.5vw, 2.35rem);
+        line-height: 1.15;
+        letter-spacing: -.03em;
     }
 
     .hero-copy > p,
@@ -1933,7 +1999,7 @@ html { scroll-behavior: smooth; }
     .app-error p:not(.eyebrow),
     .not-found-page p:not(.eyebrow):not(.not-found-suggestions-label) {
         font-size: .9375rem;
-        line-height: 1.65;
+        line-height: 1.6;
     }
 
     .flow-header p {
@@ -1948,29 +2014,31 @@ html { scroll-behavior: smooth; }
     .donation-hero h1,
     .app-error h1,
     .not-found-page h1 {
-        font-size: clamp(1.75rem, 8.5vw, 2.35rem);
-        line-height: 1.08;
-        letter-spacing: -.045em;
+        font-size: clamp(1.45rem, 6vw, 2rem);
+        line-height: 1.15;
+        letter-spacing: -.03em;
+        max-width: 100%;
     }
 
     .flow-header h1 {
-        font-size: clamp(1.6rem, 7.5vw, 1.9rem);
-        line-height: 1.1;
+        font-size: clamp(1.35rem, 5.5vw, 1.75rem);
+        line-height: 1.18;
     }
 
     .section-heading h2,
     .portal-panel h2,
     .landing-insight-copy h2 {
-        max-width: 16ch;
-        font-size: clamp(1.65rem, 7.5vw, 2.15rem);
-        line-height: 1.08;
-        letter-spacing: -.04em;
+        max-width: 100%;
+        font-size: clamp(1.35rem, 5.5vw, 1.85rem);
+        line-height: 1.18;
+        letter-spacing: -.03em;
     }
 
     .provider-hero h2 {
-        font-size: clamp(1.5rem, 7vw, 2rem);
-        line-height: 1.12;
-        letter-spacing: -.04em;
+        font-size: clamp(1.25rem, 5vw, 1.65rem);
+        line-height: 1.2;
+        letter-spacing: -.03em;
+        max-width: 100%;
     }
 
     .patient-next-action h2,
@@ -2154,10 +2222,19 @@ html { scroll-behavior: smooth; }
         display: none;
     }
 
+    .lang-dropdown-wrapper {
+        min-height: 2.2rem;
+        height: 2.2rem;
+        max-width: 6.2rem;
+        padding: 0 .35rem 0 .45rem;
+    }
+
     .lang-select-native {
-        min-height: 2.75rem;
-        max-width: 6.75rem;
-        font-size: .875rem;
+        height: 100%;
+        min-height: auto;
+        max-width: 4.4rem;
+        font-size: .72rem;
+        padding: 0 1rem 0 .1rem;
     }
 
     .auth-aside h1,
@@ -2186,20 +2263,23 @@ html { scroll-behavior: smooth; }
 
     .stepper {
         display: flex;
+        flex-wrap: nowrap;
         gap: .5rem;
-        margin-right: -1rem;
+        margin-right: 0;
         margin-bottom: 1.15rem;
-        margin-left: -1rem;
-        padding: .35rem 1rem .65rem;
+        margin-left: 0;
+        padding: .35rem 0.25rem .65rem;
         overflow-x: auto;
         overscroll-behavior-inline: contain;
         scroll-snap-type: inline proximity;
         scrollbar-width: thin;
+        width: 100%;
+        max-width: 100%;
     }
 
     .step-item {
         flex: 0 0 auto;
-        min-width: 8.75rem;
+        min-width: 8rem;
         justify-content: flex-start;
         padding: .65rem .45rem;
         font-size: .75rem;
@@ -2249,22 +2329,20 @@ html { scroll-behavior: smooth; }
     }
 
     .care-selection-grid {
-        display: flex;
+        display: grid !important;
+        grid-template-columns: 1fr !important;
         gap: .65rem;
         padding-bottom: .45rem;
-        overflow-x: auto;
-        overscroll-behavior-inline: contain;
-        scroll-snap-type: inline proximity;
-        scrollbar-width: thin;
+        overflow-x: visible !important;
     }
 
     .care-selection-grid > .field {
-        flex: 0 0 min(14rem, 78vw);
+        flex: none !important;
+        width: 100% !important;
         padding: .7rem;
         border: 1px solid var(--line);
         border-radius: .75rem;
         background: var(--canvas);
-        scroll-snap-align: start;
     }
 
     .symptom-search-field,
@@ -2287,17 +2365,18 @@ html { scroll-behavior: smooth; }
 
     .symptom-suggestions,
     .custom-symptom-tags {
-        flex-wrap: nowrap;
-        padding-bottom: .4rem;
-        overflow-x: auto;
-        overscroll-behavior-inline: contain;
-        scroll-snap-type: inline proximity;
-        scrollbar-width: thin;
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: .45rem;
+        padding-bottom: .25rem;
+        overflow-x: visible !important;
     }
 
     .symptom-suggestion,
     .custom-symptom-tag {
-        flex: 0 0 auto;
+        flex: 0 1 auto !important;
+        white-space: normal !important;
+        word-break: break-word;
         scroll-snap-align: start;
     }
 
@@ -2479,47 +2558,132 @@ html { scroll-behavior: smooth; }
         margin-top: .65rem;
     }
 
-    .provider-stats,
-    .room-grid,
-    .care-team-roster,
-    .patient-visit-list,
-    .history-grid,
-    .journey-grid,
-    .portal-split,
-    .landing-insight-list,
-    .trust-row,
+    /* Mobile Responsive Card Grids - Wrapping & Stacking */
     .landing-stat-strip {
-        display: flex !important;
-        gap: .75rem;
-        padding-bottom: .55rem;
-        overflow-x: auto;
-        overscroll-behavior-inline: contain;
-        scroll-snap-type: inline proximity;
-        scrollbar-width: thin;
-        -webkit-overflow-scrolling: touch;
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 0.65rem !important;
+        width: 100% !important;
+        overflow-x: visible !important;
+        padding: 0.75rem !important;
+        margin-right: 0 !important;
+        margin-left: 0 !important;
+        border-right: 0 !important;
+        border-left: 0 !important;
     }
-
-    .provider-stat {
-        flex: 0 0 9.5rem;
-        min-height: 7.25rem;
-        scroll-snap-align: start;
-    }
-
-    .room-item {
-        flex: 0 0 min(17rem, 82vw);
-        scroll-snap-align: start;
-    }
-
-    .clinician-card,
-    .patient-visit,
-    .history-pillar-card,
-    .journey-grid article,
-    .portal-panel,
-    .landing-insight-list article,
-    .trust-card,
     .landing-stat-strip > div {
-        flex: 0 0 min(19rem, 84vw);
-        scroll-snap-align: start;
+        flex: none !important;
+        width: 100% !important;
+        border-right: 0 !important;
+        border-bottom: 1px solid var(--line) !important;
+        padding: 0.65rem 0.5rem !important;
+    }
+    .landing-stat-strip > div:last-child {
+        border-bottom: 0 !important;
+    }
+
+    .journey-grid {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+        width: 100% !important;
+        overflow-x: visible !important;
+        margin-top: 1.25rem !important;
+    }
+    .journey-grid article {
+        flex: none !important;
+        width: 100% !important;
+        min-height: auto !important;
+        padding: 1.15rem !important;
+    }
+
+    .portal-split {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+        width: 100% !important;
+        overflow-x: visible !important;
+    }
+    .portal-panel {
+        flex: none !important;
+        width: 100% !important;
+        padding: 1.25rem !important;
+    }
+    .portal-panel button {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+
+    .trust-row {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 0.75rem !important;
+        width: 100% !important;
+        overflow-x: visible !important;
+        margin: 1rem 0 !important;
+        border-right: 0 !important;
+        border-left: 0 !important;
+    }
+    .trust-card {
+        flex: none !important;
+        width: 100% !important;
+        border-right: 0 !important;
+        border-bottom: 1px solid var(--line) !important;
+        padding: 0.85rem 0.5rem !important;
+    }
+    .trust-card:last-child {
+        border-bottom: 0 !important;
+    }
+
+    .landing-insight-list {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 0.75rem !important;
+        width: 100% !important;
+        overflow-x: visible !important;
+    }
+    .landing-insight-list article {
+        flex: none !important;
+        width: 100% !important;
+    }
+
+    .provider-stats {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 0.65rem !important;
+        width: 100% !important;
+        overflow-x: visible !important;
+    }
+    .provider-stat {
+        flex: none !important;
+        width: 100% !important;
+        min-height: auto !important;
+    }
+
+    .room-grid {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 0.65rem !important;
+        width: 100% !important;
+        overflow-x: visible !important;
+    }
+    .room-item {
+        flex: none !important;
+        width: 100% !important;
+    }
+
+    .care-team-roster,
+    .patient-visit-list {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.65rem !important;
+        width: 100% !important;
+        overflow-x: visible !important;
+    }
+    .clinician-card,
+    .patient-visit {
+        flex: none !important;
+        width: 100% !important;
     }
 
     .patient-visit {
@@ -2530,41 +2694,30 @@ html { scroll-behavior: smooth; }
     }
 
     .history-grid {
-        grid-template-columns: none !important;
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 0.85rem !important;
+        width: 100% !important;
+        overflow-x: visible !important;
     }
-
     .history-pillar-card {
-        width: min(19rem, 84vw);
-        min-width: min(19rem, 84vw);
-    }
-
-    .trust-row,
-    .landing-stat-strip {
-        margin-right: 0;
-        margin-left: 0;
-        border-right: 0;
-        border-left: 0;
-    }
-
-    .trust-card,
-    .landing-stat-strip > div {
-        border-right: 1px solid var(--line);
-        border-bottom: 0;
+        flex: none !important;
+        width: 100% !important;
+        min-width: 0 !important;
     }
 
     .appointment-telemetry {
-        display: flex;
+        display: flex !important;
+        flex-wrap: wrap !important;
         gap: .5rem;
-        padding-bottom: .35rem;
-        overflow-x: auto;
-        overscroll-behavior-inline: contain;
-        scroll-snap-type: inline mandatory;
-        scrollbar-width: thin;
+        padding-bottom: 0;
+        overflow-x: visible !important;
+        width: 100%;
     }
 
     .appointment-telemetry > span {
-        flex: 0 0 8.75rem;
-        scroll-snap-align: start;
+        flex: 1 1 calc(50% - 0.5rem);
+        min-width: 7.5rem;
     }
 
     .queue-table td {
@@ -2767,8 +2920,8 @@ html { scroll-behavior: smooth; }
 @media (max-width: 480px) {
     .shell-nav,
     .flow-topbar {
-        padding-right: .75rem;
-        padding-left: .75rem;
+        padding-right: max(1.15rem, calc(0.85rem + env(safe-area-inset-right, 0px))) !important;
+        padding-left: max(1.15rem, calc(0.85rem + env(safe-area-inset-left, 0px))) !important;
     }
 
     .flow-topbar .brand-caption {
@@ -2802,9 +2955,14 @@ html { scroll-behavior: smooth; }
         text-align: left;
     }
 
-    .provider-stats,
+    .provider-stats {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+    }
+
     .room-grid {
-        display: flex;
+        display: grid !important;
+        grid-template-columns: 1fr !important;
     }
 
     .clinician-card {
@@ -2905,7 +3063,176 @@ html { scroll-behavior: smooth; }
     }
 }
 
-/* Printable PDF Formatting for Medical Passport Report */
+/* ══════════════════════════════════════════════════════════════════════
+   ANTI-OVERFLOW & TYPOGRAPHY STABILITY PROTOCOLS (Viewport < 768px)
+   ══════════════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+    /* 1. Eliminate Horizontal Text Becoming Vertical (Anti-Squish) */
+    /* NO Unwrapped Flex Containers below 768px */
+    .shell-nav,
+    .nav-actions,
+    .topbar-control-group,
+    .flow-topbar,
+    .flow-topbar-actions,
+    .topbar-actions,
+    .hero-ctas,
+    .hero-meta,
+    .demo-buttons,
+    .map-toolbar-actions,
+    .flow-actions,
+    .appointment-actions,
+    .visit-actions,
+    .modal-actions,
+    .prescription-modal-actions,
+    .auth-role-switch,
+    .auth-help,
+    .donation-type-switch,
+    .donation-tabs,
+    .footer-col,
+    .footer-bottom,
+    .info-badges,
+    .info-tab-nav,
+    .care-panel-head,
+    .care-panel-foot,
+    .rx-header,
+    .rx-footer,
+    .care-panel-redesigned,
+    .dashboard-quick-actions,
+    .walkin-actions,
+    .filter-control,
+    .symptom-suggestions,
+    .custom-symptom-tags,
+    .toast {
+        flex-wrap: wrap !important;
+    }
+
+    /* Guard Structural Widths */
+    .brand-name {
+        min-width: -webkit-fit-content !important;
+        min-width: -moz-fit-content !important;
+        min-width: fit-content !important;
+        white-space: nowrap !important;
+    }
+
+    .brand-lockup,
+    .nav-actions,
+    .topbar-control-group,
+    .hero-copy,
+    .care-panel,
+    .auth-panel,
+    .auth-aside,
+    .flow-card,
+    .provider-card,
+    .patient-appointment-card,
+    .booking-summary-card,
+    .estimate-card {
+        min-width: 0 !important;
+    }
+
+    /* Word Break Enforcement */
+    p,
+    .hero-copy p,
+    .section-heading p,
+    .flow-header p,
+    .provider-header p,
+    .info-intro,
+    .auth-aside p,
+    .auth-panel p,
+    .hint,
+    .status-note,
+    .status-badge,
+    .badge,
+    .care-tag,
+    .token-card strong,
+    .care-panel-foot,
+    .summary-row strong,
+    .summary-row span,
+    .rx-patient-info span,
+    .rx-table td,
+    .queue-table td,
+    .custom-symptom-tag,
+    .symptom-suggestion {
+        overflow-wrap: break-word !important;
+        word-break: break-word !important;
+        white-space: normal !important;
+    }
+
+    /* 2. Fluid Typography Scaling & Relative Line Height Stability */
+    h1,
+    .hero-copy h1,
+    .hero-title-wrap h1,
+    .flow-header h1,
+    .provider-header h1,
+    .info-hero h1,
+    .donation-hero h1,
+    .auth-aside h1,
+    .not-found-page h1 {
+        font-size: clamp(1.5rem, 6vw, 2.25rem) !important;
+        line-height: 1.15 !important;
+        letter-spacing: -.03em !important;
+        max-width: 100% !important;
+    }
+
+    h2,
+    .section-heading h2,
+    .portal-panel h2,
+    .landing-insight-copy h2,
+    .provider-hero h2,
+    .auth-panel h2 {
+        font-size: clamp(1.25rem, 5vw, 1.75rem) !important;
+        line-height: 1.2 !important;
+        letter-spacing: -.025em !important;
+        max-width: 100% !important;
+    }
+
+    h3,
+    .journey-grid h3,
+    .prescription-modal-header h3,
+    .info-card h2,
+    .history-pillar-card h3 {
+        font-size: clamp(1.05rem, 4vw, 1.3rem) !important;
+        line-height: 1.25 !important;
+        max-width: 100% !important;
+    }
+
+    /* 3. Mandatory Viewport Security & Isolated Horizontal Containers */
+    html,
+    body,
+    #main-content,
+    #app,
+    .app-shell,
+    .landing-main,
+    .flow-shell,
+    .workspace-shell,
+    .workspace-content,
+    .info-layout,
+    .donation-page,
+    .auth-layout,
+    .auth-panel {
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+        box-sizing: border-box !important;
+    }
+
+    .queue-table-wrap,
+    .rx-table,
+    .stepper,
+    .overflow-x-auto {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        box-sizing: border-box !important;
+    }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   UNIFIED PRINT & PDF GENERATION STYLESHEET
+   Supports: 
+   1. Medical Passport / History Report (#printable-medical-report)
+   2. Clinical E-Prescription Slip (.prescription-paper)
+   3. Operations & Performance Analytics ([data-section="analytics-dashboard"])
+   ══════════════════════════════════════════════════════════════════════ */
 #printable-medical-report {
     display: block;
 }
@@ -2917,43 +3244,91 @@ html { scroll-behavior: smooth; }
 @media print {
     @page {
         size: A4 portrait;
-        margin: 1cm;
+        margin: 1.2cm 1cm;
     }
 
-    body * {
+    /* Force background colors and borders in print preview / PDF generation */
+    *,
+    *::before,
+    *::after {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
+
+    /* Prevent root container overflow truncation across multiple pages */
+    html,
+    body,
+    #main-content,
+    #app,
+    .app-shell,
+    .flow-shell,
+    .workspace-shell,
+    .patient-workspace-shell,
+    .provider-shell,
+    .workspace-content,
+    .modal-backdrop,
+    .prescription-modal {
+        overflow: visible !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+        color: #0f172a !important;
+        border: none !important;
+    }
+
+    /* Hide UI navigation chrome and interactive screen elements */
+    .print-hide,
+    .shell-nav,
+    .flow-topbar,
+    .mobile-bottom-nav,
+    .site-footer,
+    .workspace-drawer,
+    .workspace-tabs,
+    .btn,
+    button,
+    .btn-delete-item,
+    .modal-close-button,
+    .prescription-modal-actions,
+    .analytics-toolbar,
+    .analytics-export-group,
+    .skip-link,
+    .toast,
+    .workspace-drawer-backdrop {
+        display: none !important;
         visibility: hidden !important;
     }
 
-    #printable-medical-report,
-    #printable-medical-report * {
+    /* Expose designated print headers and footers */
+    .print-only {
+        display: block !important;
         visibility: visible !important;
     }
 
+    /* Document Structure 1: Medical History Report */
     #printable-medical-report {
-        position: absolute !important;
-        left: 0 !important;
-        top: 0 !important;
+        display: block !important;
+        visibility: visible !important;
         width: 100% !important;
-        margin: 0 !important;
         padding: 0 !important;
-        display: block !important;
-        background: #ffffff !important;
-        color: #000000 !important;
+        margin: 0 !important;
     }
 
-    .print-only {
-        display: block !important;
-    }
-
-    .print-hide,
-    .btn-delete-item {
-        display: none !important;
-        visibility: hidden !important;
+    #printable-medical-report * {
+        visibility: visible !important;
     }
 
     #pdf-print-header {
         display: block !important;
         margin-bottom: 1.25rem !important;
+        padding-bottom: 0.85rem !important;
+        border-bottom: 2.5px solid #0a3b69 !important;
     }
 
     #pdf-print-header * {
@@ -2963,8 +3338,10 @@ html { scroll-behavior: smooth; }
     .patient-history-overview-card {
         background: #f0f7fc !important;
         border: 1px solid #0a3b69 !important;
+        border-radius: 0.5rem !important;
         padding: 1rem !important;
         margin-bottom: 1.25rem !important;
+        break-inside: avoid;
         page-break-inside: avoid;
     }
 
@@ -2976,16 +3353,19 @@ html { scroll-behavior: smooth; }
 
     .history-pillar-card {
         border: 1.5px solid #334155 !important;
+        border-radius: 0.5rem !important;
         background: #ffffff !important;
         padding: 0.85rem !important;
+        break-inside: avoid;
         page-break-inside: avoid;
     }
 
     .history-item-row {
         background: #f8fafc !important;
         border: 1px solid #cbd5e1 !important;
-        color: #000000 !important;
-        padding: 0.6rem !important;
+        color: #0f172a !important;
+        padding: 0.55rem !important;
+        margin-bottom: 0.4rem !important;
     }
 
     .history-item-row strong {
@@ -2995,14 +3375,135 @@ html { scroll-behavior: smooth; }
     .badge {
         border: 1px solid #64748b !important;
         background: #ffffff !important;
-        color: #000000 !important;
+        color: #0f172a !important;
     }
 
     #pdf-print-footer {
         display: block !important;
-        margin-top: 1.5rem !important;
+        margin-top: 1.75rem !important;
         padding-top: 0.75rem !important;
         border-top: 1.5px solid #0a3b69 !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    /* Document Structure 2: Clinical E-Prescription Slip */
+    .prescription-modal-body,
+    .prescription-paper,
+    .prescription-paper * {
+        visibility: visible !important;
+    }
+
+    .prescription-paper {
+        display: block !important;
+        width: 100% !important;
+        border: 1.5px solid #0a3b69 !important;
+        border-radius: 0.6rem !important;
+        padding: 1.5rem !important;
+        background: #ffffff !important;
+        color: #0f172a !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .rx-header {
+        border-bottom: 2px solid #0a3b69 !important;
+        padding-bottom: 0.85rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .rx-brand h2 {
+        color: #0a3b69 !important;
+        font-size: 1.4rem !important;
+    }
+
+    .rx-patient-info {
+        background: #f0f7fc !important;
+        border: 1px solid #c2dcf3 !important;
+        border-radius: 0.45rem !important;
+        padding: 0.85rem !important;
+        margin-bottom: 1.15rem !important;
+    }
+
+    .rx-section-title {
+        color: #0a3b69 !important;
+        border-bottom: 1.5px solid #e2e8f0 !important;
+        font-weight: 800 !important;
+    }
+
+    .rx-table {
+        width: 100% !important;
+        border-collapse: collapse !important;
+        margin-bottom: 1rem !important;
+    }
+
+    .rx-table th {
+        background: #f0f7fc !important;
+        color: #0a3b69 !important;
+        border-bottom: 1.5px solid #cbd5e1 !important;
+        padding: 0.5rem 0.65rem !important;
+    }
+
+    .rx-table td {
+        border-bottom: 1px solid #e2e8f0 !important;
+        padding: 0.5rem 0.65rem !important;
+        color: #0f172a !important;
+    }
+
+    .rx-footer {
+        border-top: 1.5px solid #0a3b69 !important;
+        margin-top: 1.5rem !important;
+        padding-top: 0.85rem !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    /* Document Structure 3: Analytics Report */
+    [data-section="analytics-dashboard"],
+    [data-section="analytics-dashboard"] * {
+        visibility: visible !important;
+    }
+
+    [data-section="analytics-dashboard"] {
+        display: block !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    .provider-header {
+        border-bottom: 2px solid #0a3b69 !important;
+        padding-bottom: 0.85rem !important;
+        margin-bottom: 1.25rem !important;
+    }
+
+    .provider-header h1 {
+        color: #0a3b69 !important;
+    }
+
+    .provider-stats {
+        display: grid !important;
+        grid-template-columns: repeat(4, 1fr) !important;
+        gap: 0.75rem !important;
+        margin-bottom: 1.25rem !important;
+    }
+
+    .provider-stat {
+        border: 1px solid #cbd5e1 !important;
+        background: #f8fafc !important;
+        border-radius: 0.45rem !important;
+        padding: 0.85rem !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .provider-card {
+        border: 1.5px solid #334155 !important;
+        background: #ffffff !important;
+        border-radius: 0.5rem !important;
+        padding: 1rem !important;
+        margin-bottom: 1.25rem !important;
+        break-inside: avoid;
         page-break-inside: avoid;
     }
 }

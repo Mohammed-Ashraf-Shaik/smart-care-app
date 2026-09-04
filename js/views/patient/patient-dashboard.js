@@ -343,8 +343,11 @@
 
         container.querySelector('#workspace-logout').onclick = logout;
         window.App.UI.bindTopbarControls(container);
-        container.insertAdjacentHTML('beforeend', window.App.UI.mobileBottomNav('patient', state.route));
-        window.App.UI.bindMobileBottomNav(container);
+        if (state.isLogged) {
+            window.App.UI.syncMobileBottomNav('patient', state.route);
+        } else {
+            document.querySelectorAll('.mobile-bottom-nav').forEach(el => el.remove());
+        }
 
         if (window.lucide) window.lucide.createIcons();
         return container;
