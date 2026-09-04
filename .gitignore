@@ -21,4 +21,6 @@ __pycache__/
 smart-care-app/
 snow_source.js
 context.md
+.next/
+apps/web/.next/
 
