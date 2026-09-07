@@ -92,14 +92,15 @@
                 </div>
             </div>
             <main class="provider-shell patient-shell" data-section="patient-dashboard">
+                ${!isApplyTab ? `
                 <header class="provider-header">
                     <div>
                         <div class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> Patient dashboard</div>
                         <h1>Good to see you, ${esc(patientName)}.</h1>
-                        <p>${isApplyTab ? 'Reserve your care visit step-by-step.' : 'Keep your care plans, previous visits, and prescription records in one place.'}</p>
+                        <p>Keep your care plans, previous visits, and prescription records in one place.</p>
                     </div>
                     <div class="provider-date">${state.patientVisits.length} saved records<br><strong>Private demo history</strong></div>
-                </header>
+                </header>` : ''}
                 ${isApplyTab ? `<div id="embedded-booking-mount"></div>` : ''}
                 ${showOverview ? `
                     <section class="patient-next-action" aria-label="Next patient action">

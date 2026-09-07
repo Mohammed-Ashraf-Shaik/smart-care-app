@@ -3509,7 +3509,7 @@ html { scroll-behavior: smooth; }
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   NEARDOOR-STYLE DONATION FINDER SHELL  (SmartCare blue palette)
+   COMMUNITY DONATION FINDER SHELL  (SmartCare blue palette)
    ═══════════════════════════════════════════════════════════════ */
 
 /* Shell wrapper */
@@ -4183,3 +4183,1038 @@ html { scroll-behavior: smooth; }
     }
     .leaflet-bottom { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)) !important; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   PATIENT CARE BOOKING WIZARD (STEPS 1 - 4) COMPACT & MOBILE REDESIGN
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Shell and Flow Card */
+.patient-application-shell {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0;
+}
+.compact-flow-card {
+    max-width: 920px;
+    margin: 0.5rem auto 1.5rem;
+    padding: 1.25rem 1.65rem;
+    border: 1px solid var(--line);
+    border-radius: 1.2rem;
+    background: #fff;
+    box-shadow: 0 4px 24px rgba(10, 59, 105, 0.06);
+}
+
+/* Compact Flow Header */
+.compact-flow-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.85rem;
+    border-bottom: 1px solid var(--line);
+}
+.flow-header-content h1 {
+    margin: 0.2rem 0 0.15rem;
+    font-size: clamp(1.25rem, 2.8vw, 1.65rem);
+    letter-spacing: -0.04em;
+    line-height: 1.15;
+    color: var(--teal-dark);
+}
+.flow-header-content p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.82rem;
+    max-width: 58ch;
+}
+.flow-header-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.step-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.18rem 0.55rem;
+    border-radius: 2rem;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    color: var(--teal);
+    background: var(--mint);
+    border: 1px solid #bce0fd;
+}
+.flow-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    flex-shrink: 0;
+}
+.demo-trigger-btn {
+    font-size: 0.74rem;
+    padding: 0.35rem 0.75rem;
+    min-height: 2.1rem;
+}
+
+/* Stepper Compact */
+.stepper-compact {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.45rem;
+    margin-bottom: 1.2rem;
+}
+.stepper-compact .step-item {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.45rem 0.35rem;
+    border-bottom: 2px solid var(--line);
+    font-size: 0.74rem;
+    font-weight: 800;
+    color: #8c9ea6;
+    transition: all 0.2s ease;
+}
+.stepper-compact .step-item.active {
+    color: var(--teal);
+    border-bottom-color: var(--teal);
+}
+.stepper-compact .step-item.done {
+    color: var(--teal-dark);
+    border-bottom-color: #70b4e8;
+}
+.stepper-compact .step-number {
+    width: 1.45rem;
+    height: 1.45rem;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #edf3f7;
+    color: #6b7f8c;
+    font-size: 0.68rem;
+    font-weight: 800;
+}
+.stepper-compact .step-item.active .step-number {
+    color: #fff;
+    background: var(--teal);
+    box-shadow: 0 2px 8px rgba(15, 92, 168, 0.3);
+}
+.stepper-compact .step-item.done .step-number {
+    color: #fff;
+    background: #1e7e4e;
+}
+
+/* Step 1: Profile */
+.profile-grid {
+    grid-template-columns: 2fr 1fr;
+    gap: 0.85rem;
+}
+.compact-choice-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.5rem;
+    margin-top: 0.35rem;
+}
+.compact-choice-grid .choice label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    padding: 0.55rem 0.75rem;
+    border: 1px solid var(--line);
+    border-radius: 0.7rem;
+    background: #fbfdfc;
+    color: var(--ink);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+.compact-choice-grid .choice input:checked + label {
+    border-color: var(--teal);
+    background: var(--mint);
+    color: var(--teal-dark);
+    box-shadow: 0 0 0 3px rgba(15, 92, 168, 0.12);
+}
+.choice-icon {
+    display: flex;
+    align-items: center;
+    color: var(--teal);
+}
+
+/* Step 2: Location & Map Layout */
+.step-location-shell {
+    display: flex;
+    flex-direction: column;
+}
+.location-unified-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.3rem 0.4rem;
+    border: 1.5px solid var(--line);
+    border-radius: 0.85rem;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(10, 59, 105, 0.04);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.location-unified-bar:focus-within {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(15, 92, 168, 0.14);
+}
+.search-bar-icon {
+    margin-left: 0.5rem;
+    color: var(--muted);
+    flex-shrink: 0;
+    display: flex;
+}
+.location-unified-bar input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: none;
+    padding: 0.45rem 0.5rem;
+    font-size: 0.84rem;
+    color: var(--ink);
+    background: transparent;
+}
+.btn-compact {
+    min-height: 2.3rem !important;
+    padding: 0.4rem 0.75rem !important;
+    font-size: 0.76rem !important;
+    white-space: nowrap;
+    border-radius: 0.55rem !important;
+}
+.compact-map-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin: 0.5rem 0 0.65rem;
+    min-height: auto;
+}
+.map-toolbar-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.72rem;
+    color: var(--muted);
+}
+.compact-map-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(310px, 0.8fr);
+    gap: 0.85rem;
+    align-items: stretch;
+}
+.compact-map-wrap {
+    min-height: 380px;
+    height: 380px;
+    border-radius: 0.9rem;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--line);
+    background: #eaf3fa;
+}
+.compact-map-layout #hospital-map {
+    width: 100%;
+    height: 380px;
+}
+.compact-map-layout .hospital-list {
+    max-height: 380px;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+}
+.hospital-badge-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-right: 0.4rem;
+    border-radius: 50%;
+    background: var(--mint);
+    color: var(--teal-dark);
+    font-size: 0.68rem;
+    font-weight: 800;
+}
+.selected-hospital-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.65rem 0.95rem;
+    margin-top: 0.75rem;
+    border-radius: 0.75rem;
+    background: #eef7ff;
+    border: 1px solid #bce0fd;
+    color: var(--teal-dark);
+    font-size: 0.82rem;
+}
+.selected-banner-copy {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.selected-banner-copy strong {
+    color: var(--teal-dark);
+}
+.selected-banner-hint {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #1e7e4e;
+    background: #e6f7ee;
+    padding: 0.2rem 0.55rem;
+    border-radius: 1rem;
+}
+
+/* Step 3: Clinician & Review */
+.care-safety-strip {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.45rem 0.85rem;
+    margin-bottom: 0.9rem;
+    border-radius: 0.65rem;
+    background: #fff8e8;
+    border: 1px solid #f9df9e;
+    color: #8c5304;
+    font-size: 0.75rem;
+}
+.safety-icon {
+    flex-shrink: 0;
+    display: flex;
+    color: #d97706;
+}
+.safety-text {
+    flex: 1;
+}
+.demo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.15rem 0.45rem;
+    border-radius: 0.45rem;
+    background: #eaf3fb;
+    color: var(--teal);
+    font-weight: 800;
+    font-size: 0.68rem;
+    flex-shrink: 0;
+}
+.step3-review-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+    gap: 1rem;
+    align-items: start;
+}
+.compact-care-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
+}
+.compact-care-grid .field {
+    gap: 0.25rem;
+}
+.compact-care-grid .field select {
+    padding: 0.55rem 0.7rem;
+    font-size: 0.8rem;
+    min-height: 2.45rem;
+}
+.compact-symptom-form {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 0.45rem;
+}
+.compact-symptom-form input {
+    min-height: 2.35rem;
+    padding: 0.45rem 0.7rem;
+    font-size: 0.8rem;
+}
+.symptom-custom-field textarea {
+    min-height: 56px;
+    height: 60px;
+    padding: 0.5rem 0.65rem;
+    font-size: 0.8rem;
+    resize: none;
+}
+.compact-summary-card {
+    padding: 0.95rem 1.1rem;
+    border-radius: 0.95rem;
+    border: 1px solid var(--line);
+    background: #f8fafc;
+    box-shadow: 0 2px 10px rgba(10, 59, 105, 0.04);
+}
+.summary-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.5rem;
+    border-bottom: 1px solid var(--line);
+}
+.summary-card-header h2 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--teal-dark);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.step-badge-mini {
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: var(--muted);
+    background: var(--surface);
+    padding: 0.15rem 0.45rem;
+    border-radius: 1rem;
+    border: 1px solid var(--line);
+}
+.summary-rows-group {
+    display: grid;
+    gap: 0.25rem;
+}
+.summary-rows-group .summary-row {
+    padding: 0.35rem 0;
+    font-size: 0.78rem;
+    border-bottom: 1px solid #edf2f7;
+}
+.summary-fee-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 0.75rem;
+    padding-top: 0.65rem;
+    border-top: 1.5px dashed var(--line);
+}
+.summary-fee-strip small {
+    display: block;
+    font-size: 0.68rem;
+    color: var(--muted);
+}
+.summary-fee-strip strong {
+    font-size: 1.4rem;
+    color: var(--teal-dark);
+    font-weight: 800;
+    line-height: 1.1;
+}
+.queue-window-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.55rem;
+    border-radius: 1rem;
+    background: #e6f7ee;
+    color: #1e7e4e;
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+/* Step 4: Confirmation & Boarding Pass */
+.confirmation-container {
+    max-width: 900px;
+    margin: 0 auto;
+}
+.confirmation-hero-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.95rem 1.25rem;
+    margin-bottom: 1.15rem;
+    border-radius: 0.95rem;
+    background: linear-gradient(135deg, #ebf5fe 0%, #f2fbf6 100%);
+    border: 1px solid #bce0fd;
+}
+.conf-hero-icon {
+    width: 2.8rem;
+    height: 2.8rem;
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    border-radius: 0.75rem;
+    background: var(--teal);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(15, 92, 168, 0.2);
+}
+.conf-hero-text h1 {
+    margin: 0.15rem 0;
+    font-size: clamp(1.25rem, 2.5vw, 1.55rem);
+    letter-spacing: -0.04em;
+    color: var(--teal-dark);
+    line-height: 1.2;
+}
+.conf-hero-text p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.78rem;
+}
+.confirmation-layout-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: 1.15rem;
+    align-items: start;
+}
+.appointment-pass-card {
+    border: 1px solid #cbe3f7;
+    border-radius: 1.1rem;
+    background: #fff;
+    box-shadow: 0 6px 20px rgba(10, 59, 105, 0.07);
+    overflow: hidden;
+}
+.pass-header {
+    padding: 0.95rem 1.25rem;
+    background: #f5f9fd;
+    border-bottom: 1px solid #e1effa;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+}
+.pass-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    font-size: 0.68rem;
+    font-weight: 800;
+    color: var(--teal);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.pass-hospital {
+    margin: 0.2rem 0 0.1rem;
+    font-size: 1.05rem;
+    letter-spacing: -0.03em;
+    color: var(--teal-dark);
+}
+.pass-dept {
+    color: var(--muted);
+    font-size: 0.74rem;
+}
+.payment-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.28rem 0.65rem;
+    border-radius: 1rem;
+    font-size: 0.72rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+.badge-unpaid {
+    background: #fff6e5;
+    color: #925404;
+    border: 1px solid #fedb91;
+}
+.badge-paid {
+    background: #e6f7ee;
+    color: #1e7e4e;
+    border: 1px solid #a9eac4;
+}
+.pass-body {
+    padding: 0.95rem 1.25rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+.pass-field small {
+    display: block;
+    font-size: 0.68rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.15rem;
+}
+.pass-field strong {
+    display: block;
+    font-size: 0.84rem;
+    color: var(--ink);
+    line-height: 1.35;
+}
+.pass-tear-line {
+    display: flex;
+    align-items: center;
+    position: relative;
+    margin: 0.2rem 0;
+}
+.pass-tear-line .dashed-line {
+    flex: 1;
+    border-bottom: 1.5px dashed #cde2f2;
+    margin: 0 1rem;
+}
+.pass-tear-line .notch {
+    width: 14px;
+    height: 14px;
+    background: var(--surface, #f5f8fb);
+    border: 1px solid #cbe3f7;
+    border-radius: 50%;
+    position: absolute;
+}
+.notch-left { left: -7px; }
+.notch-right { right: -7px; }
+.pass-qr-strip {
+    padding: 0.95rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #fafcfe;
+}
+.pass-qr-img {
+    width: 110px;
+    height: 110px;
+    border-radius: 0.65rem;
+    border: 1px solid var(--line);
+    padding: 0.35rem;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    flex-shrink: 0;
+}
+.pass-qr-details {
+    flex: 1;
+    min-width: 0;
+}
+.pass-qr-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--teal);
+    margin-bottom: 0.4rem;
+}
+.compact-token-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.65rem;
+    padding: 0.45rem 0.75rem;
+    border: 1px dashed #78a9d4;
+    border-radius: 0.65rem;
+    background: var(--mint);
+    cursor: copy;
+    transition: all 0.18s ease;
+}
+.compact-token-card small {
+    display: block;
+    font-size: 0.62rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.compact-token-card strong {
+    font-size: 0.95rem;
+    letter-spacing: 0.06em;
+    color: var(--teal-dark);
+}
+.compact-token-card.copied {
+    background: #dceeff;
+    border-color: var(--teal);
+}
+.copy-hint-text {
+    display: block;
+    font-size: 0.65rem;
+    color: var(--muted);
+    margin-top: 0.3rem;
+}
+
+/* Next Section & Actions */
+.confirmation-next-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+.compact-steps-card {
+    padding: 0.85rem 1rem;
+    border-radius: 0.85rem;
+    background: #f4f9fd;
+    border: 1px solid #bce0fd;
+}
+.compact-steps-card h3 {
+    margin: 0 0 0.55rem;
+    font-size: 0.86rem;
+    color: var(--teal-dark);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.next-steps-list {
+    margin: 0;
+    padding-left: 1.15rem;
+    display: grid;
+    gap: 0.45rem;
+    font-size: 0.76rem;
+    color: var(--ink);
+    line-height: 1.45;
+}
+.next-steps-list li strong {
+    color: var(--teal-dark);
+}
+.next-steps-list li span {
+    color: var(--muted);
+}
+.confirmation-action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+.confirmation-action-buttons button {
+    width: 100%;
+    min-height: 2.7rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    justify-content: center;
+}
+.btn-payment-action {
+    background: linear-gradient(135deg, #0f5ca8 0%, #0c4885 100%);
+    box-shadow: 0 4px 14px rgba(15, 92, 168, 0.25);
+    border: none;
+    font-size: 0.86rem !important;
+    font-weight: 800 !important;
+    min-height: 2.9rem !important;
+}
+.btn-payment-action.btn-paid-state {
+    background: #1e7e4e !important;
+    color: #fff !important;
+    box-shadow: 0 4px 14px rgba(30, 126, 78, 0.25) !important;
+}
+
+/* Payment Gateway Modal */
+.payment-modal-backdrop {
+    z-index: 10000;
+}
+.payment-gateway-modal {
+    max-width: 480px;
+    width: 100%;
+    border-radius: 1.2rem;
+    background: #fff;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 24px 60px rgba(10, 35, 60, 0.28);
+}
+.payment-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.95rem 1.25rem;
+    border-bottom: 1px solid var(--line);
+    background: #f8fafc;
+}
+.gateway-brand {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+.gateway-logo {
+    color: var(--teal);
+    display: flex;
+}
+.gateway-brand h3 {
+    margin: 0;
+    font-size: 0.98rem;
+    color: var(--teal-dark);
+}
+.gateway-brand small {
+    display: block;
+    color: var(--muted);
+    font-size: 0.68rem;
+}
+.payment-modal-body {
+    padding: 1.25rem;
+}
+.checkout-summary-box {
+    background: #f8fafc;
+    border: 1px solid var(--line);
+    border-radius: 0.85rem;
+    padding: 0.85rem 1rem;
+    display: grid;
+    gap: 0.35rem;
+    margin-bottom: 1rem;
+}
+.checkout-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+}
+.checkout-row span {
+    color: var(--muted);
+}
+.checkout-row strong {
+    color: var(--ink);
+    text-align: right;
+    max-width: 65%;
+}
+.checkout-total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--line);
+}
+.checkout-total-row span {
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: var(--teal-dark);
+}
+.checkout-amount {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--teal);
+}
+.payment-methods-tabs {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.35rem;
+    margin-bottom: 0.85rem;
+}
+.pm-tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    padding: 0.5rem 0.25rem;
+    border: 1px solid var(--line);
+    border-radius: 0.55rem;
+    background: #fff;
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.18s ease;
+}
+.pm-tab.active {
+    background: var(--mint);
+    color: var(--teal);
+    border-color: var(--teal);
+    box-shadow: 0 2px 6px rgba(15, 92, 168, 0.12);
+}
+.upi-mock-box {
+    text-align: center;
+    padding: 0.75rem;
+    background: #fafcfe;
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+}
+.mock-qr-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 0.55rem;
+}
+.mock-qr-code {
+    color: var(--teal-dark);
+    margin-bottom: 0.2rem;
+}
+.upi-apps-row {
+    display: flex;
+    justify-content: center;
+    gap: 0.45rem;
+    margin-bottom: 0.5rem;
+}
+.upi-chip {
+    padding: 0.2rem 0.6rem;
+    border-radius: 1rem;
+    font-size: 0.68rem;
+    font-weight: 800;
+    background: #fff;
+    border: 1px solid #cbe3f7;
+    color: var(--teal-dark);
+}
+.netbanking-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+}
+.nb-bank {
+    padding: 0.65rem 0.85rem;
+    border: 1px solid var(--line);
+    border-radius: 0.65rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    background: #fff;
+}
+.nb-bank.active {
+    border-color: var(--teal);
+    background: var(--mint);
+    color: var(--teal);
+}
+.counter-pay-box {
+    text-align: center;
+    padding: 1.25rem 1rem;
+    background: #f8fafc;
+    border-radius: 0.75rem;
+    border: 1px dashed var(--line);
+}
+.counter-pay-box p {
+    margin: 0.5rem 0 0;
+    font-size: 0.78rem;
+    color: var(--muted);
+    line-height: 1.5;
+}
+.payment-modal-footer {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+.security-badge {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    font-size: 0.68rem;
+    color: var(--muted);
+}
+.btn-process-payment {
+    width: 100%;
+    min-height: 2.85rem;
+    font-weight: 800;
+    font-size: 0.85rem;
+    justify-content: center;
+}
+.receipt-success-view {
+    text-align: center;
+    padding: 0.5rem 0;
+}
+.receipt-success-icon {
+    color: #1e7e4e;
+    margin-bottom: 0.35rem;
+    display: flex;
+    justify-content: center;
+}
+.receipt-success-view h2 {
+    margin: 0;
+    font-size: 1.15rem;
+    color: var(--teal-dark);
+}
+.receipt-subtitle {
+    margin: 0.2rem 0 0.85rem;
+    color: var(--muted);
+    font-size: 0.78rem;
+}
+.receipt-card {
+    background: #f8fafc;
+    border: 1px solid var(--line);
+    border-radius: 0.85rem;
+    padding: 0.85rem 1rem;
+    text-align: left;
+    display: grid;
+    gap: 0.35rem;
+    margin-bottom: 1rem;
+}
+.receipt-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    padding: 0.2rem 0;
+}
+.receipt-row span {
+    color: var(--muted);
+}
+.badge-success-inline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: #1e7e4e;
+    font-weight: 800;
+}
+.receipt-actions button {
+    width: 100%;
+    min-height: 2.75rem;
+    justify-content: center;
+}
+
+/* ─── Responsive Media Queries for Patient Flow (Mobile & Tablet) ─── */
+@media (max-width: 768px) {
+    .compact-flow-card {
+        padding: 0.85rem 0.85rem 1rem;
+        margin: 0.25rem 0 1rem;
+        border-radius: 0.95rem;
+    }
+    .compact-flow-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.65rem;
+    }
+    .flow-header-actions {
+        justify-content: space-between;
+        width: 100%;
+    }
+    .stepper-compact {
+        gap: 0.25rem;
+        margin-bottom: 0.85rem;
+    }
+    .stepper-compact .step-item {
+        padding: 0.35rem 0.2rem;
+        font-size: 0.68rem;
+        gap: 0.35rem;
+    }
+    .stepper-compact .step-number {
+        width: 1.3rem;
+        height: 1.3rem;
+        font-size: 0.64rem;
+    }
+
+    /* Step 1 Mobile */
+    .profile-grid {
+        grid-template-columns: 1fr;
+        gap: 0.65rem;
+    }
+    .compact-choice-grid {
+        grid-template-columns: 1fr;
+        gap: 0.4rem;
+    }
+
+    /* Step 2 Mobile */
+    .compact-map-layout {
+        grid-template-columns: 1fr;
+    }
+    .compact-map-wrap {
+        min-height: 240px;
+        height: 240px;
+    }
+    .compact-map-layout #hospital-map {
+        height: 240px;
+    }
+    .compact-map-layout .hospital-list {
+        max-height: 300px;
+    }
+
+    /* Step 3 Mobile */
+    .step3-review-grid {
+        grid-template-columns: 1fr;
+        gap: 0.85rem;
+    }
+    .compact-care-grid {
+        grid-template-columns: 1fr;
+        gap: 0.55rem;
+    }
+
+    /* Step 4 Mobile */
+    .confirmation-layout-grid {
+        grid-template-columns: 1fr;
+        gap: 0.85rem;
+    }
+    .pass-body {
+        grid-template-columns: 1fr;
+        gap: 0.55rem;
+    }
+    .pass-qr-strip {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+    }
+
+    /* Bottom Actions Docking on Mobile */
+    .compact-flow-actions {
+        position: sticky;
+        bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+        z-index: 25;
+        margin: 1rem -0.85rem -1rem;
+        padding: 0.75rem 0.85rem;
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-top: 1px solid var(--line);
+        box-shadow: 0 -8px 24px rgba(10, 59, 105, 0.1);
+    }
+}
+

@@ -25,6 +25,14 @@
                 window.history.replaceState({}, '', `${repositoryPath}${logicalPath === '/' ? '/' : logicalPath}${target.search}${target.hash}`);
             }
 
+            // Catch and suppress unhandled extension/external performance-observer script errors
+            window.addEventListener('error', function (event) {
+                if (event.message && (event.message.includes('startTime') || event.message.includes('reportAllChanges'))) {
+                    event.preventDefault();
+                    return true;
+                }
+            });
+
             // Theme hydration to avoid flicker
             try {
                 const savedTheme = localStorage.getItem('smartcare.theme') || 'light';
