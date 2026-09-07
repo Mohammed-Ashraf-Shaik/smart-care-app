@@ -2,8 +2,23 @@
     const icon = (name, size = 18) => `<i data-lucide="${name}" width="${size}" height="${size}"></i>`;
     const esc = (value = '') => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
 
+    const BLOOD_GROUPS = ['A+', 'A−', 'B+', 'B−', 'AB+', 'AB−', 'O+', 'O−'];
+    const ORGANS = ['Kidney', 'Liver', 'Heart', 'Cornea', 'Lung', 'Pancreas'];
+
+    // Demo map centres (lat/lng tuples for Hyderabad)
+    const DEMO_CENTRES_MAP = [
+        { name: 'SmartCare Community Hospital Blood Bank', area: 'Banjara Hills', lat: 17.4126, lng: 78.4482, type: 'blood' },
+        { name: 'Red Cross Donation Centre', area: 'Secunderabad', lat: 17.4399, lng: 78.4983, type: 'blood' },
+        { name: 'CityCare Blood Services', area: 'Kukatpally', lat: 17.4849, lng: 78.3956, type: 'blood' },
+        { name: 'Apollo Organ Coordination', area: 'Jubilee Hills', lat: 17.4239, lng: 78.4101, type: 'organ' },
+        { name: 'NOTTO Hyderabad Node', area: 'Begumpet', lat: 17.4437, lng: 78.4637, type: 'organ' },
+    ];
+
+    let leafletMap = null;
+    let leafletMarkers = [];
+
     window.App.Views.PatientDonations = function () {
-        const { state, logout, getDonationsData, addPatientDonation, hrefFor } = window.App.Store;
+        const { state, logout, getDonationsData, addPatientDonation } = window.App.Store;
         const container = document.createElement('div');
         container.className = 'flow-shell workspace-shell patient-workspace-shell';
         const patientName = state.patientData.name || (state.loggedEmail || 'Patient').split('@')[0].replace(/[._-]/g, ' ');
@@ -12,10 +27,9 @@
         const urlParams = new URLSearchParams(window.location.search);
         let donationType = ['blood', 'organ'].includes(urlParams.get('type')) ? urlParams.get('type') : 'blood';
         let mode = ['give', 'receive'].includes(urlParams.get('mode')) ? urlParams.get('mode') : 'give';
-        let message = '';
-        let messageType = '';
-        const organs = ['Kidney', 'Liver', 'Heart', 'Cornea', 'Lung', 'Pancreas'];
-        const bloodGroups = ['A+', 'A−', 'B+', 'B−', 'AB+', 'AB−', 'O+', 'O−'];
+        let selectedGroup = '';
+        let formMessage = '';
+        let formMessageType = '';
 
         function syncUrl() {
             const url = new URL(window.location.href);
@@ -25,181 +39,539 @@
         }
 
         function navHtml() {
-            return `<a href="/dashboard/patient" data-route="/dashboard/patient">${icon('layout-dashboard', 16)}<span>Overview</span></a><a href="/dashboard/patient/apply/1" data-route="/dashboard/patient/apply/1" data-tab="apply">${icon('calendar-plus', 16)}<span>Book appointment</span></a><a href="/dashboard/patient/history" data-route="/dashboard/patient/history">${icon('file-text', 16)}<span>Medical History</span></a><a href="/dashboard/patient?tab=visits" data-tab="visits" data-tab-route="/dashboard/patient">${icon('clipboard-check', 16)}<span>Previous visits</span></a><a href="/dashboard/patient?tab=profile" data-tab="profile" data-tab-route="/dashboard/patient">${icon('user-round', 16)}<span>Profile</span></a><div class="nav-divider"></div><a class="active" href="/dashboard/patient/donations" data-route="/dashboard/patient/donations">${icon('heart-handshake', 16)}<span>Donations</span></a><a href="/dashboard/patient/help" data-route="/dashboard/patient/help">${icon('circle-help', 16)}<span>Help</span></a><button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>`;
+            return `<a href="/dashboard/patient" data-route="/dashboard/patient">${icon('layout-dashboard', 16)}<span>Overview</span></a>
+<a href="/dashboard/patient/apply/1" data-route="/dashboard/patient/apply/1" data-tab="apply">${icon('calendar-plus', 16)}<span>Book appointment</span></a>
+<a href="/dashboard/patient/history" data-route="/dashboard/patient/history">${icon('file-text', 16)}<span>Medical History</span></a>
+<a href="/dashboard/patient?tab=visits" data-tab="visits" data-tab-route="/dashboard/patient">${icon('clipboard-check', 16)}<span>Previous visits</span></a>
+<a href="/dashboard/patient?tab=profile" data-tab="profile" data-tab-route="/dashboard/patient">${icon('user-round', 16)}<span>Profile</span></a>
+<div class="nav-divider"></div>
+<a class="active" href="/dashboard/patient/donations" data-route="/dashboard/patient/donations">${icon('heart-handshake', 16)}<span>Donations</span></a>
+<a href="/dashboard/patient/help" data-route="/dashboard/patient/help">${icon('circle-help', 16)}<span>Help</span></a>
+<button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>`;
         }
 
+        // ─── MAP ────────────────────────────────────────────────────
+        function initMap() {
+            const mapEl = container.querySelector('#pd-map-canvas');
+            if (!mapEl || !window.L) return;
+            if (leafletMap) {
+                leafletMap.remove();
+                leafletMap = null;
+                leafletMarkers = [];
+            }
+            leafletMap = window.L.map(mapEl, {
+                center: [17.4399, 78.4983],
+                zoom: 12,
+                zoomControl: true,
+            });
+            window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                maxZoom: 19,
+            }).addTo(leafletMap);
+
+            // Custom marker icon
+            const markerIcon = window.L.divIcon({
+                className: '',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32],
+                popupAnchor: [0, -34],
+                html: `<div class="pd-map-pin"><span></span></div>`,
+            });
+
+            DEMO_CENTRES_MAP.forEach(c => {
+                const marker = window.L.marker([c.lat, c.lng], { icon: markerIcon }).addTo(leafletMap);
+                marker.bindPopup(`<div class="pd-popup"><strong>${c.name}</strong><span>${c.area}</span><small>${c.type === 'blood' ? 'Blood donation centre' : 'Organ coordination'}</small></div>`);
+                leafletMarkers.push({ marker, type: c.type, centre: c });
+            });
+
+            filterMapMarkers(donationType);
+
+            // Invalidate size after next paint (panel may have just been shown)
+            window.requestAnimationFrame(() => {
+                window.requestAnimationFrame(() => {
+                    if (leafletMap) leafletMap.invalidateSize();
+                });
+            });
+        }
+
+        function filterMapMarkers(type) {
+            if (!leafletMap) return;
+            leafletMarkers.forEach(({ marker, type: mType }) => {
+                if (type === mType || type === 'all') {
+                    if (!leafletMap.hasLayer(marker)) marker.addTo(leafletMap);
+                } else {
+                    if (leafletMap.hasLayer(marker)) leafletMap.removeLayer(marker);
+                }
+            });
+        }
+
+        function loadLeaflet(cb) {
+            if (window.L) { cb(); return; }
+            // Load CSS
+            if (!document.querySelector('#leaflet-css')) {
+                const lnk = document.createElement('link');
+                lnk.id = 'leaflet-css';
+                lnk.rel = 'stylesheet';
+                lnk.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+                document.head.appendChild(lnk);
+            }
+            // Load JS
+            if (!document.querySelector('#leaflet-js')) {
+                const scr = document.createElement('script');
+                scr.id = 'leaflet-js';
+                scr.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+                scr.onload = cb;
+                document.head.appendChild(scr);
+            }
+        }
+
+        // ─── RESULTS LIST ───────────────────────────────────────────
+        function renderResults(centres) {
+            const scroll = container.querySelector('#pd-results-scroll');
+            const header = container.querySelector('#pd-results-header');
+            const count = container.querySelector('#pd-result-count');
+            const subtitle = container.querySelector('#pd-results-subtitle');
+            if (!scroll) return;
+
+            count.textContent = centres.length;
+            subtitle.textContent = centres.length ? `Showing ${donationType} donation centres` : '';
+            header.style.display = 'flex';
+
+            if (!centres.length) {
+                scroll.innerHTML = `
+<div class="nd-empty-state">
+  <div class="nd-empty-symbol">${icon('search-x', 22)}</div>
+  <h3>No centres found</h3>
+  <p>No demo centre matched that search. Try a different group or nearby city.</p>
+</div>`;
+                return;
+            }
+
+            scroll.innerHTML = centres.map(c => `
+<div class="nd-result-row" data-centre="${esc(c.name)}">
+  <button type="button" class="nd-result-select pd-result-select" data-lat="${c.lat || ''}" data-lng="${c.lng || ''}">
+    <div class="nd-blood-avatar">${donationType === 'blood' ? esc(selectedGroup || 'B+') : icon('heart-handshake', 18)}</div>
+    <div class="nd-result-info">
+      <strong>${esc(c.name)}</strong>
+      <span>${esc(c.area || '')} · ${esc(c.hours || 'Call to confirm hours')}</span>
+      ${c.note ? `<small>${esc(c.note)}</small>` : ''}
+    </div>
+    <div class="nd-distance">${icon('map-pin', 12)}<small>Nearby</small></div>
+  </button>
+  <button type="button" class="nd-request-btn pd-pledge-btn" data-centre="${esc(c.name)}">
+    ${icon(mode === 'give' ? 'heart-handshake' : 'phone', 13)} ${mode === 'give' ? 'Pledge' : 'Request'} ${icon('chevron-right', 13)}
+  </button>
+</div>`).join('');
+            if (window.lucide) window.lucide.createIcons();
+
+            // Fly to centre on result click
+            container.querySelectorAll('.pd-result-select').forEach(btn => {
+                btn.onclick = () => {
+                    const lat = parseFloat(btn.dataset.lat);
+                    const lng = parseFloat(btn.dataset.lng);
+                    if (leafletMap && lat && lng) {
+                        leafletMap.flyTo([lat, lng], 15, { duration: 0.8 });
+                        leafletMarkers.forEach(({ marker, centre }) => {
+                            if (centre.name === btn.closest('[data-centre]').dataset.centre) {
+                                marker.openPopup();
+                            }
+                        });
+                    }
+                    // Mobile: switch to map view
+                    const shell = container.querySelector('#pd-finder-shell');
+                    if (shell && window.innerWidth <= 760) {
+                        shell.classList.add('nd-show-map');
+                        if (leafletMap) leafletMap.invalidateSize();
+                    }
+                };
+            });
+
+            container.querySelectorAll('.pd-pledge-btn').forEach(btn => {
+                btn.onclick = () => {
+                    window.App.UI.toast(`Demo response recorded for ${btn.dataset.centre}. No coordinator was contacted.`, 'info');
+                };
+            });
+        }
+
+        // ─── RENDER ──────────────────────────────────────────────────
         function render() {
             syncUrl();
             const donationsData = getDonationsData();
-            
-            // For Patient:
-            // If mode === 'give', show hospital requests (hospitals needing blood/organs)
-            // If mode === 'receive', show hospital offers (blood bank inventory & organ pool from hospitals)
-            const targetHospitalMode = mode === 'give' ? 'request' : 'offer';
-            const relevantHospitalPosts = donationsData.hospitalPosts.filter(p => p.type === donationType && p.mode === targetHospitalMode);
-            
-            // Also show user's own submissions
-            const mySubmissions = donationsData.patientPosts.filter(p => p.type === donationType);
+            const targetMode = mode === 'give' ? 'request' : 'offer';
+            const hospitalPosts = donationsData.hospitalPosts.filter(p => p.type === donationType && p.mode === targetMode);
+            const myPosts = donationsData.patientPosts.filter(p => p.type === donationType);
 
-            const hospitalItemsHtml = relevantHospitalPosts.map(p => `
-                <div class="donation-result">
-                    <div class="donation-result-icon">${icon(p.type === 'blood' ? 'droplets' : 'activity', 16)}</div>
-                    <div>
-                        <strong>${esc(p.group)} · ${esc(p.hospital)}</strong>
-                        <p>${p.units ? `${esc(p.units)} units · ` : ''}${esc(p.urgency || 'Routine')} · ${esc(p.city)}</p>
-                        ${p.notes ? `<small>${esc(p.notes)}</small>` : ''}
-                    </div>
-                    <button type="button" class="btn-secondary btn-respond" data-item-id="${p.id}" style="font-size:.72rem;min-height:2.2rem;padding:.4rem .75rem">
-                        ${mode === 'give' ? 'Pledge' : 'Request'}
-                    </button>
-                </div>`).join('');
-
-            const myItemsHtml = mySubmissions.map(p => `
-                <div class="donation-result" style="background:#f0f8ff;border-color:#b9daf8">
-                    <div class="donation-result-icon" style="background:#d8eeff;color:var(--teal)">${icon(p.mode === 'give' ? 'heart-handshake' : 'hand', 16)}</div>
-                    <div>
-                        <strong>${esc(p.name)} (${esc(p.group)})</strong>
-                        <small>${p.mode === 'give' ? 'Registered donor' : 'Requested'} · Status: ${esc(p.status || 'Active')}</small>
-                    </div>
-                    <span style="font-size:.68rem;color:var(--teal);font-weight:700">Listed</span>
-                </div>`).join('');
+            // Destroy map before re-render
+            if (leafletMap) { leafletMap.remove(); leafletMap = null; leafletMarkers = []; }
 
             container.innerHTML = `
-                <div class="flow-topbar">
-                    <a class="brand-lockup" data-route="/" href="/"><span class="brand-mark">${icon('heart-pulse', 20)}</span><span><span class="brand-name">SmartCare</span><span class="brand-caption">Patient portal</span></span></a>
-                    <div class="flow-topbar-actions">
-                        ${window.App.UI.topbarControls(true)}
-                        <a class="back-link" data-route="/" href="/">${icon('arrow-left', 16)} Back to home</a>
-                    </div>
-                </div>
-                <main class="provider-shell section-dashboard" data-section="patient-donations">
-                    <header class="provider-header">
-                        <div>
-                            <div class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> Community &amp; Hospital donations</div>
-                            <h1>Give or receive care, ${esc(patientName)}.</h1>
-                            <p>Explore a same-device demo of patient and hospital donation workflows. No care centre is contacted.</p>
-                        </div>
-                        <div class="provider-date">Demo donation pool<br><strong>Stored locally</strong></div>
-                    </header>
-                    <div class="donation-category-section">
-                        <span class="donation-micro-label">DONATION CATEGORY</span>
-                        <div class="donation-type-switch" role="tablist" aria-label="Donation Category">
-                            <button type="button" id="type-blood" class="${donationType === 'blood' ? 'active' : ''}">${icon('droplets', 16)} Blood donation</button>
-                            <button type="button" id="type-organ" class="${donationType === 'organ' ? 'active' : ''}">${icon('activity', 16)} Organ donation</button>
-                        </div>
-                    </div>
-                    <div class="donation-grid">
-                        <div class="donation-card" style="border-radius:1rem">
-                            <div class="donation-mode-wrapper">
-                                <span class="donation-micro-label">I WANT TO...</span>
-                                <div class="donation-mode-tabs" role="tablist" aria-label="Donation Mode">
-                                    <button type="button" id="mode-give" class="donation-tab-btn ${mode === 'give' ? 'active' : ''}">${icon('heart-handshake', 16)} I want to give</button>
-                                    <button type="button" id="mode-receive" class="donation-tab-btn ${mode === 'receive' ? 'active' : ''}">${icon('hand', 16)} I need a donation</button>
-                                </div>
-                            </div>
-                            ${donationType === 'blood' ? `
-                            <h2>${mode === 'give' ? 'Register as a blood donor' : 'Request blood unit'}</h2>
-                            <p>${mode === 'give' ? 'Save donor interest to the same-device Hospital Ops demo for testing.' : 'Record a demo blood request and review matching sample inventory.'}</p>
-                            <form id="donation-form" class="donation-form">
-                                <label class="field"><span>Full name</span><input id="d-name" type="text" placeholder="Your name" value="${esc(patientName)}" required></label>
-                                <label class="field"><span>Blood group</span><select id="d-group">${bloodGroups.map(g => `<option value="${g}">${g}</option>`).join('')}</select></label>
-                                <label class="field"><span>City</span><input id="d-city" type="text" placeholder="Hyderabad" value="${esc(state.patientData.city || 'Hyderabad')}" required></label>
-                                ${mode === 'give' ? `<label class="consent-field"><input type="checkbox" id="d-consent" required> I understand this saves demo contact interest locally and does not contact a care centre.</label>` : `<label class="field"><span>Urgency</span><select id="d-urgency"><option value="Routine">Routine</option><option value="Urgent">Urgent</option><option value="Emergency">Emergency</option></select></label>`}
-                                <button type="submit" class="btn-primary btn-icon" id="d-submit">${icon(mode === 'give' ? 'heart-handshake' : 'send', 16)} ${mode === 'give' ? 'Save blood donor interest' : 'Save demo blood request'}</button>
-                            </form>` : `
-                            <h2>${mode === 'give' ? 'Record organ donation interest' : 'Request organ transplant guidance'}</h2>
-                            <p>${mode === 'give' ? 'Save a non-binding demo interest before continuing through an official registry and clinical process.' : 'Record a demo request to explore the coordinator workflow; this does not join a transplant waiting list.'}</p>
-                            <form id="donation-form" class="donation-form">
-                                <label class="field"><span>Full name</span><input id="d-name" type="text" placeholder="Your name" value="${esc(patientName)}" required></label>
-                                <label class="field"><span>${mode === 'give' ? 'Organ of interest' : 'Organ guidance needed'}</span><select id="d-group">${organs.map(o => `<option value="${o}">${o}</option>`).join('')}</select></label>
-                                <label class="field"><span>City</span><input id="d-city" type="text" placeholder="Hyderabad" value="${esc(state.patientData.city || 'Hyderabad')}" required></label>
-                                ${mode === 'give' ? `<label class="consent-field"><input type="checkbox" id="d-consent" required> I understand this is not legal donor registration, medical consent, or an official registry submission.</label>` : `<label class="field"><span>Urgency</span><select id="d-urgency"><option value="Routine">Routine</option><option value="Urgent">Urgent</option><option value="Emergency">Emergency</option></select></label>`}
-                                <button type="submit" class="btn-primary btn-icon" id="d-submit">${icon(mode === 'give' ? 'heart-handshake' : 'send', 16)} ${mode === 'give' ? 'Save organ donation interest' : 'Save demo guidance request'}</button>
-                            </form>`}
-                            ${message ? `<div class="donation-message ${messageType}" role="alert" style="margin-top:.85rem;padding:.75rem;border-radius:.5rem;background:${messageType === 'success' ? '#e8f8f2' : '#fdeeed'};color:${messageType === 'success' ? '#0b754f' : '#b23b35'}">${message}</div>` : ''}
-                        </div>
-                        <div class="donation-card donation-aside" style="border-radius:1rem">
-                            <div class="donation-aside-icon" style="margin-bottom:.75rem">${icon(mode === 'give' ? 'building-2' : 'package-check', 22)}</div>
-                            <h2 style="margin:.25rem 0 .35rem;font-size:1.05rem">${mode === 'give' ? `Hospital ${donationType} requirements` : `Hospital ${donationType} availability`}</h2>
-                            <p style="font-size:.78rem;color:var(--muted);margin-bottom:.75rem">${mode === 'give' ? `Hospitals actively seeking ${donationType} donations in your network.` : `Centres with available ${donationType} stock or matching donor pools.`}</p>
-                            <div class="donation-results">
-                                ${hospitalItemsHtml || `<div class="provider-empty" style="padding:1.5rem 0">${icon('check-circle', 26)}<p>No open hospital ${mode === 'give' ? 'requests' : 'offers'} right now.</p></div>`}
-                            </div>
-                            ${myItemsHtml ? `
-                                <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--line)">
-                                    <h3 style="font-size:.85rem;margin:0 0 .5rem;color:var(--ink)">Your active registrations</h3>
-                                    <div class="donation-results">${myItemsHtml}</div>
-                                </div>` : ''}
-                        </div>
-                    </div>
-                </main>
-                ${window.App.UI.footer(true)}`;
+<div class="flow-topbar" data-section="donations-topbar">
+  <a class="brand-lockup" data-route="/" href="/">
+    <span class="brand-mark">${icon('heart-pulse', 20)}</span>
+    <span><span class="brand-name">SmartCare</span><span class="brand-caption">Patient portal</span></span>
+  </a>
+  <div class="flow-topbar-actions">
+    ${window.App.UI.topbarControls(true)}
+    <a class="back-link" data-route="/dashboard/patient" href="/dashboard/patient">${icon('arrow-left', 16)} Dashboard</a>
+  </div>
+</div>
 
-            // Rebuild workspace nav
+<main class="provider-shell" data-section="patient-donations">
+
+  <!-- Sidebar injected by JS below -->
+
+  <div class="workspace-content pd-workspace-content">
+
+    <!-- Finder shell: left panel + right map -->
+    <div class="nd-finder-shell" id="pd-finder-shell">
+
+      <!-- LEFT PANEL -->
+      <aside class="nd-finder-panel" id="pd-finder-panel">
+
+        <!-- Header: name + mode tabs -->
+        <div class="nd-finder-intro pd-intro">
+          <div class="pd-intro-meta">
+            <div class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> Community &amp; Hospital</div>
+            <h1>Give or receive,<br><span>${esc(patientName)}.</span></h1>
+          </div>
+
+          <!-- Type switch (Blood / Organ) -->
+          <div class="nd-type-switch" role="tablist" aria-label="Donation type">
+            <button class="nd-type-btn${donationType === 'blood' ? ' active' : ''}" data-dtype="blood" role="tab">
+              ${icon('droplets', 15)} Blood
+            </button>
+            <button class="nd-type-btn${donationType === 'organ' ? ' active' : ''}" data-dtype="organ" role="tab">
+              ${icon('heart-handshake', 15)} Organ
+            </button>
+          </div>
+
+          <!-- Mode tabs (Give / Receive) -->
+          <div class="pd-mode-tabs" role="tablist" aria-label="Give or receive">
+            <button class="pd-mode-btn${mode === 'give' ? ' active' : ''}" data-mode="give">${icon('heart-handshake', 14)} I want to give</button>
+            <button class="pd-mode-btn${mode === 'receive' ? ' active' : ''}" data-mode="receive">${icon('hand', 14)} I need a donation</button>
+          </div>
+        </div>
+
+        <!-- Blood panel -->
+        <div class="nd-tab-panel${donationType === 'blood' ? ' active' : ''}" data-panel="blood">
+          <div class="nd-search-controls">
+            <fieldset class="nd-blood-selector">
+              <legend>Select blood group</legend>
+              <div class="nd-blood-grid" id="pd-blood-grid">
+                ${BLOOD_GROUPS.map(g => `<button type="button" class="nd-bg-btn" data-group="${esc(g)}">${esc(g)}</button>`).join('')}
+              </div>
+            </fieldset>
+            <div class="nd-field">
+              <label for="pd-blood-city">City or PIN code</label>
+              <div class="nd-input-row">
+                <div class="nd-select-wrap">
+                  ${icon('map-pin', 14)}
+                  <input id="pd-blood-city" type="text" placeholder="e.g. Hyderabad or 500034" value="${esc(state.patientData.city || 'Hyderabad')}">
+                </div>
+                <button type="button" class="nd-locate-btn" id="pd-locate-btn" title="Use my location">${icon('locate', 16)}</button>
+              </div>
+            </div>
+            <button type="button" class="nd-search-btn" id="pd-search-btn">${icon('search', 15)} Find ${mode === 'give' ? 'donation centres' : 'blood availability'}</button>
+          </div>
+
+          <!-- Results -->
+          <div class="nd-results-header" id="pd-results-header" style="display:none">
+            <h2>${icon('droplets', 14)} Results <span class="nd-count" id="pd-result-count">0</span></h2>
+            <span id="pd-results-subtitle"></span>
+          </div>
+          <div class="nd-results-scroll" id="pd-results-scroll" aria-live="polite">
+            <div class="nd-empty-state">
+              <div class="nd-empty-symbol">${icon('map-pin', 22)}</div>
+              <h3>Choose a blood group</h3>
+              <p>Select a group and tap "Find centres" to see nearby demo donation locations.</p>
+            </div>
+          </div>
+
+          <!-- My submissions -->
+          ${myPosts.length ? `
+          <div class="pd-my-posts">
+            <div class="pd-my-posts-header">${icon('clipboard-list', 14)} Your active registrations</div>
+            ${myPosts.map(p => `
+            <div class="nd-result-row">
+              <div class="nd-result-select" style="cursor:default">
+                <div class="nd-blood-avatar" style="background:var(--mint);font-size:.8rem">${esc(p.group)}</div>
+                <div class="nd-result-info">
+                  <strong>${esc(p.name)} (${esc(p.group)})</strong>
+                  <span>${p.mode === 'give' ? 'Registered donor' : 'Requested'} · ${esc(p.status || 'Active')}</span>
+                </div>
+                <span style="font-size:.65rem;color:var(--teal);font-weight:700">Listed</span>
+              </div>
+            </div>`).join('')}
+          </div>` : ''}
+
+          <!-- Register donor form -->
+          <div class="nd-panel-aside pd-register-aside">
+            ${icon(mode === 'give' ? 'heart-handshake' : 'package-check', 16)}
+            <div>
+              <strong>${mode === 'give' ? 'Register as donor' : 'Request blood'}</strong>
+              <form id="pd-blood-form" class="pd-mini-form">
+                <input type="text" id="pd-b-name" placeholder="Your name" value="${esc(patientName)}" required>
+                <select id="pd-b-group">${BLOOD_GROUPS.map(g => `<option>${g}</option>`).join('')}</select>
+                ${mode === 'receive' ? `<select id="pd-b-urgency"><option>Routine</option><option>Urgent</option><option>Emergency</option></select>` : `<label class="pd-mini-consent"><input type="checkbox" id="pd-b-consent" required> I understand this is a demo interest only.</label>`}
+                <button type="submit" class="nd-search-btn pd-mini-submit">${icon(mode === 'give' ? 'heart-handshake' : 'send', 14)} ${mode === 'give' ? 'Save interest' : 'Save request'}</button>
+              </form>
+              ${formMessage && donationType === 'blood' ? `<div class="nd-organ-message ${formMessageType}" role="status">${formMessage}</div>` : ''}
+            </div>
+          </div>
+        </div>
+
+        <!-- Organ panel -->
+        <div class="nd-tab-panel${donationType === 'organ' ? ' active' : ''}" data-panel="organ">
+          <div class="nd-search-controls">
+            <p class="nd-intro-text">${mode === 'give' ? 'Record a non-binding organ donation interest for a care team to follow up on.' : 'Record a demo organ guidance request to explore the coordinator workflow.'}</p>
+            <form id="pd-organ-form" class="nd-organ-form">
+              <div class="nd-field">
+                <label for="pd-o-name">Full name <span>*</span></label>
+                <input id="pd-o-name" type="text" value="${esc(patientName)}" required>
+              </div>
+              <div class="nd-field">
+                <label for="pd-o-organ">${mode === 'give' ? 'Organ of interest' : 'Organ guidance needed'}</label>
+                <select id="pd-o-organ">${ORGANS.map(o => `<option>${o}</option>`).join('')}</select>
+              </div>
+              <div class="nd-field">
+                <label for="pd-o-city">City <span>*</span></label>
+                <input id="pd-o-city" type="text" placeholder="Hyderabad" value="${esc(state.patientData.city || 'Hyderabad')}" required>
+              </div>
+              ${mode === 'give'
+                ? `<label class="nd-consent-label"><input type="checkbox" id="pd-o-consent" required><span>I understand this is not legal donor registration or an official registry submission.</span></label>`
+                : `<div class="nd-field"><label for="pd-o-urgency">Urgency</label><select id="pd-o-urgency"><option>Routine</option><option>Urgent</option><option>Emergency</option></select></div>`}
+              <button type="submit" class="nd-search-btn">${icon(mode === 'give' ? 'heart-handshake' : 'send', 14)} ${mode === 'give' ? 'Save organ interest' : 'Save guidance request'}</button>
+            </form>
+            ${formMessage && donationType === 'organ' ? `<div class="nd-organ-message ${formMessageType}" role="status" style="margin-top:.5rem">${formMessage}</div>` : ''}
+          </div>
+
+          <!-- Hospital organ posts -->
+          ${hospitalPosts.length ? `
+          <div class="nd-results-header" style="display:flex">
+            <h2>${icon('building-2', 14)} Hospital ${mode === 'give' ? 'requirements' : 'availability'} <span class="nd-count">${hospitalPosts.length}</span></h2>
+          </div>
+          <div class="nd-results-scroll" style="max-height:220px">
+            ${hospitalPosts.map(p => `
+            <div class="nd-result-row">
+              <div class="nd-result-select" style="cursor:default">
+                <div class="nd-blood-avatar">${icon('activity', 16)}</div>
+                <div class="nd-result-info">
+                  <strong>${esc(p.group)} · ${esc(p.hospital)}</strong>
+                  <span>${p.units ? `${esc(String(p.units))} units · ` : ''}${esc(p.urgency || 'Routine')} · ${esc(p.city)}</span>
+                  ${p.notes ? `<small>${esc(p.notes)}</small>` : ''}
+                </div>
+                <button type="button" class="nd-request-btn pd-pledge-btn" data-centre="${esc(p.hospital)}" style="width:auto;padding:.35rem .65rem;margin-left:auto;font-size:.65rem;white-space:nowrap">
+                  ${mode === 'give' ? 'Pledge' : 'Request'}
+                </button>
+              </div>
+            </div>`).join('')}
+          </div>` : ''}
+
+          <!-- Organ aside -->
+          <div class="nd-panel-aside">
+            ${icon('scale', 16)}
+            <div>
+              <strong>Important distinction</strong>
+              <p>Legal organ donation registration depends on your country, official registry, family process, and clinical guidance.</p>
+              <a class="nd-text-link" href="https://notto.mohfw.gov.in/" target="_blank" rel="noopener noreferrer">Visit India's official NOTTO site ${icon('external-link', 13)}</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="nd-panel-bottom">
+          ${icon('info', 12)}
+          <span>Demo only — no real hospitals, registries, or care centres are contacted.</span>
+        </div>
+      </aside>
+
+      <!-- RIGHT MAP -->
+      <div class="nd-finder-map pd-map-area" id="pd-finder-map">
+        <div id="pd-map-canvas" class="pd-map-canvas"></div>
+        <div class="nd-map-legend">
+          <span class="nd-legend-dot"></span> Donation centre
+          <span class="nd-legend-dot" style="background:#0a3b69;margin-left:.75rem"></span> Organ coord.
+        </div>
+      </div>
+
+      <!-- Mobile toggle -->
+      <button class="nd-mobile-view-toggle" id="pd-mobile-view-toggle" aria-label="Toggle map/list view">
+        ${icon('layers', 14)} <span id="pd-toggle-label">Show map</span>
+      </button>
+
+    </div><!-- /.nd-finder-shell -->
+  </div><!-- /.workspace-content -->
+</main>
+
+${window.App.UI.footer(true)}`;
+
+            // ─── Inject sidebar nav ─────────────────────────────────
             const workspaceMain = container.querySelector('main');
             const workspaceNav = document.createElement('nav');
             workspaceNav.className = 'workspace-tabs';
             workspaceNav.setAttribute('aria-label', 'Patient portal navigation');
             workspaceNav.innerHTML = navHtml();
-            const workspaceContent = document.createElement('div');
-            workspaceContent.className = 'workspace-content';
-            Array.from(workspaceMain.children).forEach(child => workspaceContent.appendChild(child));
-            workspaceMain.append(workspaceNav, workspaceContent);
+            workspaceMain.insertBefore(workspaceNav, workspaceMain.firstChild);
+
+            // ─── Bind events ────────────────────────────────────────
             container.querySelector('#workspace-logout').onclick = logout;
 
-            // Bind type switch
-            container.querySelector('#type-blood').onclick = () => { donationType = 'blood'; message = ''; render(); };
-            container.querySelector('#type-organ').onclick = () => { donationType = 'organ'; message = ''; render(); };
-            container.querySelector('#mode-give').onclick = () => { mode = 'give'; message = ''; render(); };
-            container.querySelector('#mode-receive').onclick = () => { mode = 'receive'; message = ''; render(); };
+            // Type switch
+            container.querySelectorAll('[data-dtype]').forEach(btn => {
+                btn.onclick = () => { donationType = btn.dataset.dtype; formMessage = ''; render(); };
+            });
 
-            // Bind respond buttons
-            container.querySelectorAll('.btn-respond').forEach(btn => {
+            // Mode tabs
+            container.querySelectorAll('[data-mode]').forEach(btn => {
+                btn.onclick = () => { mode = btn.dataset.mode; formMessage = ''; render(); };
+            });
+
+            // Blood group grid
+            container.querySelectorAll('#pd-blood-grid .nd-bg-btn').forEach(btn => {
                 btn.onclick = () => {
-                    const id = btn.dataset.itemId;
-                    const item = relevantHospitalPosts.find(p => p.id === id);
-                    if (item) {
-                        window.App.UI.toast(`Demo response recorded for ${item.hospital}. No coordinator was contacted.`, 'info');
-                    }
+                    container.querySelectorAll('#pd-blood-grid .nd-bg-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    selectedGroup = btn.dataset.group;
                 };
             });
 
-            // Bind form
-            container.querySelector('#donation-form').onsubmit = e => {
-                e.preventDefault();
-                const name = container.querySelector('#d-name')?.value.trim();
-                const group = container.querySelector('#d-group')?.value;
-                const city = container.querySelector('#d-city')?.value.trim() || 'Hyderabad';
-                const urgency = container.querySelector('#d-urgency')?.value || 'Routine';
-                const consent = container.querySelector('#d-consent');
+            // Locate button
+            const locateBtn = container.querySelector('#pd-locate-btn');
+            if (locateBtn) {
+                locateBtn.onclick = () => {
+                    if (!navigator.geolocation) return window.App.UI.toast('Geolocation not available.', 'error');
+                    locateBtn.disabled = true;
+                    locateBtn.innerHTML = icon('loader', 16);
+                    if (window.lucide) window.lucide.createIcons();
+                    navigator.geolocation.getCurrentPosition(pos => {
+                        locateBtn.disabled = false;
+                        locateBtn.innerHTML = icon('locate', 16);
+                        if (window.lucide) window.lucide.createIcons();
+                        const cityInput = container.querySelector('#pd-blood-city');
+                        if (cityInput) { cityInput.value = ''; cityInput.placeholder = `Near you (${pos.coords.latitude.toFixed(2)}, ${pos.coords.longitude.toFixed(2)})`; }
+                        if (leafletMap) leafletMap.flyTo([pos.coords.latitude, pos.coords.longitude], 13);
+                    }, () => {
+                        locateBtn.disabled = false;
+                        locateBtn.innerHTML = icon('locate', 16);
+                        if (window.lucide) window.lucide.createIcons();
+                        window.App.UI.toast('Could not get location. Enter city manually.', 'error');
+                    });
+                };
+            }
 
-                if (!name) { message = 'Please enter your name.'; messageType = 'error'; render(); return; }
-                if (mode === 'give' && consent && !consent.checked) { message = 'Please confirm consent before submitting.'; messageType = 'error'; render(); return; }
+            // Search button
+            const searchBtn = container.querySelector('#pd-search-btn');
+            if (searchBtn) {
+                searchBtn.onclick = async () => {
+                    const group = selectedGroup;
+                    const city = (container.querySelector('#pd-blood-city')?.value || '').trim();
+                    if (!group) return window.App.UI.toast('Please select a blood group first.', 'error');
+                    if (!city) return window.App.UI.toast('Please enter a city or PIN code.', 'error');
 
-                addPatientDonation({
-                    type: donationType,
-                    mode: mode,
-                    name: name,
-                    group: group,
-                    city: city,
-                    urgency: urgency
-                });
+                    const scroll = container.querySelector('#pd-results-scroll');
+                    scroll.innerHTML = `<div class="nd-results-loading">${icon('loader', 18)} Finding centres near ${esc(city)}…</div>`;
+                    if (window.lucide) window.lucide.createIcons();
+                    container.querySelector('#pd-results-header').style.display = 'none';
 
-                message = mode === 'give'
-                    ? `Saved ${name}'s ${group} ${donationType} interest in this device's demo pool. No hospital was contacted.`
-                    : `Saved the ${group} ${donationType} request in this device's demo pool. No hospital or registry was notified.`;
-                messageType = 'success';
-                window.App.UI.toast(message, 'success');
-                render();
-            };
+                    try {
+                        const raw = await window.App.DB.findBloodCentres({ group, city });
+                        // Merge with demo map positions
+                        const centres = raw.map(c => {
+                            const pos = DEMO_CENTRES_MAP.find(d => d.name === c.name);
+                            return { ...c, lat: pos?.lat, lng: pos?.lng };
+                        });
+                        renderResults(centres);
+                        filterMapMarkers(donationType);
+                        // Mobile: keep list view after search
+                        const shell = container.querySelector('#pd-finder-shell');
+                        if (shell) shell.classList.remove('nd-show-map');
+                    } catch {
+                        container.querySelector('#pd-results-scroll').innerHTML = `<div class="nd-empty-state"><div class="nd-empty-symbol">${icon('triangle-alert', 22)}</div><h3>Unavailable</h3><p>Donation support is unavailable right now.</p></div>`;
+                        if (window.lucide) window.lucide.createIcons();
+                    }
+                };
+            }
 
+            // Blood donor register form
+            const bloodForm = container.querySelector('#pd-blood-form');
+            if (bloodForm) {
+                bloodForm.onsubmit = e => {
+                    e.preventDefault();
+                    const name = container.querySelector('#pd-b-name')?.value.trim();
+                    const group = container.querySelector('#pd-b-group')?.value;
+                    const urgency = container.querySelector('#pd-b-urgency')?.value || 'Routine';
+                    const consent = container.querySelector('#pd-b-consent');
+                    const city = state.patientData.city || 'Hyderabad';
+
+                    if (!name) { formMessage = 'Please enter your name.'; formMessageType = 'error'; render(); return; }
+                    if (mode === 'give' && consent && !consent.checked) { formMessage = 'Please confirm the demo notice.'; formMessageType = 'error'; render(); return; }
+
+                    addPatientDonation({ type: 'blood', mode, name, group, city, urgency });
+                    formMessage = mode === 'give'
+                        ? `Saved ${name}'s ${group} blood donor interest. No hospital contacted.`
+                        : `Saved ${group} blood request in the demo pool.`;
+                    formMessageType = 'success';
+                    window.App.UI.toast(formMessage, 'success');
+                    render();
+                };
+            }
+
+            // Organ form
+            const organForm = container.querySelector('#pd-organ-form');
+            if (organForm) {
+                organForm.onsubmit = async e => {
+                    e.preventDefault();
+                    const name = container.querySelector('#pd-o-name')?.value.trim();
+                    const group = container.querySelector('#pd-o-organ')?.value;
+                    const city = container.querySelector('#pd-o-city')?.value.trim() || state.patientData.city || 'Hyderabad';
+                    const urgency = container.querySelector('#pd-o-urgency')?.value || 'Routine';
+                    const consent = container.querySelector('#pd-o-consent');
+
+                    if (!name) { formMessage = 'Please enter your name.'; formMessageType = 'error'; render(); return; }
+                    if (mode === 'give' && consent && !consent.checked) { formMessage = 'Please confirm the demo notice.'; formMessageType = 'error'; render(); return; }
+
+                    addPatientDonation({ type: 'organ', mode, name, group, city, urgency });
+                    formMessage = mode === 'give'
+                        ? `Saved organ donation interest for ${group}. No registry contacted.`
+                        : `Saved ${group} organ guidance request.`;
+                    formMessageType = 'success';
+                    window.App.UI.toast(formMessage, 'success');
+                    render();
+                };
+            }
+
+            // Pledge buttons in hospital organ posts
+            container.querySelectorAll('.pd-pledge-btn').forEach(btn => {
+                btn.onclick = () => window.App.UI.toast(`Demo response recorded for ${btn.dataset.centre}. No coordinator was contacted.`, 'info');
+            });
+
+            // Mobile view toggle
+            const mobileToggle = container.querySelector('#pd-mobile-view-toggle');
+            const shell = container.querySelector('#pd-finder-shell');
+            const toggleLabel = container.querySelector('#pd-toggle-label');
+            if (mobileToggle) {
+                mobileToggle.onclick = () => {
+                    const isMap = shell.classList.toggle('nd-show-map');
+                    if (toggleLabel) toggleLabel.textContent = isMap ? 'Show list' : 'Show map';
+                    if (isMap && leafletMap) {
+                        window.requestAnimationFrame(() => leafletMap.invalidateSize());
+                    }
+                };
+            }
+
+            // ─── Topbar + sidebar controls ──────────────────────────
             window.App.UI.bindTopbarControls(container);
             if (state.isLogged) {
                 window.App.UI.syncMobileBottomNav('patient', state.route);
             } else {
                 document.querySelectorAll('.mobile-bottom-nav').forEach(el => el.remove());
             }
-            // RENDER LUCIDE ICONS SO LOGOS ALWAYS LOAD PROPERLY
+
+            // ─── Load Leaflet map ───────────────────────────────────
+            loadLeaflet(() => {
+                initMap();
+                filterMapMarkers(donationType);
+            });
+
             if (window.lucide) window.lucide.createIcons();
         }
 

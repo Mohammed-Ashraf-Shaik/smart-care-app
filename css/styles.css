@@ -3507,3 +3507,679 @@ html { scroll-behavior: smooth; }
         page-break-inside: avoid;
     }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   NEARDOOR-STYLE DONATION FINDER SHELL  (SmartCare blue palette)
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Shell wrapper */
+.donation-shell { padding: 0; }
+.nd-finder-shell {
+    display: grid;
+    grid-template-columns: 380px minmax(0, 1fr);
+    height: calc(100vh - 64px);
+    min-height: 500px;
+    position: relative;
+}
+
+/* LEFT PANEL */
+.nd-finder-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--line);
+    z-index: 10;
+    overflow: hidden;
+}
+
+/* Intro */
+.nd-finder-intro { padding: 1.25rem 1.4rem 1rem; flex-shrink: 0; }
+.nd-finder-intro h1 {
+    font-size: 1.7rem;
+    line-height: 1.12;
+    letter-spacing: -.05em;
+    color: var(--teal-dark);
+    margin: .6rem 0 0;
+}
+.nd-finder-intro h1 span { color: var(--teal); }
+
+/* Type switch */
+.nd-type-switch {
+    display: inline-flex;
+    background: var(--canvas);
+    border: 1px solid var(--line);
+    border-radius: 2rem;
+    padding: .25rem;
+    gap: .25rem;
+    margin-bottom: .5rem;
+}
+.nd-type-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .45rem 1rem;
+    border: 0;
+    border-radius: 1.5rem;
+    background: transparent;
+    color: var(--muted);
+    font-size: .78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s ease, color .15s ease;
+}
+.nd-type-btn.active {
+    background: var(--teal);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(15,92,168,.25);
+}
+
+/* Tab panels */
+.nd-tab-panel { display: none; flex-direction: column; min-height: 0; flex: 1; overflow: hidden; }
+.nd-tab-panel.active { display: flex; }
+
+/* Search controls */
+.nd-search-controls { padding: 0 1.4rem 1rem; border-bottom: 1px solid var(--line); flex-shrink: 0; }
+
+/* Blood group grid */
+.nd-blood-selector { border: 0; margin: 0 0 .85rem; padding: 0; }
+.nd-blood-selector legend { font-size: .72rem; font-weight: 700; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; margin-bottom: .55rem; }
+.nd-blood-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: .4rem;
+}
+.nd-bg-btn {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    min-height: 2.75rem;
+    border-radius: .4rem;
+    font-size: .85rem;
+    font-weight: 700;
+    color: var(--muted);
+    cursor: pointer;
+    transition: background .13s ease, border-color .13s ease, color .13s ease, transform .1s ease;
+}
+.nd-bg-btn:hover { background: var(--mint); border-color: var(--teal); color: var(--teal); }
+.nd-bg-btn.active { background: var(--teal); border-color: var(--teal); color: #fff; }
+.nd-bg-btn:active { transform: scale(.95); }
+
+/* Input row */
+.nd-field { display: flex; flex-direction: column; gap: .4rem; font-size: .75rem; font-weight: 600; margin-bottom: .75rem; }
+.nd-field label { color: var(--muted); }
+.nd-field label span { color: #c0392b; }
+.nd-field input, .nd-field select {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: .4rem;
+    padding: .65rem .75rem;
+    min-height: 2.75rem;
+    font-size: .85rem;
+    color: var(--ink);
+    background: var(--surface);
+    transition: border-color .15s ease;
+}
+.nd-field input:focus, .nd-field select:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(15,92,168,.12); }
+
+.nd-input-row { display: flex; gap: .5rem; }
+.nd-select-wrap {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: .4rem;
+    padding-left: .65rem;
+    transition: border-color .15s ease;
+}
+.nd-select-wrap:focus-within { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(15,92,168,.12); }
+.nd-select-wrap svg { color: var(--muted); flex-shrink: 0; }
+.nd-select-wrap input {
+    border: 0;
+    background: transparent;
+    padding-left: 0;
+    flex: 1;
+    min-width: 0;
+    box-shadow: none !important;
+}
+.nd-select-wrap input:focus { outline: none; box-shadow: none; }
+
+.nd-locate-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+    min-height: 2.75rem;
+    display: grid;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: .4rem;
+    background: var(--surface);
+    color: var(--teal);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background .15s ease, border-color .15s ease;
+}
+.nd-locate-btn:hover { background: var(--mint); border-color: var(--teal); }
+
+/* Origin label */
+.nd-origin-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    font-size: .72rem;
+    color: var(--muted);
+    margin: -.4rem 0 .55rem;
+    min-height: 2rem;
+}
+.nd-origin-label > span { display: flex; align-items: center; gap: .3rem; }
+.nd-origin-label > button { border: 0; background: transparent; color: var(--muted); font-size: .72rem; cursor: pointer; padding: .25rem; }
+.nd-origin-label > button:hover { color: var(--teal); }
+
+/* Search button */
+.nd-search-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .5rem;
+    width: 100%;
+    min-height: 2.75rem;
+    padding: .6rem 1rem;
+    border: 0;
+    border-radius: .45rem;
+    background: var(--teal);
+    color: #fff;
+    font-size: .82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s ease;
+}
+.nd-search-btn:hover { background: var(--teal-dark); }
+
+/* Intro text for organ */
+.nd-intro-text { font-size: .78rem; color: var(--muted); line-height: 1.6; margin: 0 0 1rem; }
+
+/* Results header */
+.nd-results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: .65rem 1.4rem;
+    border-bottom: 1px solid var(--line);
+    flex-shrink: 0;
+    background: var(--canvas);
+}
+.nd-results-header h2 {
+    display: flex;
+    align-items: center;
+    gap: .45rem;
+    font-size: .78rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0;
+    letter-spacing: 0;
+}
+.nd-count {
+    font-size: .65rem;
+    background: var(--mint);
+    color: var(--teal);
+    border-radius: .3rem;
+    padding: .15rem .4rem;
+    min-width: 1.25rem;
+    text-align: center;
+}
+.nd-results-header > span { font-size: .68rem; color: var(--muted); }
+
+/* Results scroll */
+.nd-results-scroll {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line) transparent;
+}
+
+/* Empty state */
+.nd-empty-state {
+    padding: 1.5rem 1.4rem 2rem;
+    text-align: left;
+}
+.nd-empty-symbol {
+    width: 3rem;
+    height: 3rem;
+    background: var(--mint);
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    color: var(--teal);
+    margin-bottom: 1rem;
+}
+.nd-empty-state h3 { font-size: 1rem; letter-spacing: -.02em; color: var(--ink); margin: 0 0 .45rem; }
+.nd-empty-state p { font-size: .75rem; color: var(--muted); line-height: 1.65; margin: 0; }
+
+/* Results loading */
+.nd-results-loading {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    padding: 2rem 1.4rem;
+    color: var(--muted);
+    font-size: .8rem;
+}
+
+/* Result rows */
+.nd-result-row {
+    border-bottom: 1px solid var(--line);
+    padding: .85rem 1.4rem .6rem;
+    transition: background .12s ease;
+}
+.nd-result-row:hover { background: var(--canvas); }
+.nd-result-row.selected { background: var(--mint); border-left: 3px solid var(--teal); padding-left: calc(1.4rem - 3px); }
+
+.nd-result-select {
+    display: flex;
+    gap: .75rem;
+    width: 100%;
+    background: none;
+    border: 0;
+    text-align: left;
+    padding: 0;
+    cursor: pointer;
+    align-items: flex-start;
+}
+.nd-blood-avatar {
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.95rem;
+    background: var(--mint);
+    color: var(--teal-dark);
+    border-radius: .45rem;
+    flex-shrink: 0;
+    font-weight: 800;
+    font-size: .95rem;
+    border: 1px solid #c7dced;
+}
+.nd-result-info { display: flex; flex-direction: column; gap: .3rem; min-width: 0; flex: 1; }
+.nd-result-info > strong { font-size: .82rem; font-weight: 600; line-height: 1.4; color: var(--ink); }
+.nd-result-info > span { font-size: .7rem; color: var(--muted); line-height: 1.4; }
+.nd-result-info > small { font-size: .65rem; color: var(--muted); }
+.nd-distance { display: flex; flex-direction: column; align-items: flex-end; gap: .2rem; color: var(--muted); font-size: .68rem; white-space: nowrap; flex-shrink: 0; }
+
+.nd-request-btn {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    background: none;
+    border: 0;
+    color: var(--teal);
+    font-size: .72rem;
+    font-weight: 700;
+    padding: .4rem 0 0 3.5rem;
+    cursor: pointer;
+    width: 100%;
+}
+.nd-request-btn svg:last-child { margin-left: auto; }
+.nd-request-btn:hover { text-decoration: underline; }
+
+/* Aside info box */
+.nd-panel-aside {
+    display: flex;
+    gap: .8rem;
+    padding: 1rem 1.4rem;
+    border-top: 1px solid var(--line);
+    background: var(--canvas);
+    flex-shrink: 0;
+    font-size: .72rem;
+    color: var(--muted);
+    align-items: flex-start;
+}
+.nd-panel-aside > i, .nd-panel-aside > svg { color: var(--teal); margin-top: .1rem; flex-shrink: 0; }
+.nd-panel-aside strong { display: block; color: var(--ink); font-size: .75rem; margin-bottom: .3rem; }
+.nd-panel-aside ul { display: grid; gap: .35rem; margin: .3rem 0 .5rem; padding-left: 1rem; font-size: .68rem; }
+.nd-panel-aside p { margin: .3rem 0 .5rem; line-height: 1.6; font-size: .68rem; }
+.nd-text-link { display: inline-flex; align-items: center; gap: .3rem; color: var(--teal); font-size: .72rem; font-weight: 700; }
+.nd-text-link:hover { text-decoration: underline; }
+
+/* Panel bottom */
+.nd-panel-bottom {
+    display: flex;
+    align-items: flex-start;
+    gap: .55rem;
+    padding: .65rem 1.4rem;
+    border-top: 1px solid var(--line);
+    font-size: .65rem;
+    color: var(--muted);
+    line-height: 1.6;
+    flex-shrink: 0;
+    background: var(--surface);
+}
+.nd-panel-bottom > i, .nd-panel-bottom > svg { flex-shrink: 0; margin-top: .1rem; }
+
+/* Organ form */
+.nd-organ-form { display: grid; gap: .75rem; }
+.nd-consent-label {
+    display: flex;
+    align-items: flex-start;
+    gap: .5rem;
+    font-size: .72rem;
+    color: var(--muted);
+    line-height: 1.55;
+    cursor: pointer;
+}
+.nd-consent-label input { accent-color: var(--teal); margin-top: .18rem; flex-shrink: 0; }
+.nd-organ-message { min-height: 1rem; font-size: .75rem; font-weight: 700; margin-top: .5rem; }
+.nd-organ-message.success { color: var(--teal); }
+.nd-organ-message.error { color: #b23b35; }
+
+/* RIGHT MAP AREA */
+.nd-finder-map {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    background: var(--canvas);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+.nd-map-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    text-align: center;
+    color: var(--muted);
+    padding: 2rem;
+}
+.nd-map-icon { color: var(--teal); opacity: .4; }
+.nd-map-placeholder p { font-size: 1rem; font-weight: 600; color: var(--ink); margin: 0; }
+.nd-map-placeholder span { font-size: .75rem; color: var(--muted); }
+.nd-map-legend {
+    position: absolute;
+    bottom: 1rem;
+    left: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    font-size: .72rem;
+    color: var(--muted);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: .4rem;
+    padding: .4rem .75rem;
+}
+.nd-legend-dot { width: .45rem; height: .45rem; background: var(--teal); border-radius: 50%; display: inline-block; }
+
+/* Mobile view toggle — hidden on desktop */
+.nd-mobile-view-toggle { display: none; }
+
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE TOPBAR FIX — no wrap, single row always
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+    .flow-topbar {
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        padding: .6rem .75rem !important;
+        gap: .5rem !important;
+    }
+    .brand-lockup { flex-shrink: 0; min-width: 0; }
+    .brand-name { font-size: .88rem; }
+    .brand-caption { font-size: .58rem; }
+    .flow-topbar-actions {
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: .35rem !important;
+        flex-shrink: 0;
+    }
+    .back-link {
+        white-space: nowrap;
+        font-size: .72rem;
+    }
+    .topbar-control-group {
+        gap: .3rem !important;
+    }
+    .topbar-control-btn span { display: none; }  /* hide "Light" text on mobile */
+    .lang-dropdown-wrapper { display: none; }    /* hide language on very small screens */
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DONATION FINDER — MOBILE RESPONSIVE (≤ 760px)
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 760px) {
+    /* Map on top, list below — stacked layout */
+    .nd-finder-shell {
+        grid-template-columns: 1fr;
+        grid-template-rows: 42vh minmax(0, 1fr);
+        height: auto;
+        min-height: calc(100svh - 64px);
+    }
+
+    /* Map always visible on top */
+    .nd-finder-map {
+        display: flex !important;
+        min-height: 42vh;
+        max-height: 42vh;
+        order: -1;
+        border-bottom: 2px solid var(--line);
+    }
+
+    /* Panel scrolls below */
+    .nd-finder-panel {
+        min-height: 0;
+        border-right: 0;
+        overflow-y: auto;
+        order: 1;
+    }
+
+    /* No toggle button needed */
+    .nd-mobile-view-toggle { display: none !important; }
+
+    /* Finder intro tighter on mobile */
+    .nd-finder-intro { padding: 1rem 1rem .75rem; }
+    .nd-finder-intro h1 { font-size: 1.45rem; }
+    .nd-search-controls { padding: 0 1rem .85rem; }
+    .nd-blood-grid { grid-template-columns: repeat(4, 1fr); gap: .3rem; }
+    .nd-bg-btn { min-height: 2.5rem; font-size: .8rem; }
+    .nd-result-row { padding: .85rem 1rem .6rem; }
+    .nd-request-btn { padding-left: 3.5rem; }
+    .nd-panel-aside, .nd-panel-bottom { padding: .85rem 1rem; }
+    .nd-results-header { padding: .55rem 1rem; }
+    .nd-empty-state { padding: 1.25rem 1rem; }
+    .nd-results-loading { padding: 1.5rem 1rem; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   GLOBAL MOBILE RESPONSIVENESS FIXES
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Ensure content doesn't hide under fixed bottom nav */
+@media (max-width: 768px) {
+    .flow-shell:not(.donation-shell) { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 1rem) !important; }
+    .landing-main { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 1rem) !important; }
+    .patient-application-shell { padding-bottom: 0; }
+
+    /* Donation shell sits above bottom nav */
+    .donation-shell .nd-finder-shell { min-height: calc(100svh - 64px - 64px); }
+}
+
+/* Toast region above bottom nav */
+@media (max-width: 768px) {
+    .toast-region { bottom: calc(72px + env(safe-area-inset-bottom, 0px)) !important; }
+}
+
+/* Donation hero legacy cleanup */
+@media (max-width: 700px) {
+    .donation-page { margin: .75rem auto 1.5rem; padding: 0 .75rem; }
+}
+
+/* Fix overflow on small phones */
+@media (max-width: 400px) {
+    .nd-blood-grid { grid-template-columns: repeat(4, 1fr); }
+    .nd-type-btn { padding: .4rem .65rem; font-size: .72rem; }
+    .nd-finder-intro h1 { font-size: 1.3rem; }
+    .brand-caption { display: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PATIENT DONATIONS — FINDER SHELL OVERRIDES
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Remove default workspace padding so finder fills full width */
+.pd-workspace-content {
+    padding: 0 !important;
+    overflow: hidden;
+}
+
+/* Finder shell inside workspace fills height minus topbar */
+.pd-workspace-content .nd-finder-shell {
+    height: calc(100vh - 58px);
+}
+
+/* Intro section */
+.pd-intro { gap: .5rem; }
+.pd-intro-meta { margin-bottom: .5rem; }
+.pd-intro-meta .eyebrow { margin-bottom: .3rem; }
+.pd-intro h1 { font-size: 1.5rem; margin: .2rem 0 .6rem; }
+.pd-intro h1 span { color: var(--teal); }
+
+/* Mode tabs (Give / Receive) */
+.pd-mode-tabs {
+    display: flex;
+    gap: 0;
+    border: 1px solid var(--line);
+    border-radius: .45rem;
+    overflow: hidden;
+    margin-top: .5rem;
+}
+.pd-mode-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    flex: 1;
+    justify-content: center;
+    padding: .5rem .6rem;
+    border: 0;
+    background: transparent;
+    color: var(--muted);
+    font-size: .72rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .14s ease, color .14s ease;
+    min-height: 2.5rem;
+}
+.pd-mode-btn + .pd-mode-btn { border-left: 1px solid var(--line); }
+.pd-mode-btn.active { background: var(--teal); color: #fff; }
+.pd-mode-btn:not(.active):hover { background: var(--mint); color: var(--teal); }
+
+/* Map canvas fills the right panel */
+.pd-map-area { flex-direction: column; padding: 0; }
+.pd-map-canvas { width: 100%; height: 100%; min-height: 280px; }
+
+/* Leaflet custom pin */
+.pd-map-pin { display: grid; place-items: center; width: 32px; height: 32px; }
+.pd-map-pin > span {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    background: var(--teal);
+    border: 2px solid white;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(10,59,105,.3);
+}
+
+/* Leaflet popup in SmartCare theme */
+.pd-popup { display: flex; flex-direction: column; gap: .3rem; max-width: 200px; }
+.pd-popup strong { font-size: .78rem; color: var(--ink); }
+.pd-popup span { font-size: .68rem; color: var(--muted); }
+.pd-popup small { font-size: .62rem; color: var(--teal); font-weight: 600; }
+
+/* My posts strip */
+.pd-my-posts { flex-shrink: 0; border-top: 1px solid var(--line); }
+.pd-my-posts-header {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .6rem 1.4rem .3rem;
+    font-size: .68rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+}
+
+/* Mini register form inside aside */
+.pd-register-aside { flex-direction: column; align-items: stretch; }
+.pd-register-aside > i { display: none; }
+.pd-mini-form {
+    display: grid;
+    gap: .45rem;
+    margin-top: .5rem;
+}
+.pd-mini-form input, .pd-mini-form select {
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: .4rem;
+    padding: .5rem .65rem;
+    font-size: .78rem;
+    min-height: 2.35rem;
+    color: var(--ink);
+    background: var(--surface);
+}
+.pd-mini-form input:focus, .pd-mini-form select:focus {
+    outline: none;
+    border-color: var(--teal);
+    box-shadow: 0 0 0 2px rgba(15,92,168,.12);
+}
+.pd-mini-consent {
+    display: flex;
+    align-items: flex-start;
+    gap: .4rem;
+    font-size: .68rem;
+    color: var(--muted);
+    line-height: 1.5;
+    cursor: pointer;
+}
+.pd-mini-consent input { accent-color: var(--teal); flex-shrink: 0; margin-top: .1rem; }
+.pd-mini-submit { margin-top: .2rem; }
+
+/* ─── Patient Donations Mobile ─────────────────────────────────── */
+@media (max-width: 900px) {
+    .pd-workspace-content .nd-finder-shell {
+        height: calc(100vh - 58px);
+    }
+}
+
+@media (max-width: 760px) {
+    .pd-workspace-content .nd-finder-shell {
+        height: auto;
+        min-height: calc(100svh - 64px - 64px);
+        /* Map top, list bottom */
+        grid-template-rows: 38vh minmax(0, 1fr);
+    }
+
+    .pd-workspace-content .nd-finder-map {
+        min-height: 38vh;
+        max-height: 38vh;
+    }
+
+    /* Hide toggle button in patient view too */
+    #pd-mobile-view-toggle { display: none !important; }
+
+    .pd-intro h1 { font-size: 1.25rem; }
+    .pd-my-posts-header { padding: .5rem 1rem .25rem; }
+    .pd-register-aside { padding: .75rem 1rem; }
+    .pd-mini-form { gap: .35rem; }
+}
+
+/* Ensure leaflet controls appear above bottom nav on mobile */
+@media (max-width: 768px) {
+    .leaflet-control-zoom {
+        margin-bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 10px) !important;
+        margin-right: 12px !important;
+    }
+    .leaflet-bottom { padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px)) !important; }
+}
