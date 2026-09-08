@@ -1436,9 +1436,37 @@ html { scroll-behavior: smooth; }
 }
 
 @media (max-width: 640px) {
-    .shell-nav { flex-wrap: wrap; padding: 0.85rem max(1.15rem, calc(1rem + env(safe-area-inset-left, 0px))); gap: 0.5rem; width: 100%; max-width: 100%; }
-    .nav-links { order: 3; flex: 1 0 100%; min-width: 0; overflow-x: auto; justify-content: flex-start; gap: 0.85rem; padding: .25rem 0 .1rem; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-    .nav-links a { flex: 0 0 auto; font-size: .78rem; white-space: nowrap; }
+    .shell-nav { flex-wrap: wrap; padding: 0.75rem 1rem; gap: 0.5rem; width: 100%; max-width: 100%; }
+    .nav-links {
+        order: 3;
+        flex: 1 0 100%;
+        min-width: 0;
+        display: flex;
+        align-items: center;
+        overflow-x: auto;
+        justify-content: flex-start;
+        gap: 0.45rem;
+        padding: 0.35rem 0.2rem 0.45rem;
+        scrollbar-width: none;
+        -webkit-overflow-scrolling: touch;
+        mask-image: linear-gradient(to right, black 86%, transparent 100%);
+        -webkit-mask-image: linear-gradient(to right, black 86%, transparent 100%);
+    }
+    .nav-links a {
+        flex: 0 0 auto;
+        font-size: 0.76rem;
+        font-weight: 700;
+        white-space: nowrap;
+        padding: 0.35rem 0.75rem;
+        border-radius: 999px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        color: var(--ink);
+    }
+    .nav-links a:hover {
+        background: var(--mint);
+        border-color: var(--teal);
+    }
     .nav-actions { flex-wrap: wrap; gap: 0.35rem; }
     .nav-actions .btn-secondary { display: none; }
     .nav-actions .btn-ghost, .nav-actions .btn-primary { min-height: 2.25rem !important; padding: 0.35rem 0.65rem !important; font-size: 0.78rem !important; }
@@ -4098,13 +4126,19 @@ html { scroll-behavior: smooth; }
 .pd-popup small { font-size: .62rem; color: var(--teal); font-weight: 600; }
 
 /* My posts strip */
-.pd-my-posts { flex-shrink: 0; border-top: 1px solid var(--line); }
+.pd-my-posts {
+    flex-shrink: 0;
+    border-top: 1px solid var(--line);
+    max-height: 220px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
 .pd-my-posts-header {
     display: flex;
     align-items: center;
-    gap: .4rem;
-    padding: .6rem 1.4rem .3rem;
-    font-size: .68rem;
+    gap: .45rem;
+    padding: .65rem 1.25rem .35rem;
+    font-size: .72rem;
     font-weight: 700;
     color: var(--muted);
     text-transform: uppercase;
@@ -4112,39 +4146,78 @@ html { scroll-behavior: smooth; }
 }
 
 /* Mini register form inside aside */
-.pd-register-aside { flex-direction: column; align-items: stretch; }
+.pd-register-aside {
+    flex-direction: column;
+    align-items: stretch;
+    background: var(--canvas);
+    border-top: 1px solid var(--line);
+    padding: 1rem 1.25rem;
+}
 .pd-register-aside > i { display: none; }
+.pd-register-aside > div > strong {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.88rem;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+}
 .pd-mini-form {
     display: grid;
-    gap: .45rem;
-    margin-top: .5rem;
+    gap: .65rem;
+    margin-top: .4rem;
 }
 .pd-mini-form input, .pd-mini-form select {
     width: 100%;
     border: 1px solid var(--line);
-    border-radius: .4rem;
-    padding: .5rem .65rem;
-    font-size: .78rem;
-    min-height: 2.35rem;
+    border-radius: .45rem;
+    padding: .65rem .85rem;
+    font-size: .88rem;
+    min-height: 2.75rem;
     color: var(--ink);
     background: var(--surface);
+    transition: border-color .15s ease, box-shadow .15s ease;
 }
 .pd-mini-form input:focus, .pd-mini-form select:focus {
     outline: none;
     border-color: var(--teal);
-    box-shadow: 0 0 0 2px rgba(15,92,168,.12);
+    box-shadow: 0 0 0 3px rgba(15,92,168,.14);
 }
 .pd-mini-consent {
     display: flex;
-    align-items: flex-start;
-    gap: .4rem;
-    font-size: .68rem;
+    align-items: center;
+    gap: .6rem;
+    font-size: .78rem;
     color: var(--muted);
-    line-height: 1.5;
+    line-height: 1.4;
+    cursor: pointer;
+    min-height: 2.6rem;
+    padding: .2rem 0;
+    user-select: none;
+}
+.pd-mini-consent input {
+    accent-color: var(--teal);
+    flex-shrink: 0;
+    width: 1.15rem;
+    height: 1.15rem;
     cursor: pointer;
 }
-.pd-mini-consent input { accent-color: var(--teal); flex-shrink: 0; margin-top: .1rem; }
-.pd-mini-submit { margin-top: .2rem; }
+.pd-mini-submit {
+    margin-top: .25rem;
+    min-height: 2.85rem;
+    font-size: .88rem;
+    font-weight: 700;
+    border-radius: .45rem;
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    touch-action: manipulation;
+}
+.pd-mini-submit:active {
+    transform: scale(0.98);
+}
 
 /* ─── Patient Donations Mobile ─────────────────────────────────── */
 @media (max-width: 900px) {
@@ -4158,21 +4231,54 @@ html { scroll-behavior: smooth; }
         height: auto;
         min-height: calc(100svh - 64px - 64px);
         /* Map top, list bottom */
-        grid-template-rows: 38vh minmax(0, 1fr);
+        grid-template-rows: 36vh minmax(0, 1fr);
     }
 
     .pd-workspace-content .nd-finder-map {
-        min-height: 38vh;
-        max-height: 38vh;
+        min-height: 36vh;
+        max-height: 36vh;
     }
 
-    /* Hide toggle button in patient view too */
+    .pd-workspace-content .nd-finder-panel {
+        /* Prevent content from hiding behind mobile bottom nav */
+        padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)) !important;
+    }
+
+    /* Mode tabs touch targets */
+    .pd-mode-btn {
+        min-height: 2.75rem;
+        font-size: .82rem;
+        padding: .6rem .75rem;
+    }
+
+    /* Hide toggle button in patient view */
     #pd-mobile-view-toggle { display: none !important; }
 
-    .pd-intro h1 { font-size: 1.25rem; }
-    .pd-my-posts-header { padding: .5rem 1rem .25rem; }
-    .pd-register-aside { padding: .75rem 1rem; }
-    .pd-mini-form { gap: .35rem; }
+    .pd-intro h1 { font-size: 1.3rem; }
+    .pd-my-posts-header { padding: .6rem 1rem .3rem; font-size: .7rem; }
+    .pd-register-aside {
+        padding: 1rem 1rem calc(1.5rem + env(safe-area-inset-bottom, 0px));
+    }
+    
+    /* 16px font-size prevents iOS Safari auto-zoom on mobile inputs */
+    .pd-mini-form input,
+    .pd-mini-form select {
+        font-size: 16px !important;
+        min-height: 2.85rem;
+    }
+
+    .pd-mini-form { gap: .6rem; }
+    
+    .pd-mini-consent {
+        font-size: .82rem;
+        min-height: 2.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .pd-intro { padding: 0.75rem 0.85rem; }
+    .pd-register-aside { padding: 0.85rem 0.85rem calc(1.75rem + env(safe-area-inset-bottom, 0px)); }
+    .pd-my-posts { max-height: 180px; }
 }
 
 /* Ensure leaflet controls appear above bottom nav on mobile */
@@ -5217,4 +5323,458 @@ html { scroll-behavior: smooth; }
         box-shadow: 0 -8px 24px rgba(10, 59, 105, 0.1);
     }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   GLOBAL SOS AMBULANCE BUTTON & PULSE BEACON
+   ══════════════════════════════════════════════════════════════════ */
+.topbar-sos-btn {
+    background: #e53e3e;
+    color: #ffffff !important;
+    padding: 0.4rem 0.85rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.78rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    text-decoration: none;
+    box-shadow: 0 2px 10px rgba(229, 62, 62, 0.35);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+    animation: sosBeaconGlow 2.5s infinite;
+}
+
+.topbar-sos-btn:hover {
+    background: #c53030;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(229, 62, 62, 0.5);
+    color: #ffffff !important;
+}
+
+@keyframes sosBeaconGlow {
+    0%, 100% {
+        box-shadow: 0 2px 10px rgba(229, 62, 62, 0.35);
+    }
+    50% {
+        box-shadow: 0 0 16px rgba(229, 62, 62, 0.65), 0 2px 10px rgba(229, 62, 62, 0.4);
+    }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   AMBULANCE DISPATCH MODULE STYLES
+   ══════════════════════════════════════════════════════════════════ */
+.ambulance-main-shell {
+    width: 100%;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.tier-card {
+    transition: all 0.2s ease;
+    border-radius: 12px;
+}
+
+.tier-card:hover {
+    border-color: #e53e3e !important;
+    background: rgba(254, 215, 215, 0.15) !important;
+}
+
+.active-dispatch-card {
+    animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   VERIFY RX & Tamper-Proof Audit Styles
+   ══════════════════════════════════════════════════════════════════ */
+.verify-rx-shell {
+    width: 100%;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.rx-security-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.76rem;
+    font-weight: 700;
+}
+
+.rx-search-form {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.rx-search-input-wrap {
+    flex: 1;
+    min-width: 240px;
+    position: relative;
+}
+
+.rx-search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+}
+
+.rx-search-input-wrap input {
+    width: 100%;
+    padding: 0.75rem 1rem 0.75rem 2.4rem;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    font-weight: 600;
+    font-size: 0.95rem;
+    box-sizing: border-box;
+}
+
+.rx-search-actions {
+    display: flex;
+    gap: 0.65rem;
+    align-items: center;
+}
+
+.rx-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin: 1.25rem 0;
+    background: var(--canvas);
+    padding: 1.15rem;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+}
+
+.rx-meta-item small {
+    color: var(--muted);
+    display: block;
+    font-size: 0.75rem;
+    margin-bottom: 0.2rem;
+}
+
+.rx-meta-item strong {
+    font-size: 0.95rem;
+    color: var(--ink);
+    display: block;
+}
+
+.rx-diagnosis-block {
+    margin-bottom: 1.5rem;
+}
+
+.rx-section-title {
+    font-size: 0.82rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+}
+
+.rx-diagnosis-text {
+    font-size: 0.95rem;
+    color: var(--ink);
+    background: var(--canvas);
+    padding: 0.85rem 1rem;
+    border-radius: 8px;
+    margin: 0;
+    border: 1px solid var(--line);
+    line-height: 1.5;
+}
+
+.rx-med-cards-grid {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.rx-med-card {
+    background: var(--canvas);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    transition: border-color 0.15s ease;
+}
+
+.rx-med-card:hover {
+    border-color: var(--teal);
+}
+
+.rx-med-card-top {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+.rx-med-badge {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: var(--mint);
+    color: var(--teal-dark);
+    font-size: 0.75rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.rx-med-title-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.rx-med-name {
+    color: var(--teal-dark);
+    font-size: 0.95rem;
+}
+
+.badge-dosage {
+    background: #e2e8f0;
+    color: var(--ink);
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+}
+
+.rx-med-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    font-size: 0.82rem;
+    color: var(--muted);
+    margin-top: 0.5rem;
+    padding-top: 0.45rem;
+    border-top: 1px dashed var(--line);
+}
+
+.rx-action-footer {
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.rx-action-links {
+    display: flex;
+    gap: 0.65rem;
+    flex-wrap: wrap;
+}
+
+.rx-locked-notice {
+    color: #c53030;
+    font-weight: 700;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+/* Ambulance Caller Fields Grid */
+.ambulance-caller-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   PHARMACY PORTAL STYLES
+   ══════════════════════════════════════════════════════════════════ */
+.pharmacy-main-shell {
+    width: 100%;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.pharmacy-tab-btn {
+    transition: all 0.2s ease;
+}
+
+.medicine-item-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.medicine-item-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(10, 59, 105, 0.08);
+}
+
+/* Ensure donation type buttons never wrap syllables */
+.nd-type-btn {
+    white-space: nowrap !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   RESPONSIVE OVERFLOW & TOUCH OPTIMIZATIONS (< 640px)
+   ══════════════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+    /* Flow Topbar Compact Mobile Wrap */
+    .flow-topbar {
+        padding: 0.65rem 0.85rem !important;
+        flex-wrap: wrap !important;
+        gap: 0.45rem !important;
+    }
+
+    .flow-topbar .brand-caption {
+        display: none !important;
+    }
+
+    .flow-topbar .brand-name {
+        font-size: 1rem !important;
+    }
+
+    .flow-topbar .brand-mark {
+        width: 2.2rem !important;
+        height: 2.2rem !important;
+    }
+
+    .flow-topbar-actions {
+        gap: 0.35rem !important;
+        margin-left: auto;
+    }
+
+    .flow-topbar-actions .back-link {
+        font-size: 0.76rem !important;
+        padding: 0.35rem 0.5rem !important;
+    }
+
+    /* Topbar Controls Compactness */
+    .topbar-sos-btn span {
+        display: none !important;
+    }
+    
+    .topbar-sos-btn {
+        padding: 0.45rem !important;
+        border-radius: 50% !important;
+        width: 34px !important;
+        height: 34px !important;
+        justify-content: center !important;
+    }
+
+    .topbar-control-btn span:not(.sr-only) {
+        display: none !important;
+    }
+
+    .topbar-control-btn {
+        padding: 0.4rem !important;
+        min-width: 2.2rem !important;
+        width: 2.2rem !important;
+        height: 2.2rem !important;
+        border-radius: 0.5rem !important;
+    }
+
+    .lang-select-native {
+        max-width: 4.8rem !important;
+        font-size: 0.72rem !important;
+    }
+
+    .ambulance-main-shell,
+    .verify-rx-shell,
+    .pharmacy-main-shell {
+        padding: 0 0.65rem !important;
+        margin: 0.85rem auto !important;
+    }
+
+    .ambulance-caller-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.85rem !important;
+    }
+
+    /* Verify Rx Mobile Layout */
+    .rx-search-form {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    .rx-search-input-wrap {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+
+    .rx-search-input-wrap input {
+        font-size: 16px !important;
+        min-height: 48px !important;
+    }
+
+    .rx-search-actions {
+        width: 100% !important;
+        display: flex !important;
+        gap: 0.5rem !important;
+    }
+
+    .rx-search-actions button {
+        flex: 1 !important;
+        min-height: 48px !important;
+        justify-content: center !important;
+    }
+
+    .rx-meta-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 0.75rem !important;
+        padding: 0.85rem !important;
+    }
+
+    .rx-action-footer {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 0.65rem !important;
+    }
+
+    .rx-action-links {
+        flex-direction: column !important;
+        width: 100% !important;
+    }
+
+    .rx-action-links button,
+    .rx-action-links a,
+    .btn-dispense-cta {
+        width: 100% !important;
+        min-height: 48px !important;
+        justify-content: center !important;
+    }
+
+    /* Stack flex containers on small mobile */
+    .emergency-headline h1,
+    .verify-rx-shell h1 {
+        font-size: 1.45rem !important;
+    }
+
+    .active-dispatch-card {
+        padding: 1rem !important;
+    }
+
+    .tier-grid,
+    .pharmacy-main-shell .catalog-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Full touch targets for mobile buttons */
+    .ambulance-main-shell button,
+    .verify-rx-shell button,
+    .pharmacy-main-shell button {
+        min-height: 48px;
+        font-size: 0.92rem;
+    }
+
+    /* Cart summary card becomes stacked */
+    .pharmacy-cart-layout {
+        grid-template-columns: 1fr !important;
+    }
+}
+
 

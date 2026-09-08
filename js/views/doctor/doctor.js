@@ -137,6 +137,50 @@
             </tr>
         `).join('');
 
+        const activeAmbulance = window.App.Store.getActiveAmbulance?.();
+        const traumaBanner = (activeAmbulance && activeAmbulance.status === 'dispatched') ? `
+            <div class="emergency-trauma-banner" style="background:#fff5f5;border:2px solid #feb2b2;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+                <div style="display:flex;align-items:center;gap:.75rem">
+                    <span style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:#e53e3e;color:#fff;font-weight:bold">
+                        ${icon('siren', 22)}
+                    </span>
+                    <div>
+                        <strong style="color:#c53030;font-size:1.02rem;display:block">🚨 INCOMING EMERGENCY TRAUMA ALERT (${esc(activeAmbulance.typeLabel)})</strong>
+                        <p style="margin:.15rem 0 0;font-size:.85rem;color:#4a5568">Patient: <strong>${esc(activeAmbulance.patientName)}</strong> · Vehicle: <strong>${esc(activeAmbulance.driver.vehicleNo)}</strong> · ETA: <span style="color:#c53030;font-weight:700">~${activeAmbulance.etaMinutes} mins</span></p>
+                    </div>
+                </div>
+                <div style="display:flex;gap:.5rem;align-items:center">
+                    <span class="badge" style="background:#fed7d7;color:#9b2c2c;font-weight:600;padding:.4rem .8rem;border-radius:6px">ICU Bed Held</span>
+                </div>
+            </div>` : '';
+
+        const cancelledQueue = state.cancelledQueue || [];
+        const cancelledSection = cancelledQueue.length ? `
+            <section class="provider-card" style="border-top:3px solid #cbd5e0;margin-top:1.5rem">
+                <div class="provider-card-heading">
+                    <div>
+                        <h2>Released / Cancelled Slots (${cancelledQueue.length})</h2>
+                        <p>Visits released by patients or rescheduled by clinicians. Capacity returned to pool.</p>
+                    </div>
+                </div>
+                <div class="queue-table-wrap">
+                    <table class="queue-table">
+                        <thead><tr><th>Patient</th><th>Cancelled By</th><th>Reason</th><th>Time</th><th>Status</th></tr></thead>
+                        <tbody>
+                            ${cancelledQueue.map(item => `
+                                <tr style="opacity:.8">
+                                    <td data-label="Patient"><strong>${esc(item.name)}</strong><small>${esc(item.department || 'General')}</small></td>
+                                    <td data-label="By"><span class="badge" style="background:${item.cancelledBy === 'doctor' ? '#fed7d7' : '#e2e8f0'};color:${item.cancelledBy === 'doctor' ? '#9b2c2c' : '#4a5568'}">${item.cancelledBy === 'doctor' ? 'Clinician' : 'Patient'}</span></td>
+                                    <td data-label="Reason">${esc(item.cancellationReason || 'Schedule conflict')}</td>
+                                    <td data-label="Time">${item.cancelledAt ? new Date(item.cancelledAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'Recently'}</td>
+                                    <td data-label="Status"><span class="queue-status" style="background:#edf2f7;color:#718096">Slot Released</span></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </section>` : '';
+
         container.innerHTML = `
             <div class="flow-topbar">
                 <a class="brand-lockup" data-route="/" href="/">
@@ -149,6 +193,7 @@
                 </div>
             </div>
             <main class="provider-shell section-dashboard" data-section="doctor-dashboard">
+                ${traumaBanner}
                 <header class="provider-header">
                     <div>
                         <div class="eyebrow" style="color:var(--teal)"><span class="eyebrow-dot"></span> Hospital workspace</div>
@@ -163,15 +208,18 @@
                         <h2>${current ? esc(current.name) : 'Queue is clear'}</h2>
                         <p>${current ? `${esc(current.problem || current.symptoms || 'General consultation')} · ${statusLabel(current.status)}` : 'There are no patients waiting for this care centre right now.'}</p>
                         ${current ? `<div class="provider-hero-meta"><span class="priority-chip ${priorityClass(current.triage)}">${esc(current.triage || 'Unassessed')} priority</span><span>${icon('stethoscope', 14)} ${esc(current.doctorName || current.doctor_name || current.doctorPref || current.doctor_pref || 'General care')}</span></div>` : ''}
-                        <div class="provider-hero-actions">
+                        <div class="provider-hero-actions" style="flex-wrap:wrap;gap:.5rem">
                             <button id="complete-patient" class="btn-primary btn-icon" ${currentAction[0] ? '' : 'disabled'}>
                                 ${currentAction[1]} ${icon(currentStatus === 'in_progress' ? 'check' : 'arrow-right', 16)}
                             </button>
+                            ${current ? `<button id="doctor-cancel-patient" class="btn-secondary btn-icon" type="button" style="border-color:#feb2b2;color:#c53030">
+                                ${icon('ban', 15)} Cancel / Reschedule
+                            </button>` : ''}
                             <button id="scan-qr-btn" class="btn-secondary btn-icon" type="button">
                                 ${icon('qr-code', 16)} Scan Patient QR
                             </button>
                             ${currentStatus === 'in_progress' ? `<button id="issue-prescription" class="btn-secondary btn-icon" type="button">
-                                ${icon('notebook-pen', 16)} ${currentPrescription ? 'Edit' : 'Create'} demo prescription
+                                ${icon('notebook-pen', 16)} ${currentPrescription ? 'Edit' : 'Write'} E-Prescription
                             </button>` : ''}
                             <button id="refresh-queue" class="btn-secondary btn-icon" type="button">
                                 Refresh ${icon('refresh-cw', 16)}
@@ -202,6 +250,7 @@
                     </div>
                     ${state.queue.length ? `<div class="queue-table-wrap"><table class="queue-table"><thead><tr><th>Patient</th><th>Reason for visit</th><th>Priority</th><th>Status</th><th>Clinician queue</th><th>Centre</th></tr></thead><tbody>${rows}</tbody></table></div>` : `<div class="provider-empty">${icon('coffee', 30)}<p>Queue clear. New visits will appear here.</p></div>`}
                 </section>
+                ${cancelledSection}
                 <div id="doctor-message" class="provider-notice" hidden></div>
             </main>
             ${window.App.UI.footer(true)}
@@ -269,6 +318,61 @@
         container.querySelector('#complete-patient').onclick = transitionCurrent;
         const prescriptionButton = container.querySelector('#issue-prescription');
         if (prescriptionButton) prescriptionButton.onclick = () => showPrescriptionEditor(current);
+
+        const doctorCancelBtn = container.querySelector('#doctor-cancel-patient');
+        if (doctorCancelBtn && current) {
+            doctorCancelBtn.onclick = () => {
+                const backdrop = document.createElement('div');
+                backdrop.className = 'modal-backdrop';
+                backdrop.innerHTML = `
+                    <section class="modal-card" role="dialog" aria-modal="true" style="max-width:440px">
+                        <div class="modal-heading">
+                            <div>
+                                <h2 id="doctor-cancel-title">Cancel / Reschedule Visit</h2>
+                                <p>Patient: <strong>${esc(current.name)}</strong> (Ref: ${esc(current.id)})</p>
+                            </div>
+                            <button type="button" class="btn-ghost modal-close-button" data-close-modal>${icon('x', 18)}</button>
+                        </div>
+                        <form id="doctor-cancel-form" style="display:flex;flex-direction:column;gap:1rem;margin-top:.5rem">
+                            <p style="font-size:.88rem;color:var(--muted);margin:0">Cancelling releases this slot and alerts the patient immediately with a free reschedule voucher.</p>
+                            <div class="field">
+                                <label for="doc-cancel-reason">Clinical Reason for Cancellation</label>
+                                <select id="doc-cancel-reason" required style="width:100%;padding:.6rem .8rem;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)">
+                                    <option value="Doctor summoned for emergency trauma surgery">Doctor summoned for emergency trauma surgery</option>
+                                    <option value="Clinician emergency medical leave">Clinician emergency medical leave</option>
+                                    <option value="OT / Diagnostic lab equipment maintenance">OT / Diagnostic lab equipment maintenance</option>
+                                    <option value="Patient unreachable / multiple missed calls">Patient unreachable / multiple missed calls</option>
+                                    <option value="Patient transferred to specialist ward">Patient transferred to specialist ward</option>
+                                </select>
+                            </div>
+                            <div class="modal-actions" style="margin-top:.5rem;display:flex;gap:.5rem;justify-content:flex-end">
+                                <button type="button" class="btn-secondary" data-close-modal>Keep Visit</button>
+                                <button type="submit" class="btn-danger btn-icon">${icon('ban', 15)} Confirm Cancellation</button>
+                            </div>
+                        </form>
+                    </section>
+                `;
+                document.body.appendChild(backdrop);
+                const close = () => backdrop.remove();
+                backdrop.querySelectorAll('[data-close-modal]').forEach(b => b.onclick = close);
+                backdrop.onclick = e => { if (e.target === backdrop) close(); };
+                backdrop.querySelector('#doctor-cancel-form').onsubmit = async e => {
+                    e.preventDefault();
+                    const reason = backdrop.querySelector('#doc-cancel-reason').value;
+                    const submitBtn = backdrop.querySelector('button[type="submit"]');
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Cancelling...';
+                    const res = await window.App.Store.cancelAppointment(current.id, 'doctor', reason);
+                    close();
+                    if (res.success) {
+                        window.App.UI.toast('Visit cancelled. Slot released and patient notified.', 'info');
+                    } else {
+                        window.App.UI.toast(res.error || 'Could not cancel visit.', 'error');
+                    }
+                };
+                if (window.lucide) window.lucide.createIcons();
+            };
+        }
 
         const scanBtn = container.querySelector('#scan-qr-btn');
         if (scanBtn) {

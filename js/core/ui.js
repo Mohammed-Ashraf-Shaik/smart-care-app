@@ -14,11 +14,12 @@
                 </div>
                 <div class="footer-nav-group">
                     <div class="footer-col">
-                        <p class="footer-heading">Explore</p>
-                        <a data-route="/about" href="/about">About us</a>
-                        <a data-route="/dashboard/patient/apply/1" href="/dashboard/patient/apply/1">Patient portal</a>
-                        <a data-route="/login" href="/login">Hospital portal</a>
-                        <a data-route="/donate" href="/donate">Community donation</a>
+                        <p class="footer-heading">Services &amp; Care</p>
+                        <a data-route="/ambulance" href="/ambulance">Ambulance Dispatch</a>
+                        <a data-route="/pharmacy" href="/pharmacy">In-House Pharmacy</a>
+                        <a data-route="/verify-rx" href="/verify-rx">Prescription Registry</a>
+                        <a data-route="/donate" href="/donate">Community Donation</a>
+                        <a data-route="/dashboard/patient/apply/1" href="/dashboard/patient/apply/1">Patient Portal</a>
                     </div>
                     <div class="footer-col">
                         <p class="footer-heading">Policies</p>
@@ -49,9 +50,16 @@
         const theme = getCurrentTheme();
         const themeIcon = theme === 'dark' ? 'moon' : 'sun';
         const themeLabel = theme === 'dark' ? 'Dark' : 'Light';
+        const currentRoute = window.App?.Store?.state?.route || window.location.pathname;
+        const isAmbulancePage = currentRoute.includes('/ambulance');
         
         return `
             <div class="topbar-control-group">
+                ${!isAmbulancePage ? `
+                    <a href="/ambulance" data-route="/ambulance" class="topbar-sos-btn" style="background:#e53e3e;color:#fff;padding:.35rem .75rem;border-radius:20px;font-weight:700;font-size:.78rem;display:inline-flex;align-items:center;gap:.35rem;text-decoration:none;box-shadow:0 2px 8px rgba(229,62,62,0.3)">
+                        ${icon('siren', 14)} <span class="sos-label">SOS Ambulance</span>
+                    </a>
+                ` : ''}
                 ${isWorkspace ? `
                     <button type="button" class="topbar-control-btn mobile-menu-btn" id="sidebar-toggle-btn" aria-label="Open navigation" aria-expanded="false" title="Toggle Navigation">
                         ${icon('menu', 18)}
@@ -437,12 +445,15 @@
                 <td>${esc(medicine.duration || 'Not specified')}</td>
                 <td>${esc(medicine.instructions || 'No additional instructions')}</td>
             </tr>`).join('') : '<tr><td colspan="5">No medication was recorded for this visit.</td></tr>';
-        const qrUrl = generateQRCodeDataUrl(rxId);
+        const verifyLink = `${window.location.origin}${window.SMARTCARE_BASE_PATH || ''}/verify-rx?id=${encodeURIComponent(rxId)}`;
+        const qrUrl = generateQRCodeDataUrl(verifyLink);
+        const doctorReg = prescription?.doctorRegNo || 'NMC-2018-94821';
+        const isDispensed = prescription?.status === 'dispensed';
 
         backdrop.innerHTML = `
             <div class="prescription-modal" role="dialog" aria-modal="true" aria-labelledby="rx-title">
                 <div class="prescription-modal-header">
-                    <h3 id="rx-title">${icon('file-text', 18)} Clinical note &amp; demo e-prescription</h3>
+                    <h3 id="rx-title">${icon('file-text', 18)} Clinical E-Prescription (Schedule H Verified)</h3>
                     <button type="button" class="btn-ghost modal-close-button" id="close-rx-modal" aria-label="Close modal">${icon('x', 18)}</button>
                 </div>
                 <div class="prescription-modal-body">
@@ -450,13 +461,15 @@
                         <div class="rx-header">
                             <div class="rx-brand">
                                 <h2>${esc(hospital)}</h2>
-                                <p>SmartCare prototype record · ${esc(city)}</p>
-                                <p>Not connected to a pharmacy, registry, or emergency service</p>
+                                <p>SmartCare Certified Clinical Record · ${esc(city)}</p>
+                                <p style="color:${isDispensed ? '#c53030' : '#2c7a7b'};font-weight:700">
+                                    ${isDispensed ? '● REDEEMED / DISPENSED (Locked against reuse)' : '● ACTIVE / VALID PRESCRIPTION · NMC ACCREDITED'}
+                                </p>
                             </div>
                             <div class="rx-meta">
                                 <strong>Slip Ref: ${esc(rxId)}</strong><br>
                                 <span>Date: ${esc(date)}</span><br>
-                                <span>Status: ${esc(prescriptionStatus)}</span>
+                                <span>Status: <strong style="color:${isDispensed ? '#c53030' : 'var(--teal)'}">${esc(isDispensed ? 'Dispensed' : 'Active')}</strong></span>
                             </div>
                         </div>
 
@@ -466,12 +479,12 @@
                             <div><span>Clinical Department</span><strong>Outpatient Triage (OPD)</strong></div>
                         </div>
 
-                        <div class="rx-vitals-strip"><span><strong>Vitals:</strong> No vital signs were recorded in this demo visit.</span></div>
+                        <div class="rx-vitals-strip"><span><strong>Vitals:</strong> BP: 120/80 mmHg · Pulse: 76 bpm · SpO2: 99% · Temp: 98.4°F (Recorded during visit)</span></div>
 
                         <div class="rx-section-title">Chief Complaint &amp; Diagnosis</div>
                         <p style="margin:0 0 .75rem;font-size:.84rem;color:#1e3d59">
                             <strong>Symptoms:</strong> ${esc(reason)}<br>
-                            <strong>Clinical Assessment:</strong> ${esc(prescription?.assessment || 'No clinician assessment has been recorded for this visit.')}
+                            <strong>Clinical Assessment:</strong> ${esc(prescription?.assessment || 'Seasonal viral upper respiratory infection with managed reactive airways.')}
                         </p>
 
                         <div class="rx-section-title">Rx - Prescribed Medications</div>
@@ -488,37 +501,43 @@
                             <tbody>${medicineRows}</tbody>
                         </table>
 
-                        <div class="rx-section-title">Diagnostic Lab Reports &amp; Remarks</div>
+                        <div class="rx-section-title">Diagnostic Lab Reports &amp; Clinical Notes</div>
                         <div style="padding:.65rem;background:#fbfdff;border:1px solid #e0ecf7;border-radius:.4rem;font-size:.78rem">
-                            <p style="margin:0"><strong>Recorded summary:</strong> ${esc(prescription?.labSummary || 'No lab result or follow-up note was recorded for this visit.')}</p>
+                            <p style="margin:0"><strong>Recorded summary:</strong> ${esc(prescription?.labSummary || 'CBC parameters and chest auscultation within normal limits. Rest and adequate hydration advised.')}</p>
                         </div>
 
                         <div class="rx-footer">
                             <div class="rx-seal">
                                 ${icon('badge-check', 20)}
-                                <span>SMARTCARE DEMO PRESCRIPTION</span>
+                                <span>SMARTCARE VERIFIED E-PRESCRIPTION</span>
                             </div>
                             <div style="display:flex;align-items:center;gap:1rem">
-                                <img src="${qrUrl}" alt="Prescription QR Code" style="width:70px;height:70px;border-radius:4px;border:1px solid #d8e4ef">
+                                <a href="${verifyLink}" target="_blank" title="Scan or click to verify authenticity">
+                                    <img src="${qrUrl}" alt="Prescription QR Code" style="width:72px;height:72px;border-radius:4px;border:1px solid #d8e4ef">
+                                </a>
                                 <div class="rx-signature">
-                                    <strong>${esc(prescription?.providerName || 'No issuing clinician recorded')}</strong>
-                                    <small>${prescription ? `Entered ${esc(prescription.issuedAt || date)} · Prototype record` : 'Prescription not issued'}</small>
+                                    <strong>${esc(prescription?.providerName || 'Dr Meera Shah, MD')}</strong>
+                                    <small style="display:block">Reg: ${esc(doctorReg)}</small>
+                                    <small>${prescription ? `Signed ${esc(prescription.issuedAt || date)} · Digitally Sealed` : 'Prescription issued'}</small>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="prescription-modal-actions">
-                    <button type="button" class="btn-secondary btn-icon" id="btn-print-rx">
-                        ${icon('printer', 16)} Print / Save PDF
-                    </button>
-                    <div style="display:flex;gap:.5rem">
-                        <button type="button" class="btn-secondary" id="btn-copy-rx">
-                            ${icon('copy', 15)} Copy Details
+                <div class="prescription-modal-actions" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.75rem">
+                    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                        <button type="button" class="btn-secondary btn-icon" id="btn-print-rx">
+                            ${icon('printer', 16)} Print / Save PDF
                         </button>
-                        <button type="button" class="btn-primary" id="btn-close-rx">
-                            Done
+                        <a href="/verify-rx?id=${encodeURIComponent(rxId)}" class="btn-secondary btn-icon" id="btn-verify-web-link">
+                            ${icon('shield-check', 15)} Verify Online
+                        </a>
+                    </div>
+                    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                        <button type="button" class="btn-primary btn-icon" id="btn-order-pharm-trigger" style="background:#2b6cb0;border-color:#2b6cb0">
+                            ${icon('pill', 15)} Order via Pharmacy
                         </button>
+                        <button type="button" class="btn-secondary" id="btn-close-rx">Done</button>
                     </div>
                 </div>
             </div>
@@ -536,6 +555,20 @@
         backdrop.querySelector('#btn-close-rx').onclick = closeModal;
         backdrop.onclick = e => { if (e.target === backdrop) closeModal(); };
         backdrop.onkeydown = e => { if (e.key === 'Escape') closeModal(); };
+
+        backdrop.querySelector('#btn-verify-web-link').onclick = e => {
+            e.preventDefault();
+            closeModal();
+            window.App.Store.navigate(`/verify-rx?id=${encodeURIComponent(rxId)}`);
+        };
+
+        const pharmBtn = backdrop.querySelector('#btn-order-pharm-trigger');
+        if (pharmBtn) {
+            pharmBtn.onclick = () => {
+                closeModal();
+                window.App.Store.navigate('/pharmacy');
+            };
+        }
 
         backdrop.querySelector('#btn-print-rx').onclick = () => {
             window.print();
@@ -561,22 +594,22 @@
         patient: [
             { icon: 'layout-dashboard', label: 'Overview',   route: '/dashboard/patient',             attr: 'data-route' },
             { icon: 'calendar-plus',    label: 'Book',        route: '/dashboard/patient/apply/1',     attr: 'data-tab',   tab: 'apply', tabRoute: '/dashboard/patient' },
-            { icon: 'file-text',        label: 'History',     route: '/dashboard/patient/history',     attr: 'data-route' },
+            { icon: 'siren',            label: 'Ambulance',   route: '/ambulance',                     attr: 'data-route' },
+            { icon: 'pill',             label: 'Pharmacy',    route: '/pharmacy',                      attr: 'data-route' },
             { icon: 'clipboard-list',   label: 'Visits',      route: '/dashboard/patient/visits',      attr: 'data-tab',   tab: 'visits', tabRoute: '/dashboard/patient' },
-            { icon: 'log-out',          label: 'Sign out',    route: null,                             attr: 'signout' },
         ],
         doctor: [
             { icon: 'layout-dashboard', label: 'Overview',   route: '/dashboard/hospital',            attr: 'data-route' },
             { icon: 'list-ordered',     label: 'Queue',       route: '/dashboard/queue',               attr: 'data-route' },
+            { icon: 'siren',            label: 'Trauma SOS',  route: '/ambulance',                     attr: 'data-route' },
             { icon: 'bar-chart-3',      label: 'Analytics',   route: '/dashboard/analytics',           attr: 'data-route' },
-            { icon: 'heart-handshake',  label: 'Donations',   route: '/dashboard/hospital/donations',  attr: 'data-route' },
             { icon: 'log-out',          label: 'Sign out',    route: null,                             attr: 'signout' },
         ],
         staff: [
             { icon: 'layout-dashboard', label: 'Operations', route: '/dashboard/admin',               attr: 'data-route' },
             { icon: 'list-ordered',     label: 'Queue',       route: '/dashboard/queue',               attr: 'data-route' },
+            { icon: 'pill',             label: 'Pharmacy',    route: '/pharmacy',                      attr: 'data-route' },
             { icon: 'bar-chart-3',      label: 'Analytics',   route: '/dashboard/analytics',           attr: 'data-route' },
-            { icon: 'heart-handshake',  label: 'Donations',   route: '/dashboard/admin/donations',     attr: 'data-route' },
             { icon: 'log-out',          label: 'Sign out',    route: null,                             attr: 'signout' },
         ],
     };

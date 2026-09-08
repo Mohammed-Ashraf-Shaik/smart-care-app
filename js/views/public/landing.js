@@ -1,4 +1,4 @@
-﻿(function () {
+(function () {
     const icon = (name, size = 18) => `<i data-lucide="${name}" width="${size}" height="${size}"></i>`;
     window.App.Views.Landing = function () {
         const { navigate, setAuthTarget } = window.App.Store;
@@ -12,9 +12,11 @@
                 </a>
                 <nav class="nav-links" aria-label="Primary navigation">
                     <a href="#how-it-works">How it works</a>
-                    <a href="#for-providers">For hospitals</a>
+                    <a data-route="/ambulance" href="/ambulance" style="color:#e53e3e;font-weight:700">🚨 Ambulance</a>
+                    <a data-route="/pharmacy" href="/pharmacy">Pharmacy</a>
+                    <a data-route="/verify-rx" href="/verify-rx">Verify Rx</a>
                     <a data-route="/donate" href="/donate">Donation</a>
-                    <a href="#trust">Why SmartCare</a>
+                    <a href="#for-providers">For hospitals</a>
                 </nav>
                 <div class="nav-actions">
                     ${window.App.UI.topbarControls()}

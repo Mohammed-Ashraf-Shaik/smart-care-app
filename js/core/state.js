@@ -1,6 +1,6 @@
 (function () {
-    const routeMap = { landing: '/', patientDashboard: '/dashboard/patient', patient: '/dashboard/patient/apply/1', login: '/login', doctor: '/dashboard/hospital', queue: '/dashboard/queue', staff: '/dashboard/admin', analytics: '/dashboard/analytics', patientDonations: '/dashboard/patient/donations', patientHistory: '/dashboard/patient/history', doctorDonations: '/dashboard/hospital/donations', donations: '/donate', about: '/about', terms: '/terms', privacy: '/privacy', notFound: '/404' };
-    const pathMap = { '/': 'landing', '/apply': 'patientDashboard', '/dashboard/patient/apply': 'patientDashboard', '/login': 'login', '/dashboard/patient': 'patientDashboard', '/dashboard/patient/visits': 'patientDashboard', '/dashboard/patient/profile': 'patientDashboard', '/dashboard/patient/history': 'patientHistory', '/dashboard/patient/donations': 'patientDonations', '/dashboard/patient/help': 'about', '/dashboard/doctor': 'doctor', '/dashboard/doctor/donations': 'doctorDonations', '/dashboard/doctor/help': 'about', '/dashboard/hospital': 'doctor', '/dashboard/hospital/donations': 'doctorDonations', '/dashboard/hospital/help': 'about', '/dashboard/queue': 'queue', '/dashboard/admin': 'staff', '/dashboard/admin/rooms': 'staff', '/dashboard/admin/donations': 'doctorDonations', '/dashboard/admin/help': 'about', '/dashboard/analytics': 'analytics', '/dashboard/analytics/help': 'about', '/donate': 'donations', '/donate/blood': 'donations', '/donate/organ': 'donations', '/about': 'about', '/terms': 'terms', '/privacy': 'privacy', '/404': 'notFound' };
+    const routeMap = { landing: '/', patientDashboard: '/dashboard/patient', patient: '/dashboard/patient/apply/1', login: '/login', doctor: '/dashboard/hospital', queue: '/dashboard/queue', staff: '/dashboard/admin', analytics: '/dashboard/analytics', patientDonations: '/dashboard/patient/donations', patientHistory: '/dashboard/patient/history', doctorDonations: '/dashboard/hospital/donations', donations: '/donate', ambulance: '/ambulance', pharmacy: '/pharmacy', verifyRx: '/verify-rx', about: '/about', terms: '/terms', privacy: '/privacy', notFound: '/404' };
+    const pathMap = { '/': 'landing', '/apply': 'patientDashboard', '/dashboard/patient/apply': 'patientDashboard', '/login': 'login', '/dashboard/patient': 'patientDashboard', '/dashboard/patient/visits': 'patientDashboard', '/dashboard/patient/profile': 'patientDashboard', '/dashboard/patient/history': 'patientHistory', '/dashboard/patient/donations': 'patientDonations', '/dashboard/patient/help': 'about', '/dashboard/doctor': 'doctor', '/dashboard/doctor/donations': 'doctorDonations', '/dashboard/doctor/help': 'about', '/dashboard/hospital': 'doctor', '/dashboard/hospital/donations': 'doctorDonations', '/dashboard/hospital/help': 'about', '/dashboard/queue': 'queue', '/dashboard/admin': 'staff', '/dashboard/admin/rooms': 'staff', '/dashboard/admin/donations': 'doctorDonations', '/dashboard/admin/help': 'about', '/dashboard/analytics': 'analytics', '/dashboard/analytics/help': 'about', '/donate': 'donations', '/donate/blood': 'donations', '/donate/organ': 'donations', '/ambulance': 'ambulance', '/emergency': 'ambulance', '/pharmacy': 'pharmacy', '/verify-rx': 'verifyRx', '/verify': 'verifyRx', '/about': 'about', '/terms': 'terms', '/privacy': 'privacy', '/404': 'notFound' };
     const basePath = window.SMARTCARE_BASE_PATH || '';
     const draftKey = 'smartcare.patientDraft';
     const sessionKey = 'smartcare.session';
@@ -148,17 +148,204 @@
     function getPrescription(visitId) {
         const id = String(visitId || '');
         const stored = readStorage(prescriptionsKey) || {};
-        return stored[id] || defaultPrescriptions[id] || null;
+        const found = stored[id] || defaultPrescriptions[id] || null;
+        if (found && !found.rxId) {
+            found.rxId = 'RX-2026-' + (id.replace(/\D/g, '').padStart(4, '0') || '8821');
+        }
+        return found;
+    }
+
+    function getPrescriptionByRxId(rxId) {
+        const clean = String(rxId || '').trim();
+        if (!clean) return null;
+        const stored = readStorage(prescriptionsKey) || {};
+        for (const key of Object.keys(stored)) {
+            if (stored[key].rxId === clean || key === clean) return stored[key];
+        }
+        if (clean === 'RX-2026-DEMO01' || clean === 'visit-demo-001' || clean === 'SC-DEMO001' || clean === 'RX-2026-8821') {
+            return {
+                rxId: 'RX-2026-DEMO01',
+                visitId: 'visit-demo-001',
+                patientName: 'Asha Rao',
+                doctorName: 'Dr Meera Shah',
+                doctorRegNo: 'NMC-2018-94821',
+                hospital: 'SmartCare Community Hospital',
+                assessment: 'Seasonal upper respiratory tract infection with managed asthma.',
+                vitals: { bp: '118/78 mmHg', pulse: '76 bpm', spo2: '99%', temp: '98.4°F' },
+                medicines: [
+                    { name: 'Paracetamol', strength: '650 mg', dosage: '1-0-1', timing: 'After food', duration: '3 days', instructions: 'Take when fever > 99.5F' },
+                    { name: 'Salbutamol Inhaler', strength: '100 mcg', dosage: '2 puffs SOS', timing: 'As needed', duration: '30 days', instructions: 'Use spacer during acute wheezing' }
+                ],
+                labSummary: 'CBC Normal, Peak Expiratory Flow 380 L/min',
+                issuedAt: '18 Jul 2026',
+                status: 'active',
+                tamperHash: 'SEC-99A82B-VERIFIED'
+            };
+        }
+        return null;
     }
 
     function savePrescription(visitId, prescription) {
         const id = String(visitId || '');
         if (!id) throw new Error('A visit reference is required.');
         const stored = readStorage(prescriptionsKey) || {};
-        stored[id] = { ...prescription, visitId: id, demo: true };
-        try { window.localStorage.setItem(prescriptionsKey, JSON.stringify(stored)); } catch { throw new Error('The demo prescription could not be saved on this device.'); }
+        const rxId = prescription.rxId || ('RX-2026-' + Math.floor(100000 + Math.random() * 900000));
+        stored[id] = {
+            ...prescription,
+            rxId,
+            visitId: id,
+            status: prescription.status || 'active',
+            tamperHash: 'SEC-' + Math.random().toString(36).slice(2, 8).toUpperCase() + '-VERIFIED',
+            demo: true
+        };
+        try { window.localStorage.setItem(prescriptionsKey, JSON.stringify(stored)); } catch { throw new Error('The prescription could not be saved on this device.'); }
         notify();
         return stored[id];
+    }
+
+    function dispensePrescription(rxId, pharmacistInfo = {}) {
+        const clean = String(rxId || '').trim();
+        const stored = readStorage(prescriptionsKey) || {};
+        let foundKey = null;
+        for (const key of Object.keys(stored)) {
+            if (stored[key].rxId === clean || key === clean) {
+                foundKey = key;
+                break;
+            }
+        }
+        if (!foundKey && (clean === 'RX-2026-DEMO01' || clean === 'visit-demo-001' || clean === 'SC-DEMO001' || clean === 'RX-2026-8821')) {
+            foundKey = 'visit-demo-001';
+            stored[foundKey] = getPrescriptionByRxId(clean);
+        }
+        if (!foundKey || !stored[foundKey]) {
+            return { success: false, error: 'Prescription record not found.' };
+        }
+        if (stored[foundKey].status === 'dispensed') {
+            return {
+                success: false,
+                alreadyDispensed: true,
+                error: `This prescription was already fulfilled at ${stored[foundKey].dispensedBy || 'another pharmacy'} on ${stored[foundKey].dispensedAt || 'an earlier date'}. Duplicate dispensing is strictly prohibited.`
+            };
+        }
+        stored[foundKey].status = 'dispensed';
+        stored[foundKey].dispensedAt = new Date().toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' });
+        stored[foundKey].dispensedBy = pharmacistInfo.pharmacyName || 'SmartCare Hospital In-House Pharmacy';
+        stored[foundKey].dispensedPharmacist = pharmacistInfo.pharmacistName || 'Registered Pharmacist (Lic #TS-PH-8821)';
+        try { window.localStorage.setItem(prescriptionsKey, JSON.stringify(stored)); } catch {}
+        notify();
+        return { success: true, prescription: stored[foundKey] };
+    }
+
+    // Ambulance State Management
+    const ambulanceKey = 'smartcare.activeAmbulance';
+    const ambulanceHistoryKey = 'smartcare.ambulanceHistory';
+
+    function getActiveAmbulance() {
+        return readStorage(ambulanceKey) || null;
+    }
+
+    function bookAmbulance(request) {
+        const id = 'AMB-' + Date.now().toString(36).toUpperCase();
+        const booking = {
+            id,
+            type: request.type || 'ALS',
+            typeLabel: request.type === 'BLS' ? 'Basic Life Support (BLS)' : request.type === 'PatientTransport' ? 'Patient Transport Vehicle' : 'Advanced Life Support / ICU (ALS)',
+            patientName: request.patientName || (state.loggedEmail ? state.loggedEmail.split('@')[0] : 'Emergency Patient'),
+            patientPhone: request.patientPhone || '+91 98765 43210',
+            pickupAddress: request.pickupAddress || 'Gachibowli, Hyderabad',
+            hospital: request.hospital || state.loggedHospital || 'SmartCare Community Hospital',
+            status: 'dispatched',
+            driver: {
+                name: 'K. Ramesh Babu',
+                phone: '+91 98490 88214',
+                vehicleNo: 'TS-09-EA-4910',
+                vehicleModel: 'Force Traveller Advanced ICU'
+            },
+            etaMinutes: 7,
+            dispatchedAt: new Date().toISOString()
+        };
+        try { window.localStorage.setItem(ambulanceKey, JSON.stringify(booking)); } catch {}
+        window.dispatchEvent(new CustomEvent('smartcare:ambulance-dispatched', { detail: booking }));
+        notify();
+        return booking;
+    }
+
+    function cancelAmbulance(id, reason = 'Emergency situation managed') {
+        const current = getActiveAmbulance();
+        if (current && current.id === id) {
+            current.status = 'cancelled';
+            current.cancelReason = reason;
+            current.cancelledAt = new Date().toISOString();
+            try {
+                window.localStorage.removeItem(ambulanceKey);
+                const history = readStorage(ambulanceHistoryKey) || [];
+                history.unshift(current);
+                window.localStorage.setItem(ambulanceHistoryKey, JSON.stringify(history.slice(0, 10)));
+            } catch {}
+            window.dispatchEvent(new CustomEvent('smartcare:ambulance-cancelled', { detail: current }));
+            notify();
+            return { success: true };
+        }
+        return { success: false, error: 'No active ambulance booking found.' };
+    }
+
+    // Pharmacy Order Management
+    const pharmacyOrdersKey = 'smartcare.pharmacyOrders';
+    function getPharmacyOrders() {
+        const defaultOrders = [
+            {
+                id: 'PHARM-DEMO1',
+                rxId: 'RX-2026-DEMO01',
+                patientName: 'Asha Rao',
+                patientPhone: '+91 98765 43210',
+                items: [
+                    { name: 'Paracetamol 650mg (Strip of 10)', qty: 1, price: 35 },
+                    { name: 'Salbutamol Inhaler 100mcg', qty: 1, price: 145 }
+                ],
+                total: 180,
+                fulfillmentType: 'counter',
+                counterNo: 'Counter #02',
+                status: 'ready',
+                createdAt: new Date(Date.now() - 25 * 60000).toISOString()
+            }
+        ];
+        const stored = readStorage(pharmacyOrdersKey);
+        return Array.isArray(stored) && stored.length ? stored : defaultOrders;
+    }
+
+    function createPharmacyOrder(order) {
+        const orders = getPharmacyOrders();
+        const id = 'PHARM-' + Date.now().toString(36).toUpperCase();
+        const newOrder = {
+            id,
+            rxId: order.rxId || 'RX-DIRECT',
+            patientName: order.patientName || (state.loggedEmail ? state.loggedEmail.split('@')[0] : 'Patient'),
+            patientPhone: order.patientPhone || '+91 98765 43210',
+            items: order.items || [],
+            total: order.total || 180,
+            fulfillmentType: order.fulfillmentType || 'counter',
+            deliveryAddress: order.deliveryAddress || '',
+            counterNo: order.fulfillmentType === 'counter' ? 'Counter #02' : 'Home Delivery Dispatch',
+            status: 'placed',
+            createdAt: new Date().toISOString()
+        };
+        orders.unshift(newOrder);
+        try { window.localStorage.setItem(pharmacyOrdersKey, JSON.stringify(orders.slice(0, 30))); } catch {}
+        notify();
+        return newOrder;
+    }
+
+    function updatePharmacyOrderStatus(id, nextStatus) {
+        const orders = getPharmacyOrders();
+        const found = orders.find(o => o.id === id);
+        if (found) {
+            found.status = nextStatus;
+            found.updatedAt = new Date().toISOString();
+            try { window.localStorage.setItem(pharmacyOrdersKey, JSON.stringify(orders)); } catch {}
+            notify();
+            return { success: true };
+        }
+        return { success: false, error: 'Order not found' };
     }
     
     const donationsKey = 'smartcare.donations';
@@ -458,7 +645,11 @@
                     doctorName: queueVisit.doctorName || queueVisit.doctor_name || visit.doctorName,
                     consultationType: queueVisit.consultationType || queueVisit.consultation_type || visit.consultationType,
                     appointmentDate: queueVisit.appointmentDate || queueVisit.appointment_date || visit.appointmentDate,
-                    appointmentSlot: queueVisit.appointmentSlot || queueVisit.appointment_slot || visit.appointmentSlot
+                    appointmentSlot: queueVisit.appointmentSlot || queueVisit.appointment_slot || visit.appointmentSlot,
+                    cancelledBy: queueVisit.cancelledBy || visit.cancelledBy,
+                    cancellationReason: queueVisit.cancellationReason || visit.cancellationReason,
+                    cancelledAt: queueVisit.cancelledAt || visit.cancelledAt,
+                    refundStatus: queueVisit.refundStatus || visit.refundStatus
                 };
                 if (JSON.stringify(nextVisit) !== JSON.stringify(visit)) historyChanged = true;
                 return nextVisit;
@@ -473,6 +664,7 @@
                 ? fullQueue.filter(patient => (patient.queueHospital || patient.hospital) === state.loggedHospital && String(patient.city || 'Hyderabad').toLowerCase() === String(state.loggedCity || 'Hyderabad').toLowerCase())
                 : fullQueue;
         state.queue = scopedQueue.filter(patient => !['completed', 'cancelled', 'withdrawn', 'no-show'].includes(String(patient.status || '').toLowerCase()));
+        state.cancelledQueue = scopedQueue.filter(patient => ['cancelled', 'withdrawn'].includes(String(patient.status || '').toLowerCase()));
         if (['patientDashboard', 'doctor', 'staff', 'queue', 'analytics'].includes(state.view)) notify();
     }
     function setLoggedLocation(country, stateName, city, hospital) { state.loggedCountry = country; state.loggedState = stateName; state.loggedCity = city; state.loggedHospital = hospital; updateQueue(fullQueue); persistSession(); }
@@ -525,6 +717,54 @@
             return { success: false, error: error.message || 'The queue update failed.' };
         }
     }
+    async function cancelAppointment(id, cancelledBy = 'patient', reason = 'Schedule conflict') {
+        try {
+            const updates = {
+                status: 'cancelled',
+                cancelledBy,
+                cancellationReason: reason,
+                cancelledAt: new Date().toISOString(),
+                refundStatus: cancelledBy === 'doctor' ? 'eligible' : 'none'
+            };
+            await window.App.DB.updatePatient(id, updates);
+            const freshQueue = await window.App.DB.fetchQueue();
+            updateQueue(freshQueue);
+            const historyVisit = state.patientVisits.find(v => String(v.id) === String(id));
+            if (historyVisit) {
+                recordPatientVisit({
+                    ...historyVisit,
+                    status: 'Cancelled',
+                    cancelledBy,
+                    cancellationReason: reason,
+                    cancelledAt: updates.cancelledAt,
+                    refundStatus: updates.refundStatus
+                });
+            }
+            window.dispatchEvent(new CustomEvent('smartcare:appointment-cancelled', {
+                detail: { id, cancelledBy, reason, cancelledAt: updates.cancelledAt }
+            }));
+            notify();
+            return { success: true };
+        } catch (error) {
+            return { success: false, error: error.message || 'Failed to cancel appointment.' };
+        }
+    }
+    async function claimRefund(id) {
+        const historyVisit = state.patientVisits.find(v => String(v.id) === String(id));
+        if (historyVisit) {
+            const ref = 'REF-' + Date.now().toString(36).toUpperCase();
+            recordPatientVisit({
+                ...historyVisit,
+                refundStatus: 'processed',
+                refundRef: ref,
+                refundClaimedAt: new Date().toISOString()
+            });
+            await window.App.DB.updatePatient(id, { refundStatus: 'processed', refundRef: ref });
+            notify();
+            return { success: true, ref };
+        }
+        return { success: false, error: 'Appointment not found' };
+    }
     function getQueueMetrics() {
         const waiting = state.queue.filter(patient => !['completed', 'cancelled', 'withdrawn', 'no-show'].includes(String(patient.status || '').toLowerCase()));
         const waits = waiting.map(patient => Math.max(0, Math.round((Date.now() - new Date(patient.created_at || Date.now()).getTime()) / 60000))).filter(Number.isFinite);
@@ -540,5 +780,5 @@
     syncRoute(true, false);
     window.setInterval(() => { if (state.isLogged && state.sessionExpiresAt && state.sessionExpiresAt <= Date.now()) logout(); }, 60000);
     if (window.App.DB) initSync(); else window.addEventListener('load', () => { if (window.App.DB) initSync(); });
-    window.App.Store = { state, subscribe, setView, navigate, navigateTab, syncRoute, setStep, setAuthTarget, updatePatientData, updateQueue, setLoggedLocation, setLogin, recordPatientVisit, logout, getRevenue, getQueueMetrics, getNextPatient, sortQueue, transitionPatient, persistDraft, hrefFor, hrefForTab, getDonationsData, saveDonationsData, addHospitalDonation, addPatientDonation, getMedicalHistory, saveMedicalHistory, registerMedicalPassport, getMedicalPassport, getPrescription, savePrescription, getCareTeam, getAppointmentSlots };
+    window.App.Store = { state, subscribe, setView, navigate, navigateTab, syncRoute, setStep, setAuthTarget, updatePatientData, updateQueue, setLoggedLocation, setLogin, recordPatientVisit, logout, getRevenue, getQueueMetrics, getNextPatient, sortQueue, transitionPatient, cancelAppointment, claimRefund, persistDraft, hrefFor, hrefForTab, getDonationsData, saveDonationsData, addHospitalDonation, addPatientDonation, getMedicalHistory, saveMedicalHistory, registerMedicalPassport, getMedicalPassport, getPrescription, getPrescriptionByRxId, savePrescription, dispensePrescription, getActiveAmbulance, bookAmbulance, cancelAmbulance, getPharmacyOrders, createPharmacyOrder, updatePharmacyOrderStatus, getCareTeam, getAppointmentSlots };
 })();

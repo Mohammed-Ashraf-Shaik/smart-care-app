@@ -45,6 +45,30 @@
             }).join('')
             : `<div class="provider-empty">${icon('clipboard-x', 28)}<p>No visits saved yet.</p></div>`;
 
+        const recentlyCancelledVisit = state.patientVisits.find(visit => ['cancelled', 'withdrawn'].includes(String(visit.status || '').toLowerCase()) && (visit.cancelledBy === 'doctor' || (Date.now() - new Date(visit.cancelledAt || visit.date || Date.now()).getTime() < 48 * 3600 * 1000)));
+
+        const cancellationBanner = recentlyCancelledVisit ? `
+            <section class="patient-appointment-card patient-cancellation-banner ${recentlyCancelledVisit.cancelledBy === 'doctor' ? 'doctor-cancelled' : 'patient-cancelled'}" style="border-left:4px solid ${recentlyCancelledVisit.cancelledBy === 'doctor' ? '#e53e3e' : '#f59e0b'};margin-bottom:1.25rem;background:var(--surface)">
+                <div class="appointment-icon" style="color:${recentlyCancelledVisit.cancelledBy === 'doctor' ? '#e53e3e' : '#f59e0b'}">${icon(recentlyCancelledVisit.cancelledBy === 'doctor' ? 'triangle-alert' : 'info', 22)}</div>
+                <div class="appointment-copy" style="flex:1">
+                    <span class="eyebrow" style="color:${recentlyCancelledVisit.cancelledBy === 'doctor' ? '#e53e3e' : '#f59e0b'}"><span class="eyebrow-dot" style="background:${recentlyCancelledVisit.cancelledBy === 'doctor' ? '#e53e3e' : '#f59e0b'}"></span> ${recentlyCancelledVisit.cancelledBy === 'doctor' ? 'Appointment Cancelled by Hospital' : 'Appointment Cancelled'}</span>
+                    <h2 style="font-size:1.15rem;margin:.25rem 0">${recentlyCancelledVisit.cancelledBy === 'doctor' ? `Dr. ${esc(recentlyCancelledVisit.doctorName || 'Clinician')} had an unexpected schedule change` : `You cancelled this appointment`}</h2>
+                    <p style="margin:.25rem 0;font-size:.9rem"><strong>Reason:</strong> ${esc(recentlyCancelledVisit.cancellationReason || (recentlyCancelledVisit.cancelledBy === 'doctor' ? 'Doctor summoned for emergency surgery duty' : 'Schedule conflict'))}</p>
+                    <small>Centre: ${esc(recentlyCancelledVisit.hospital)} | Ref: <strong>${esc(recentlyCancelledVisit.id)}</strong></small>
+                    <div style="margin-top:.75rem;display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+                        <button type="button" class="btn-primary btn-icon btn-reschedule-free" data-visit-id="${esc(recentlyCancelledVisit.id)}" style="font-size:.82rem;padding:.45rem .85rem">
+                            ${icon('calendar-clock', 15)} Reschedule free of charge
+                        </button>
+                        ${recentlyCancelledVisit.refundStatus === 'processed'
+                            ? `<span class="badge" style="background:#e6fffa;color:#234e52;border:1px solid #b2f5ea;padding:.45rem .85rem;border-radius:6px;font-size:.82rem;font-weight:600">${icon('check-circle', 14)} Refund Processed (${esc(recentlyCancelledVisit.refundRef || 'REF-OK')})</span>`
+                            : `<button type="button" class="btn-secondary btn-icon btn-claim-refund" data-visit-id="${esc(recentlyCancelledVisit.id)}" style="font-size:.82rem;padding:.45rem .85rem">
+                                ${icon('receipt', 15)} Claim ₹125 refund
+                               </button>`
+                        }
+                    </div>
+                </div>
+            </section>` : '';
+
         const appointmentCard = activeVisit ? `
             <section class="patient-appointment-card" aria-label="Next appointment and live queue status">
                 <div class="appointment-icon">${icon('calendar-clock', 22)}</div>
@@ -70,6 +94,7 @@
                     </div>
                 </div>
             </section>` : `
+            ${cancellationBanner ? '' : `
             <section class="patient-appointment-card patient-appointment-empty" aria-label="Next appointment">
                 <div class="appointment-icon">${icon('calendar-plus', 22)}</div>
                 <div class="appointment-copy">
@@ -78,7 +103,7 @@
                     <p>Choose a nearby centre and reserve a visit when you are ready.</p>
                 </div>
                 <a class="text-link text-link-dark btn-icon" data-route="/dashboard/patient/apply/1" href="/dashboard/patient/apply/1">Book a visit ${icon('arrow-right', 15)}</a>
-            </section>`;
+            </section>`}`;
 
         container.innerHTML = `
             <div class="flow-topbar">
@@ -103,6 +128,8 @@
                 </header>` : ''}
                 ${isApplyTab ? `<div id="embedded-booking-mount"></div>` : ''}
                 ${showOverview ? `
+                    ${cancellationBanner}
+                    ${appointmentCard}
                     <section class="patient-next-action" aria-label="Next patient action">
                         <div>
                             <span class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> Next step</span>
@@ -193,13 +220,12 @@
                                 <input id="pf-city" type="text" value="${esc(patientData.city || 'Hyderabad')}" placeholder="Hyderabad" required>
                             </div>
                             <div class="field full">
-                                <label for="pf-pref">Preferred Care Specialty</label>
-                                <select id="pf-pref">
-                                    <option value="General consultation" ${patientData.doctorPref === 'General consultation' ? 'selected' : ''}>General consultation / OPD</option>
-                                    <option value="Women's health" ${patientData.doctorPref === "Women's health" ? 'selected' : ''}>Women's health / Gynaecology</option>
-                                    <option value="Child care" ${patientData.doctorPref === 'Child care' ? 'selected' : ''}>Child care / Paediatrics</option>
-                                    <option value="Emergency & Triage" ${patientData.doctorPref === 'Emergency & Triage' ? 'selected' : ''}>Emergency &amp; Acute Triage</option>
-                                </select>
+                                <label for="pf-address">Address / Area</label>
+                                <input id="pf-address" type="text" value="${esc(patientData.area || '')}" placeholder="e.g. Banjara Hills, Road No. 12">
+                            </div>
+                            <div class="field full">
+                                <label for="pf-allergies">Known Drug Allergies</label>
+                                <input id="pf-allergies" type="text" value="${esc(patientData.allergies || '')}" placeholder="e.g. Penicillin, Sulfa drugs (Leave blank if none)">
                             </div>
                             <div class="field full" style="display:flex;flex-direction:row;justify-content:space-between;align-items:center;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--line)">
                                 <span class="hint">Saved automatically to your browser profile.</span>
@@ -212,25 +238,46 @@
             </main>
             ${window.App.UI.footer(true)}`;
 
-        const overviewAction = container.querySelector('.patient-next-action');
-        if (overviewAction) overviewAction.insertAdjacentHTML('beforebegin', appointmentCard);
+        const rescheduleFreeBtn = container.querySelector('.btn-reschedule-free');
+        if (rescheduleFreeBtn && recentlyCancelledVisit) {
+            rescheduleFreeBtn.onclick = () => showAppointmentManager(recentlyCancelledVisit, rescheduleFreeBtn);
+        }
 
-        const workspaceMain = container.querySelector('main');
+        const claimRefundBtn = container.querySelector('.btn-claim-refund');
+        if (claimRefundBtn && recentlyCancelledVisit) {
+            claimRefundBtn.onclick = async () => {
+                claimRefundBtn.disabled = true;
+                claimRefundBtn.textContent = 'Processing refund...';
+                const res = await window.App.Store.claimRefund(recentlyCancelledVisit.id);
+                if (res.success) {
+                    window.App.UI.toast(`Full fee refund ₹125 initiated. Reference: ${res.ref}`, 'success');
+                    navigate('/dashboard/patient');
+                } else {
+                    claimRefundBtn.disabled = false;
+                    claimRefundBtn.textContent = 'Claim ₹125 refund';
+                    window.App.UI.toast(res.error || 'Refund request could not be completed.', 'error');
+                }
+            };
+        }
+
         const workspaceNav = document.createElement('nav');
         workspaceNav.className = 'workspace-tabs';
-        workspaceNav.setAttribute('aria-label', 'Patient portal navigation');
+        workspaceNav.setAttribute('aria-label', 'Patient workspace navigation');
         workspaceNav.innerHTML = `
-            <a class="${activeTab === 'overview' || activeTab === '' ? 'active' : ''}" href="/dashboard/patient" data-route="/dashboard/patient">${icon('layout-dashboard', 16)}<span>Overview</span></a>
-            <a class="${isApplyTab ? 'active' : ''}" href="/dashboard/patient/apply/1" data-route="/dashboard/patient/apply/1">${icon('calendar-plus', 16)}<span>Book appointment</span></a>
-            <a href="/dashboard/patient/history" data-route="/dashboard/patient/history">${icon('file-text', 16)}<span>Medical History</span></a>
-            <a class="${activeTab === 'visits' ? 'active' : ''}" href="/dashboard/patient?tab=visits" data-tab="visits" data-tab-route="/dashboard/patient">${icon('clipboard-check', 16)}<span>Previous visits</span></a>
-            <a class="${activeTab === 'profile' ? 'active' : ''}" href="/dashboard/patient?tab=profile" data-tab="profile" data-tab-route="/dashboard/patient">${icon('user-round', 16)}<span>Profile</span></a>
+            <a class="${activeTab === 'overview' || activeTab === '' ? 'active' : ''}" href="/dashboard/patient" data-tab="overview">${icon('layout-dashboard', 16)}<span>Overview</span></a>
+            <a class="${activeTab === 'apply' ? 'active' : ''}" href="/dashboard/patient/apply/1" data-route="/dashboard/patient/apply/1">${icon('calendar-plus', 16)}<span>Book visit</span></a>
+            <a class="${activeTab === 'visits' ? 'active' : ''}" href="/dashboard/patient?tab=visits" data-tab="visits">${icon('clipboard-check', 16)}<span>Previous visits</span></a>
+            <a href="/dashboard/patient/history" data-route="/dashboard/patient/history">${icon('file-text', 16)}<span>Medical history</span></a>
+            <a class="${activeTab === 'profile' ? 'active' : ''}" href="/dashboard/patient?tab=profile" data-tab="profile">${icon('user-round', 16)}<span>Profile</span></a>
             <div class="nav-divider"></div>
+            <a href="/ambulance" data-route="/ambulance" style="color:#e53e3e">${icon('siren', 16)}<span>Ambulance SOS</span></a>
+            <a href="/pharmacy" data-route="/pharmacy">${icon('pill', 16)}<span>Pharmacy</span></a>
             <a href="/dashboard/patient/donations" data-route="/dashboard/patient/donations">${icon('heart-handshake', 16)}<span>Donations</span></a>
             <a href="/dashboard/patient/help" data-route="/dashboard/patient/help">${icon('circle-help', 16)}<span>Help</span></a>
             <button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>
         `;
 
+        const workspaceMain = container.querySelector('main');
         const workspaceContent = document.createElement('div');
         workspaceContent.className = 'workspace-content';
         Array.from(workspaceMain.children).forEach(child => workspaceContent.appendChild(child));
@@ -238,14 +285,13 @@
 
         if (isApplyTab && window.App.Views.Patient) {
             const mount = workspaceContent.querySelector('#embedded-booking-mount');
-            if (mount) mount.appendChild(window.App.Views.Patient(true));
+            if (mount) mount.appendChild(window.App.Views.Patient({ embedded: true, showTopbar: false }));
         }
 
-        // Bind Prescription & Lab Report modals
-        container.querySelectorAll('.btn-view-rx').forEach(btn => {
-            btn.onclick = () => {
-                const visitId = btn.dataset.visitId;
-                const visit = state.patientVisits.find(v => String(v.id) === String(visitId)) || activeVisit || latestVisit || {};
+        container.querySelectorAll('.btn-view-rx').forEach(button => {
+            button.onclick = () => {
+                const visitId = button.dataset.visitId;
+                const visit = state.patientVisits.find(item => String(item.id) === String(visitId)) || activeVisit || latestVisit || {};
                 window.App.UI.showPrescriptionModal({
                     ...visit,
                     patientName: patientName,
@@ -262,14 +308,54 @@
             const slots = getAppointmentSlots();
             const currentSlotValue = `${visit.appointmentDate || slots[0].date}|${visit.appointmentSlot || slots[0].slot}`;
             const canReschedule = !['called', 'in_progress'].includes(liveStatus);
-            const isFutureAppointment = String(visit.appointmentDate || '') > new Date().toISOString().slice(0, 10);
-            const exitStatus = isFutureAppointment ? 'cancelled' : 'withdrawn';
-            const exitLabel = isFutureAppointment ? 'Cancel appointment' : 'Withdraw from queue';
+            const isFutureAppointment = String(visit.appointmentDate || '') >= new Date().toISOString().slice(0, 10);
+            const exitLabel = 'Cancel appointment';
             const backdrop = document.createElement('div');
             backdrop.className = 'modal-backdrop';
-            backdrop.innerHTML = `<section class="modal-card appointment-manager" role="dialog" aria-modal="true" aria-labelledby="appointment-manager-title"><div class="modal-heading"><div><h2 id="appointment-manager-title">Manage appointment</h2><p>${esc(visit.hospital || 'SmartCare centre')} | ${esc(visit.doctorName || 'Clinician assignment pending')}</p></div><button type="button" class="btn-ghost modal-close-button" data-close-manager aria-label="Close appointment manager">${icon('x', 18)}</button></div><form id="reschedule-form" class="appointment-manager-form"><div class="field"><label for="reschedule-slot">Choose another available slot</label><select id="reschedule-slot" ${canReschedule ? '' : 'disabled'}>${slots.map(slot => `<option value="${esc(slot.value)}" ${slot.value === currentSlotValue ? 'selected' : ''}>${esc(slot.label)}</option>`).join('')}</select><span class="hint">${canReschedule ? 'Demo slots update both the patient record and hospital queue.' : 'This visit cannot be rescheduled after the hospital calls the patient.'}</span></div><div class="modal-actions"><button type="button" class="btn-secondary" data-close-manager>Keep current booking</button><button type="submit" class="btn-primary btn-icon" ${canReschedule ? '' : 'disabled'}>${icon('calendar-clock', 15)} Save new time</button></div></form><div class="appointment-danger-zone"><div><strong>${exitLabel}</strong><p>This removes the visit from the active hospital queue. The record remains in Previous visits.</p></div><button id="begin-withdraw" class="btn-danger" type="button">${exitLabel}</button><div id="withdraw-confirmation" class="withdraw-confirmation" hidden><p>Confirm that you want to ${exitLabel.toLowerCase()}.</p><div><button class="btn-secondary" id="keep-appointment" type="button">Keep appointment</button><button class="btn-danger" id="confirm-withdraw" type="button">Confirm ${exitLabel.toLowerCase()}</button></div></div></div><p id="appointment-manager-status" class="inline-status" role="status" aria-live="polite"></p></section>`;
+            backdrop.innerHTML = `<section class="modal-card appointment-manager" role="dialog" aria-modal="true" aria-labelledby="appointment-manager-title">
+                <div class="modal-heading">
+                    <div>
+                        <h2 id="appointment-manager-title">Manage appointment</h2>
+                        <p>${esc(visit.hospital || 'SmartCare centre')} | ${esc(visit.doctorName || 'Clinician assignment pending')}</p>
+                    </div>
+                    <button type="button" class="btn-ghost modal-close-button" data-close-manager aria-label="Close appointment manager">${icon('x', 18)}</button>
+                </div>
+                <form id="reschedule-form" class="appointment-manager-form">
+                    <div class="field">
+                        <label for="reschedule-slot">Choose another available slot</label>
+                        <select id="reschedule-slot" ${canReschedule ? '' : 'disabled'}>${slots.map(slot => `<option value="${esc(slot.value)}" ${slot.value === currentSlotValue ? 'selected' : ''}>${esc(slot.label)}</option>`).join('')}</select>
+                        <span class="hint">${canReschedule ? 'Rescheduling releases your old slot and immediately updates the hospital queue.' : 'This visit cannot be rescheduled after the hospital calls the patient.'}</span>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn-secondary" data-close-manager>Keep current booking</button>
+                        <button type="submit" class="btn-primary btn-icon" ${canReschedule ? '' : 'disabled'}>${icon('calendar-clock', 15)} Save new time</button>
+                    </div>
+                </form>
+                <div class="appointment-danger-zone">
+                    <div>
+                        <strong>Cancel appointment</strong>
+                        <p>This releases your doctor appointment slot back to other patients in need.</p>
+                    </div>
+                    <button id="begin-withdraw" class="btn-danger" type="button">Cancel appointment</button>
+                    <div id="withdraw-confirmation" class="withdraw-confirmation" hidden style="margin-top:.75rem">
+                        <p style="font-weight:600;font-size:.9rem;margin-bottom:.35rem">Select reason for cancellation:</p>
+                        <select id="patient-cancel-reason" style="width:100%;margin-bottom:.75rem;padding:.5rem .75rem;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink)">
+                            <option value="Schedule conflict or travel">Schedule conflict or travel</option>
+                            <option value="Emergency resolved / Feeling better">Emergency resolved / Feeling better</option>
+                            <option value="Visiting alternate clinic">Visiting alternate clinic</option>
+                            <option value="Wait time too long">Wait time too long</option>
+                            <option value="Personal circumstances">Personal circumstances</option>
+                        </select>
+                        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                            <button class="btn-secondary" id="keep-appointment" type="button">Keep appointment</button>
+                            <button class="btn-danger" id="confirm-withdraw" type="button">Confirm cancellation</button>
+                        </div>
+                    </div>
+                </div>
+                <p id="appointment-manager-status" class="inline-status" role="status" aria-live="polite"></p>
+            </section>`;
             document.body.appendChild(backdrop);
-            const close = () => { backdrop.remove(); trigger.focus(); };
+            const close = () => { backdrop.remove(); trigger?.focus(); };
             backdrop.querySelectorAll('[data-close-manager]').forEach(button => button.onclick = close);
             backdrop.onclick = event => { if (event.target === backdrop) close(); };
             backdrop.onkeydown = event => { if (event.key === 'Escape') close(); };
@@ -296,17 +382,17 @@
             backdrop.querySelector('#keep-appointment').onclick = () => { confirmation.hidden = true; backdrop.querySelector('#begin-withdraw').focus(); };
             backdrop.querySelector('#confirm-withdraw').onclick = async event => {
                 const button = event.currentTarget;
+                const reason = backdrop.querySelector('#patient-cancel-reason')?.value || 'Schedule conflict';
                 button.disabled = true;
-                button.textContent = 'Updating...';
+                button.textContent = 'Cancelling...';
                 try {
-                    await window.App.DB.updatePatient(visit.id, { status: exitStatus });
-                    recordPatientVisit({ ...visit, status: exitStatus === 'cancelled' ? 'Cancelled' : 'Withdrawn' });
+                    await window.App.Store.cancelAppointment(visit.id, 'patient', reason);
                     close();
-                    window.App.UI.toast(exitStatus === 'cancelled' ? 'Appointment cancelled.' : 'Visit withdrawn from the active queue.', 'success');
+                    window.App.UI.toast('Appointment cancelled and doctor slot released.', 'success');
                     navigate('/dashboard/patient');
                 } catch (error) {
                     button.disabled = false;
-                    button.textContent = `Confirm ${exitLabel.toLowerCase()}`;
+                    button.textContent = 'Confirm cancellation';
                     backdrop.querySelector('#appointment-manager-status').textContent = error.message || 'We could not update this appointment.';
                 }
             };
