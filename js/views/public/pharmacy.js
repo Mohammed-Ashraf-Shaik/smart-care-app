@@ -9,14 +9,19 @@
 
         let activeTab = 'patient'; // 'patient' or 'dispensary'
         let fulfillmentType = 'counter'; // 'counter' or 'delivery'
+        let searchQuery = '';
+        let selectedCategory = 'all';
 
         // Sample catalog of generic vs branded items
         const defaultItems = [
-            { id: 'm-1', name: 'Paracetamol 650 mg', brand: 'Generic Jan Aushadhi', price: 20, mrp: 35, type: 'prescription', qty: 1 },
-            { id: 'm-2', name: 'Salbutamol Inhaler 100 mcg', brand: 'Asthalin (Cipla)', price: 145, mrp: 175, type: 'prescription', qty: 1 },
-            { id: 'm-3', name: 'Pantoprazole 40 mg', brand: 'Pan-40 (Alkem)', price: 65, mrp: 95, type: 'prescription', qty: 1 },
-            { id: 'm-4', name: 'ORS Electrolyte Sachet', brand: 'Electral', price: 22, mrp: 25, type: 'otc', qty: 2 },
-            { id: 'm-5', name: 'Digital Clinical Thermometer', brand: 'SmartCare CareGear', price: 180, mrp: 250, type: 'otc', qty: 1 }
+            { id: 'm-1', name: 'Paracetamol 650 mg', brand: 'Generic Jan Aushadhi', price: 20, mrp: 35, type: 'prescription', category: 'prescription', qty: 1 },
+            { id: 'm-2', name: 'Salbutamol Inhaler 100 mcg', brand: 'Asthalin (Cipla)', price: 145, mrp: 175, type: 'prescription', category: 'prescription', qty: 1 },
+            { id: 'm-3', name: 'Pantoprazole 40 mg', brand: 'Pan-40 (Alkem)', price: 65, mrp: 95, type: 'prescription', category: 'prescription', qty: 1 },
+            { id: 'm-4', name: 'ORS Electrolyte Sachet', brand: 'Electral', price: 22, mrp: 25, type: 'otc', category: 'otc', qty: 2 },
+            { id: 'm-5', name: 'Digital Clinical Thermometer', brand: 'SmartCare CareGear', price: 180, mrp: 250, type: 'otc', category: 'equipment', qty: 1 },
+            { id: 'm-6', name: 'Cetirizine 10 mg (Allergy Relief)', brand: 'Cetcip (Cipla)', price: 25, mrp: 40, type: 'otc', category: 'otc', qty: 1 },
+            { id: 'm-7', name: 'Azithromycin 500 mg Tablets', brand: 'Azee-500 (Generic)', price: 85, mrp: 120, type: 'prescription', category: 'prescription', qty: 1 },
+            { id: 'm-8', name: 'Sterile Gauze & Antiseptic Bandage Kit', brand: 'SmartCare FirstAid', price: 45, mrp: 60, type: 'otc', category: 'equipment', qty: 1 }
         ];
 
         let cart = [
@@ -91,11 +96,25 @@
                                 
                                 <!-- Left Column: Medicines Catalog -->
                                 <div>
-                                    <h2 style="font-size:1.15rem;margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem">
-                                        ${icon('shopping-bag', 18)} Available Hospital Inventory
-                                    </h2>
+                                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem">
+                                        <h2 style="font-size:1.15rem;margin:0;display:flex;align-items:center;gap:.4rem">
+                                            ${icon('shopping-bag', 18)} Available Hospital Inventory
+                                        </h2>
+                                        <span style="font-size:.8rem;color:var(--muted)">${filteredItems.length} items</span>
+                                    </div>
+
+                                    <!-- Search & Category Filters -->
+                                    <div style="display:flex;gap:.5rem;margin-bottom:.85rem;flex-wrap:wrap">
+                                        <input id="pharm-search-input" type="text" placeholder="Search medicines or salts..." value="${esc(searchQuery)}" style="flex:1;min-width:160px;padding:.45rem .8rem;font-size:.85rem;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)">
+                                        <div style="display:inline-flex;gap:.25rem;flex-wrap:wrap">
+                                            <button type="button" class="btn-category-filter ${selectedCategory === 'all' ? 'active' : ''}" data-cat="all" style="padding:.3rem .55rem;font-size:.75rem;border-radius:6px;border:1px solid var(--line);background:${selectedCategory === 'all' ? 'var(--teal)' : 'var(--surface)'};color:${selectedCategory === 'all' ? '#fff' : 'var(--muted)'};cursor:pointer">All</button>
+                                            <button type="button" class="btn-category-filter ${selectedCategory === 'prescription' ? 'active' : ''}" data-cat="prescription" style="padding:.3rem .55rem;font-size:.75rem;border-radius:6px;border:1px solid var(--line);background:${selectedCategory === 'prescription' ? 'var(--teal)' : 'var(--surface)'};color:${selectedCategory === 'prescription' ? '#fff' : 'var(--muted)'};cursor:pointer">Rx</button>
+                                            <button type="button" class="btn-category-filter ${selectedCategory === 'otc' ? 'active' : ''}" data-cat="otc" style="padding:.3rem .55rem;font-size:.75rem;border-radius:6px;border:1px solid var(--line);background:${selectedCategory === 'otc' ? 'var(--teal)' : 'var(--surface)'};color:${selectedCategory === 'otc' ? '#fff' : 'var(--muted)'};cursor:pointer">OTC</button>
+                                        </div>
+                                    </div>
+
                                     <div class="medicine-item-list" style="display:flex;flex-direction:column;gap:.75rem">
-                                        ${defaultItems.map(item => {
+                                        ${filteredItems.length ? filteredItems.map(item => {
                                             const inCart = cart.find(c => c.id === item.id);
                                             return `
                                                 <div class="provider-card" style="padding:.9rem 1.1rem;display:flex;justify-content:space-between;align-items:center;margin:0">
@@ -113,7 +132,11 @@
                                                     </div>
                                                     <div>
                                                         ${inCart ? `
-                                                            <span class="badge" style="background:#e6fffa;color:#234e52;font-weight:700;padding:.35rem .7rem">Added (${inCart.qty})</span>
+                                                            <div style="display:flex;align-items:center;gap:.35rem;background:var(--canvas);padding:.2rem .4rem;border-radius:6px;border:1px solid var(--line)">
+                                                                <button type="button" class="btn-cart-dec" data-item-id="${item.id}" style="border:none;background:transparent;color:var(--ink);cursor:pointer;font-weight:700;font-size:.9rem;padding:0 .3rem">-</button>
+                                                                <span style="font-weight:700;font-size:.82rem;min-width:18px;text-align:center;color:var(--teal)">${inCart.qty}</span>
+                                                                <button type="button" class="btn-cart-inc" data-item-id="${item.id}" style="border:none;background:transparent;color:var(--ink);cursor:pointer;font-weight:700;font-size:.9rem;padding:0 .3rem">+</button>
+                                                            </div>
                                                         ` : `
                                                             <button type="button" class="btn-secondary btn-icon btn-add-cart" data-item-id="${item.id}" style="font-size:.8rem;padding:.35rem .75rem">
                                                                 ${icon('plus', 14)} Add
@@ -122,7 +145,7 @@
                                                     </div>
                                                 </div>
                                             `;
-                                        }).join('')}
+                                        }).join('') : `<div class="provider-empty" style="padding:1.5rem"><p>No medications matching your filter.</p></div>`}
                                     </div>
                                 </div>
 
@@ -136,9 +159,17 @@
                                         <!-- Cart Items List -->
                                         <div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.25rem;border-bottom:1px solid var(--line);padding-bottom:1rem">
                                             ${cart.length ? cart.map(item => `
-                                                <div style="display:flex;justify-content:space-between;align-items:center;font-size:.88rem">
-                                                    <span>${esc(item.name)} <small style="color:var(--muted)">x${item.qty}</small></span>
-                                                    <strong>₹${item.price * item.qty}</strong>
+                                                <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;font-size:.88rem">
+                                                    <div style="flex:1;min-width:0">
+                                                        <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(item.name)}</div>
+                                                        <small style="color:var(--muted)">₹${item.price} each</small>
+                                                    </div>
+                                                    <div style="display:flex;align-items:center;gap:.25rem">
+                                                        <button type="button" class="btn-cart-dec" data-item-id="${item.id}" style="border:1px solid var(--line);background:var(--surface);border-radius:4px;color:var(--ink);cursor:pointer;padding:.1rem .35rem;font-size:.75rem">-</button>
+                                                        <span style="font-weight:700;font-size:.82rem;min-width:16px;text-align:center">${item.qty}</span>
+                                                        <button type="button" class="btn-cart-inc" data-item-id="${item.id}" style="border:1px solid var(--line);background:var(--surface);border-radius:4px;color:var(--ink);cursor:pointer;padding:.1rem .35rem;font-size:.75rem">+</button>
+                                                    </div>
+                                                    <strong style="min-width:44px;text-align:right">₹${item.price * item.qty}</strong>
                                                 </div>
                                             `).join('') : `<p style="color:var(--muted);font-size:.85rem;margin:0">Cart is empty.</p>`}
                                         </div>
@@ -207,6 +238,7 @@
                                                 <th>Fulfillment</th>
                                                 <th>Total</th>
                                                 <th>Status</th>
+                                                <th>Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -220,6 +252,11 @@
                                                         <span class="badge" style="background:${o.status === 'ready' ? '#e6fffa' : o.status === 'completed' ? '#edf2f7' : '#ebf8ff'};color:${o.status === 'ready' ? '#234e52' : o.status === 'completed' ? '#4a5568' : '#2b6cb0'};font-weight:600">
                                                             ${o.status === 'ready' ? '🟢 Ready for Pickup' : o.status === 'placed' ? '🟡 Being Packed' : 'Completed'}
                                                         </span>
+                                                    </td>
+                                                    <td>
+                                                        <button type="button" class="btn-secondary btn-icon btn-track-order" data-order-id="${esc(o.id)}" style="font-size:.78rem;padding:.3rem .65rem">
+                                                            ${icon('navigation', 14)} Track
+                                                        </button>
                                                     </td>
                                                 </tr>
                                             `).join('')}
@@ -317,6 +354,57 @@
             const deliveryChoice = container.querySelector('#select-delivery');
             if (deliveryChoice) deliveryChoice.onclick = () => { fulfillmentType = 'delivery'; render(); };
 
+            // Search input & category filters
+            const searchInput = container.querySelector('#pharm-search-input');
+            if (searchInput) {
+                searchInput.oninput = () => {
+                    searchQuery = searchInput.value;
+                    render();
+                    const nextInput = container.querySelector('#pharm-search-input');
+                    if (nextInput) {
+                        nextInput.focus();
+                        nextInput.setSelectionRange(nextInput.value.length, nextInput.value.length);
+                    }
+                };
+            }
+
+            container.querySelectorAll('.btn-category-filter').forEach(btn => {
+                btn.onclick = () => {
+                    selectedCategory = btn.dataset.cat;
+                    render();
+                };
+            });
+
+            // Cart Quantity Steppers
+            container.querySelectorAll('.btn-cart-inc').forEach(btn => {
+                btn.onclick = () => {
+                    const id = btn.dataset.itemId;
+                    const item = cart.find(c => c.id === id);
+                    if (item) {
+                        item.qty += 1;
+                    } else {
+                        const def = defaultItems.find(d => d.id === id);
+                        if (def) cart.push({ id: def.id, name: def.name, price: def.price, qty: 1 });
+                    }
+                    render();
+                };
+            });
+
+            container.querySelectorAll('.btn-cart-dec').forEach(btn => {
+                btn.onclick = () => {
+                    const id = btn.dataset.itemId;
+                    const idx = cart.findIndex(c => c.id === id);
+                    if (idx >= 0) {
+                        if (cart[idx].qty > 1) {
+                            cart[idx].qty -= 1;
+                        } else {
+                            cart.splice(idx, 1);
+                        }
+                    }
+                    render();
+                };
+            });
+
             // Add to cart buttons
             container.querySelectorAll('.btn-add-cart').forEach(btn => {
                 btn.onclick = () => {
@@ -326,6 +414,15 @@
                         cart.push({ id: item.id, name: item.name, price: item.price, qty: 1 });
                         render();
                     }
+                };
+            });
+
+            // Track Order Modal trigger
+            container.querySelectorAll('.btn-track-order').forEach(btn => {
+                btn.onclick = () => {
+                    const orderId = btn.dataset.orderId;
+                    const order = getPharmacyOrders().find(o => o.id === orderId);
+                    if (order) showOrderTrackingModal(order);
                 };
             });
 
@@ -344,6 +441,7 @@
                     window.App.UI.toast(`Order placed successfully! Token: ${newOrder.id}. Ready at Counter #02 in 10 mins.`, 'success');
                     cart = [];
                     render();
+                    showOrderTrackingModal(newOrder);
                 };
             }
 
@@ -357,6 +455,113 @@
                     render();
                 };
             });
+        }
+
+        function showOrderTrackingModal(order) {
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop';
+            const isDelivery = order.fulfillmentType === 'delivery';
+            const statusLevels = { 'placed': 1, 'packed': 2, 'ready': 3, 'completed': 4 };
+
+            function renderModalContent() {
+                const updatedOrder = getPharmacyOrders().find(o => o.id === order.id) || order;
+                const level = statusLevels[updatedOrder.status] || 1;
+
+                backdrop.innerHTML = `
+                    <section class="modal-card" role="dialog" aria-modal="true" style="max-width:540px;width:95%">
+                        <div class="modal-heading">
+                            <div>
+                                <span class="badge" style="background:#ebf8ff;color:#2b6cb0;font-weight:700">${esc(updatedOrder.id)}</span>
+                                <h2 style="font-size:1.25rem;margin:.25rem 0">${isDelivery ? 'Home Delivery Live Tracker' : 'Counter Pickup Live Tracker'}</h2>
+                                <p style="font-size:.85rem;color:var(--muted)">Prescription: ${esc(updatedOrder.rxId)} · Total: ₹${updatedOrder.total}</p>
+                            </div>
+                            <button type="button" class="btn-ghost modal-close-button" data-close-track aria-label="Close tracking">${icon('x', 18)}</button>
+                        </div>
+
+                        <!-- Progress steps -->
+                        <div style="margin:1.5rem 0;background:var(--canvas);border-radius:12px;padding:1.25rem;border:1px solid var(--line)">
+                            <div style="display:flex;justify-content:space-between;position:relative;margin-bottom:1.5rem">
+                                <div style="position:absolute;top:14px;left:5%;right:5%;height:3px;background:var(--line);z-index:1"></div>
+                                <div style="position:absolute;top:14px;left:5%;width:${((level - 1) / 3) * 90}%;height:3px;background:var(--teal);z-index:2;transition:width .4s"></div>
+                                
+                                <div style="position:relative;z-index:3;text-align:center;width:22%">
+                                    <div style="width:28px;height:28px;border-radius:50%;background:${level >= 1 ? 'var(--teal)' : 'var(--surface)'};color:${level >= 1 ? '#fff' : 'var(--muted)'};border:2px solid ${level >= 1 ? 'var(--teal)' : 'var(--line)'};display:flex;align-items:center;justify-content:center;margin:0 auto .35rem;font-size:.75rem;font-weight:700">1</div>
+                                    <span style="font-size:.72rem;font-weight:600;display:block">Received</span>
+                                </div>
+                                <div style="position:relative;z-index:3;text-align:center;width:22%">
+                                    <div style="width:28px;height:28px;border-radius:50%;background:${level >= 2 ? 'var(--teal)' : 'var(--surface)'};color:${level >= 2 ? '#fff' : 'var(--muted)'};border:2px solid ${level >= 2 ? 'var(--teal)' : 'var(--line)'};display:flex;align-items:center;justify-content:center;margin:0 auto .35rem;font-size:.75rem;font-weight:700">2</div>
+                                    <span style="font-size:.72rem;font-weight:600;display:block">Verified</span>
+                                </div>
+                                <div style="position:relative;z-index:3;text-align:center;width:22%">
+                                    <div style="width:28px;height:28px;border-radius:50%;background:${level >= 3 ? 'var(--teal)' : 'var(--surface)'};color:${level >= 3 ? '#fff' : 'var(--muted)'};border:2px solid ${level >= 3 ? 'var(--teal)' : 'var(--line)'};display:flex;align-items:center;justify-content:center;margin:0 auto .35rem;font-size:.75rem;font-weight:700">3</div>
+                                    <span style="font-size:.72rem;font-weight:600;display:block">Packed</span>
+                                </div>
+                                <div style="position:relative;z-index:3;text-align:center;width:22%">
+                                    <div style="width:28px;height:28px;border-radius:50%;background:${level >= 4 ? 'var(--teal)' : 'var(--surface)'};color:${level >= 4 ? '#fff' : 'var(--muted)'};border:2px solid ${level >= 4 ? 'var(--teal)' : 'var(--line)'};display:flex;align-items:center;justify-content:center;margin:0 auto .35rem;font-size:.75rem;font-weight:700">4</div>
+                                    <span style="font-size:.72rem;font-weight:600;display:block">${isDelivery ? 'Delivered' : 'Ready'}</span>
+                                </div>
+                            </div>
+
+                            <!-- Fulfillment Callout Banner -->
+                            <div style="background:var(--surface);border-radius:8px;padding:1rem;border:1px solid var(--line);text-align:center">
+                                ${level < 3 ? `
+                                    <div style="color:#d97706;font-weight:700;margin-bottom:.25rem;font-size:.95rem">${icon('clock', 16)} Pharmacist is currently preparing your medications</div>
+                                    <small style="color:var(--muted)">Estimated readiness: ~5 to 8 mins</small>
+                                ` : level === 3 ? `
+                                    <div style="color:#059669;font-weight:700;margin-bottom:.25rem;font-size:.95rem">${icon('check-circle', 16)} ${isDelivery ? 'Driver out for delivery' : 'Ready for counter collection!'}</div>
+                                    <div style="font-size:1.15rem;font-weight:800;color:var(--teal);margin:.3rem 0">${isDelivery ? 'Delivery PIN: 4892' : 'Counter Token: #SC-02'}</div>
+                                    <small style="color:var(--muted)">${isDelivery ? `Delivering to: ${esc(updatedOrder.deliveryAddress || 'Hyderabad')}` : 'Show this token at SmartCare Pharmacy Counter #02'}</small>
+                                ` : `
+                                    <div style="color:#059669;font-weight:700;margin-bottom:.25rem;font-size:.95rem">${icon('check-check', 16)} Order Completed &amp; Collected</div>
+                                    <small style="color:var(--muted)">Dispensed and logged in digital health passport.</small>
+                                `}
+                            </div>
+                        </div>
+
+                        <!-- Prescribed Meds breakdown -->
+                        <div style="margin-bottom:1.25rem">
+                            <h4 style="font-size:.85rem;margin:0 0 .5rem;color:var(--muted);text-transform:uppercase">Ordered Medications</h4>
+                            <div style="display:flex;flex-direction:column;gap:.4rem">
+                                ${updatedOrder.items.map(it => `
+                                    <div style="display:flex;justify-content:space-between;padding:.4rem .6rem;background:var(--canvas);border-radius:6px;font-size:.85rem">
+                                        <span>${esc(it.name)} × ${it.qty}</span>
+                                        <strong>₹${it.price * it.qty}</strong>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <div class="modal-actions" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem">
+                            ${level < 4 ? `
+                                <button type="button" id="btn-advance-demo-track" class="btn-secondary btn-icon" style="font-size:.8rem;padding:.4rem .8rem">
+                                    ${icon('fast-forward', 14)} Advance Step (Demo test)
+                                </button>
+                            ` : '<span></span>'}
+                            <button type="button" class="btn-primary" data-close-track style="padding:.45rem 1.1rem;font-size:.85rem">Close</button>
+                        </div>
+                    </section>
+                `;
+
+                if (window.lucide) window.lucide.createIcons();
+
+                backdrop.querySelectorAll('[data-close-track]').forEach(b => {
+                    b.onclick = () => { backdrop.remove(); render(); };
+                });
+
+                const advanceBtn = backdrop.querySelector('#btn-advance-demo-track');
+                if (advanceBtn) {
+                    advanceBtn.onclick = () => {
+                        const next = level === 1 ? 'packed' : level === 2 ? 'ready' : 'completed';
+                        updatePharmacyOrderStatus(updatedOrder.id, next);
+                        window.App.UI.toast(`Order status advanced to ${next}.`, 'info');
+                        renderModalContent();
+                    };
+                }
+            }
+
+            renderModalContent();
+            document.body.appendChild(backdrop);
+            backdrop.onclick = e => { if (e.target === backdrop) { backdrop.remove(); render(); } };
         }
 
         render();

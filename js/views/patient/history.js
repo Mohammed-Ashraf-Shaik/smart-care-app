@@ -52,6 +52,9 @@
                     <a href="/dashboard/patient?tab=visits" data-tab="visits" data-tab-route="/dashboard/patient">${icon('clipboard-check', 16)}<span>Previous visits</span></a>
                     <a href="/dashboard/patient?tab=profile" data-tab="profile" data-tab-route="/dashboard/patient">${icon('user-round', 16)}<span>Profile</span></a>
                     <div class="nav-divider"></div>
+                    <a href="/ambulance" data-route="/ambulance" style="color:#e53e3e">${icon('siren', 16)}<span>Ambulance SOS</span></a>
+                    <a href="/pharmacy" data-route="/pharmacy">${icon('pill', 16)}<span>Pharmacy</span></a>
+                    <a href="/verify-rx" data-route="/verify-rx">${icon('shield-check', 16)}<span>Verify Rx</span></a>
                     <a href="/dashboard/patient/donations" data-route="/dashboard/patient/donations">${icon('heart-handshake', 16)}<span>Donations</span></a>
                     <a href="/dashboard/patient/help" data-route="/dashboard/patient/help">${icon('circle-help', 16)}<span>Help</span></a>
                     <button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>
@@ -87,7 +90,7 @@
                     </div>
 
                     <!-- ON-SCREEN PATIENT DEMOGRAPHICS CARD -->
-                    <div class="card print-hide" style="padding:1.25rem;border-radius:1.2rem;background:#fff;border:1px solid var(--line);margin-bottom:1.25rem">
+                    <div class="card print-hide" style="padding:1.25rem;border-radius:1.2rem;background:var(--surface);border:1px solid var(--line);margin-bottom:1.25rem">
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid var(--line)">
                             <strong style="font-size:.9rem;color:var(--teal-dark);display:flex;align-items:center;gap:.4rem">
                                 ${icon('user-round', 16)} Patient Demographics
@@ -167,7 +170,7 @@
                         <div class="history-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(290px, 1fr));gap:1.25rem">
                             
                             <!-- PILLAR 1: EFFECTIVE MEDICATIONS -->
-                            <div class="card history-pillar-card" style="padding:1.25rem;border-radius:1.2rem;background:#fff;border:1px solid var(--line)">
+                            <div class="card history-pillar-card" style="padding:1.25rem;border-radius:1.2rem;background:var(--surface);border:1px solid var(--line)">
                                 <div class="pillar-head" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.65rem;border-bottom:1px solid var(--line)">
                                     <div style="display:flex;align-items:center;gap:.6rem">
                                         <span style="width:2rem;height:2rem;display:grid;place-items:center;border-radius:.5rem;background:#e8f4fb;color:var(--teal)">${icon('pill', 18)}</span>
@@ -193,7 +196,7 @@
                             </div>
 
                             <!-- PILLAR 2: ALLERGIES & AVOID LIST -->
-                            <div class="card history-pillar-card" style="padding:1.25rem;border-radius:1.2rem;background:#fff;border:1px solid #fecaca">
+                            <div class="card history-pillar-card" style="padding:1.25rem;border-radius:1.2rem;background:var(--surface);border:1px solid #fecaca">
                                 <div class="pillar-head" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.65rem;border-bottom:1px solid #fee2e2">
                                     <div style="display:flex;align-items:center;gap:.6rem">
                                         <span style="width:2rem;height:2rem;display:grid;place-items:center;border-radius:.5rem;background:#fee2e2;color:#dc2626">${icon('triangle-alert', 18)}</span>
@@ -203,7 +206,7 @@
                                 <p style="font-size:.78rem;color:var(--muted);margin-bottom:.85rem">Drugs &amp; substances that must be strictly avoided by doctors.</p>
                                 <div class="pillar-list" style="display:flex;flex-direction:column;gap:.75rem">
                                     ${allergies.length ? allergies.map((alg, idx) => `
-                                        <div class="history-item-row" style="padding:.75rem;border-radius:.8rem;background:#fff5f5;border:1px solid #fecaca">
+                                        <div class="history-item-row" style="padding:.75rem;border-radius:.8rem;background:var(--surface-soft, #fff5f5);border:1px solid #fecaca">
                                             <div style="display:flex;justify-content:space-between;align-items:start;gap:.5rem">
                                                 <strong style="font-size:.88rem;color:#991b1b;display:flex;align-items:center;gap:.3rem">
                                                     ${icon('triangle-alert', 14)} ${esc(alg.substance)}
@@ -215,12 +218,12 @@
                                             </div>
                                             <div style="font-size:.76rem;color:#7f1d1d;margin-top:.35rem">${esc(alg.reactionDescription)}</div>
                                         </div>
-                                    `).join('') : '<div style="font-size:.78rem;color:var(--muted);padding:.75rem;background:#fff5f5;border-radius:.6rem;text-align:center">No allergies recorded. Click "Add / Edit Medical Record" to add.</div>'}
+                                    `).join('') : '<div style="font-size:.78rem;color:var(--muted);padding:.75rem;background:var(--canvas);border-radius:.6rem;text-align:center">No allergies recorded. Click "Add / Edit Medical Record" to add.</div>'}
                                 </div>
                             </div>
 
                             <!-- PILLAR 3: OPTIMAL CARE CONDITIONS -->
-                            <div class="card history-pillar-card" style="padding:1.25rem;border-radius:1.2rem;background:#fff;border:1px solid var(--line)">
+                            <div class="card history-pillar-card" style="padding:1.25rem;border-radius:1.2rem;background:var(--surface);border:1px solid var(--line)">
                                 <div class="pillar-head" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.65rem;border-bottom:1px solid var(--line)">
                                     <div style="display:flex;align-items:center;gap:.6rem">
                                         <span style="width:2rem;height:2rem;display:grid;place-items:center;border-radius:.5rem;background:#fef3c7;color:#d97706">${icon('shield-alert', 18)}</span>
@@ -230,19 +233,19 @@
                                 <p style="font-size:.78rem;color:var(--muted);margin-bottom:.85rem">Dietary, positioning, &amp; environmental guidelines.</p>
                                 <div class="pillar-list" style="display:flex;flex-direction:column;gap:.75rem">
                                     ${careConditions.length ? careConditions.map((cond, idx) => `
-                                        <div class="history-item-row" style="padding:.75rem;border-radius:.8rem;background:#fffdf5;border:1px solid #fef3c7">
+                                        <div class="history-item-row" style="padding:.75rem;border-radius:.8rem;background:var(--surface-soft, #fffdf5);border:1px solid #fef3c7">
                                             <div style="display:flex;justify-content:space-between;align-items:start">
                                                 <span class="badge" style="background:#fef3c7;color:#b45309;font-size:.68rem;padding:.1rem .45rem;margin-bottom:.3rem;display:inline-block">${esc(cond.category)}</span>
                                                 <button type="button" class="btn-delete-item print-hide" data-type="cond" data-idx="${idx}" style="border:0;background:none;color:#dc2626;cursor:pointer;padding:0 .2rem">${icon('trash-2', 13)}</button>
                                             </div>
                                             <div style="font-size:.82rem;color:var(--ink);font-weight:600">${esc(cond.instruction)}</div>
                                         </div>
-                                    `).join('') : '<div style="font-size:.78rem;color:var(--muted);padding:.75rem;background:#fffdf5;border-radius:.6rem;text-align:center">No care conditions recorded. Click "Add / Edit Medical Record" to add.</div>'}
+                                    `).join('') : '<div style="font-size:.78rem;color:var(--muted);padding:.75rem;background:var(--canvas);border-radius:.6rem;text-align:center">No care conditions recorded. Click "Add / Edit Medical Record" to add.</div>'}
                                 </div>
                             </div>
 
                             <!-- PILLAR 4: EMERGENCY PROTOCOLS -->
-                            <div class="card history-pillar-card" style="padding:1.25rem;border-radius:1.2rem;background:#fff;border:1px solid var(--line)">
+                            <div class="card history-pillar-card" style="padding:1.25rem;border-radius:1.2rem;background:var(--surface);border:1px solid var(--line)">
                                 <div class="pillar-head" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.65rem;border-bottom:1px solid var(--line)">
                                     <div style="display:flex;align-items:center;gap:.6rem">
                                         <span style="width:2rem;height:2rem;display:grid;place-items:center;border-radius:.5rem;background:#e0e7ff;color:#4338ca">${icon('siren', 18)}</span>

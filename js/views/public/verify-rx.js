@@ -69,8 +69,8 @@
                                     </span>
                                     <div>
                                         <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
-                                            <span class="badge" style="background:${rxRecord.status === 'dispensed' ? '#c53030' : '#234e52'};color:#fff;font-weight:700;font-size:.78rem">
-                                                ${rxRecord.status === 'dispensed' ? '🔴 DISPENSED & LOCKED' : '🟢 VERIFIED GENUINE PRESCRIPTION'}
+                                            <span class="badge" style="background:${rxRecord.status === 'dispensed' ? '#c53030' : '#234e52'};color:#fff;font-weight:700;font-size:.78rem;display:inline-flex;align-items:center;gap:.35rem">
+                                                ${rxRecord.status === 'dispensed' ? `${icon('lock', 13)} DISPENSED &amp; LOCKED` : `${icon('check-check', 13)} VERIFIED GENUINE PRESCRIPTION`}
                                             </span>
                                             <span style="font-size:.8rem;color:var(--muted)">Hash: <code>${esc(rxRecord.tamperHash || 'SEC-VERIFIED')}</code></span>
                                         </div>
@@ -87,22 +87,22 @@
 
                             ${rxRecord.status === 'dispensed' ? `
                                 <!-- Dispensation Lock Warning -->
-                                <div style="margin:1.25rem 0;background:#fff5f5;border:1px solid #fed7d7;border-radius:10px;padding:1rem;color:#9b2c2c;font-size:.88rem">
-                                    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem">
+                                <div style="margin:1.25rem 0;background:rgba(229, 62, 62, 0.08);border:1px solid rgba(229, 62, 62, 0.3);border-radius:10px;padding:1rem;color:var(--ink);font-size:.88rem">
+                                    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem;color:#e53e3e">
                                         ${icon('octagon-alert', 18)}
                                         <strong>DUPLICATE DISPENSING WARNING: THIS PRESCRIPTION IS LOCKED</strong>
                                     </div>
-                                    <p style="margin:0">
+                                    <p style="margin:0;color:var(--muted)">
                                         Fulfilled at <strong>${esc(rxRecord.dispensedBy || 'SmartCare Hospital In-House Pharmacy')}</strong> on <strong>${esc(rxRecord.dispensedAt)}</strong> by ${esc(rxRecord.dispensedPharmacist || 'Pharmacist')}. Under Schedule H regulations, this token cannot be reused to purchase prescription drugs again.
                                     </p>
                                 </div>
                             ` : `
-                                <div style="margin:1.25rem 0;background:#f0fff4;border:1px solid #c6f6d5;border-radius:10px;padding:1rem;color:#22543d;font-size:.88rem">
-                                    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem">
+                                <div style="margin:1.25rem 0;background:rgba(56, 161, 105, 0.08);border:1px solid rgba(56, 161, 105, 0.3);border-radius:10px;padding:1rem;color:var(--ink);font-size:.88rem">
+                                    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.2rem;color:var(--teal)">
                                         ${icon('check-circle', 18)}
                                         <strong>Active Valid Prescription (Ready to Dispense)</strong>
                                     </div>
-                                    <p style="margin:0">
+                                    <p style="margin:0;color:var(--muted)">
                                         Digitally signed by <strong>${esc(rxRecord.doctorName || 'Dr Meera Shah')}</strong> (NMC Reg: ${esc(rxRecord.doctorRegNo || 'NMC-2018-94821')}). Pharmacist can fulfill medications and lock this prescription below.
                                     </p>
                                 </div>

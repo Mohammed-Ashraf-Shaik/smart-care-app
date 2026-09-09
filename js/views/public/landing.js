@@ -12,7 +12,7 @@
                 </a>
                 <nav class="nav-links" aria-label="Primary navigation">
                     <a href="#how-it-works">How it works</a>
-                    <a data-route="/ambulance" href="/ambulance" style="color:#e53e3e;font-weight:700">🚨 Ambulance</a>
+                    <a data-route="/ambulance" href="/ambulance" style="color:#e53e3e;font-weight:700;display:inline-flex;align-items:center;gap:.3rem">${icon('siren', 15)} Ambulance</a>
                     <a data-route="/pharmacy" href="/pharmacy">Pharmacy</a>
                     <a data-route="/verify-rx" href="/verify-rx">Verify Rx</a>
                     <a data-route="/donate" href="/donate">Donation</a>
@@ -48,21 +48,40 @@
                         </div>
                     </div>
                     <div class="hero-side" aria-label="Nearby care preview">
-                        <div class="care-panel">
+                        <div class="care-panel care-panel-redesigned">
                             <div class="care-panel-head">
-                                <div><p class="care-panel-title">Care near you</p><p class="care-panel-subtitle">A calmer way to choose where to go.</p></div>
-                                <span class="status-eyebrow"><i></i> Demo preview</span>
+                                <div>
+                                    <span class="care-tag">${icon('map-pin', 12)} Live Care Network</span>
+                                    <p class="care-panel-title" style="color:#fff;font-weight:800;font-size:1.05rem;margin:0">Verified Care Centres</p>
+                                </div>
+                                <span class="status-eyebrow" style="color:#b8daf5"><span class="pulse-dot"></span> Live queue</span>
                             </div>
-                            <div class="mini-map" role="img" aria-label="Illustrated map showing your location and nearby hospitals">
-                                <span class="mini-route"></span>
-                                <span class="mini-pin user"></span>
-                                <span class="mini-pin hospital-1"></span>
-                                <span class="mini-pin hospital-2"></span>
-                                <span class="mini-map-label">2 centres within 5 km</span>
+                            <div class="care-panel-body">
+                                <div class="care-hosp-preview active" data-hospital="SmartCare Community Hospital" style="cursor:pointer;border-color:rgba(255,255,255,0.4);background:rgba(255,255,255,0.14)">
+                                    <div class="hosp-preview-icon">${icon('hospital', 18)}</div>
+                                    <div class="hosp-preview-info">
+                                        <strong>SmartCare Community Hospital</strong>
+                                        <small>Gachibowli · 4 ICU Beds · 2.1 km</small>
+                                    </div>
+                                    <span class="wait-badge green">~12m wait</span>
+                                </div>
+                                <div class="care-hosp-preview" data-hospital="CityCare Trauma Centre" style="cursor:pointer">
+                                    <div class="hosp-preview-icon">${icon('activity', 18)}</div>
+                                    <div class="hosp-preview-info">
+                                        <strong>CityCare Trauma Centre</strong>
+                                        <small>Financial District · 2 ICU Beds · 3.8 km</small>
+                                    </div>
+                                    <span class="wait-badge yellow">~24m wait</span>
+                                </div>
                             </div>
-                            <div class="care-panel-foot">
-                                <small>Illustrative queue window</small>
-                                <strong>15–25 minutes <span aria-hidden="true">&#8594;</span></strong>
+                            <div class="care-panel-foot" style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid rgba(255,255,255,0.12);padding-top:.85rem;margin-top:.35rem">
+                                <div class="foot-stats">
+                                    <small>Selected Hospital</small>
+                                    <strong id="hero-selected-hosp">SmartCare Community Hospital</strong>
+                                </div>
+                                <a id="hero-book-direct" href="/dashboard/patient/apply/1" data-route="/dashboard/patient/apply/1" class="btn-primary btn-icon" style="background:#fff;color:#0a3b69;font-size:.78rem;font-weight:800;padding:.4rem .75rem;border-radius:.5rem">
+                                    Book Visit ${icon('arrow-right', 14)}
+                                </a>
                             </div>
                         </div>
                     </div>
@@ -141,6 +160,34 @@
         if (doctorPortal) doctorPortal.onclick = () => { setAuthTarget('doctor'); navigate('/login?role=doctor'); };
         const opsPortal = container.querySelector('#open-ops-portal');
         if (opsPortal) opsPortal.onclick = () => { setAuthTarget('staff'); navigate('/login?role=staff'); };
+
+        // Hero care panel hospital selection
+        let selectedHospName = 'SmartCare Community Hospital';
+        container.querySelectorAll('.care-hosp-preview').forEach(card => {
+            card.onclick = () => {
+                container.querySelectorAll('.care-hosp-preview').forEach(c => {
+                    c.classList.remove('active');
+                    c.style.borderColor = 'rgba(255,255,255,0.12)';
+                    c.style.background = 'rgba(255,255,255,0.08)';
+                });
+                card.classList.add('active');
+                card.style.borderColor = 'rgba(255,255,255,0.4)';
+                card.style.background = 'rgba(255,255,255,0.14)';
+                selectedHospName = card.dataset.hospital;
+                const label = container.querySelector('#hero-selected-hosp');
+                if (label) label.textContent = selectedHospName;
+                const directBtn = container.querySelector('#hero-book-direct');
+                if (directBtn) {
+                    const route = `/dashboard/patient/apply/1?hospital=${encodeURIComponent(selectedHospName)}`;
+                    directBtn.setAttribute('href', route);
+                    directBtn.dataset.route = route;
+                }
+                if (window.App.Store.updatePatientData) {
+                    window.App.Store.updatePatientData({ hospital: selectedHospName });
+                }
+                window.App.UI.toast(`Selected ${selectedHospName}. Ready to book.`, 'info');
+            };
+        });
 
         window.App.UI.bindTopbarControls(container);
         if (window.lucide) window.lucide.createIcons();

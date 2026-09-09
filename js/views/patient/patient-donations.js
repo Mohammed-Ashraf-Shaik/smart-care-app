@@ -45,6 +45,9 @@
 <a href="/dashboard/patient?tab=visits" data-tab="visits" data-tab-route="/dashboard/patient">${icon('clipboard-check', 16)}<span>Previous visits</span></a>
 <a href="/dashboard/patient?tab=profile" data-tab="profile" data-tab-route="/dashboard/patient">${icon('user-round', 16)}<span>Profile</span></a>
 <div class="nav-divider"></div>
+<a href="/ambulance" data-route="/ambulance" style="color:#e53e3e">${icon('siren', 16)}<span>Ambulance SOS</span></a>
+<a href="/pharmacy" data-route="/pharmacy">${icon('pill', 16)}<span>Pharmacy</span></a>
+<a href="/verify-rx" data-route="/verify-rx">${icon('shield-check', 16)}<span>Verify Rx</span></a>
 <a class="active" href="/dashboard/patient/donations" data-route="/dashboard/patient/donations">${icon('heart-handshake', 16)}<span>Donations</span></a>
 <a href="/dashboard/patient/help" data-route="/dashboard/patient/help">${icon('circle-help', 16)}<span>Help</span></a>
 <button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>`;
@@ -512,6 +515,9 @@ ${window.App.UI.footer(true)}`;
                     formMessageType = 'success';
                     window.App.UI.toast(formMessage, 'success');
                     render();
+                    if (mode === 'give') {
+                        showDonorCardModal({ name, type: 'blood', group, city });
+                    }
                 };
             }
 
@@ -536,13 +542,93 @@ ${window.App.UI.footer(true)}`;
                     formMessageType = 'success';
                     window.App.UI.toast(formMessage, 'success');
                     render();
+                    if (mode === 'give') {
+                        showDonorCardModal({ name, type: 'organ', group, city });
+                    }
                 };
             }
 
             // Pledge buttons in hospital organ posts
             container.querySelectorAll('.pd-pledge-btn').forEach(btn => {
-                btn.onclick = () => window.App.UI.toast(`Demo response recorded for ${btn.dataset.centre}. No coordinator was contacted.`, 'info');
+                btn.onclick = () => {
+                    const centre = btn.dataset.centre;
+                    window.App.UI.toast(`Demo response recorded for ${centre}. No coordinator was contacted.`, 'info');
+                    showDonorCardModal({ name: patientName, type: donationType, group: donationType === 'blood' ? 'O+' : 'All Tissues & Organs', city: centre });
+                };
             });
+
+            function showDonorCardModal(pledge) {
+                const backdrop = document.createElement('div');
+                backdrop.className = 'modal-backdrop';
+                const donorId = 'SCD-' + Math.floor(1000 + Math.random() * 9000);
+                const dateStr = new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+
+                backdrop.innerHTML = `
+                    <section class="modal-card" role="dialog" aria-modal="true" style="max-width:480px;width:95%;padding:0;overflow:hidden;border-radius:16px">
+                        <div style="background:linear-gradient(135deg, #134e4a 0%, #0d9488 100%);color:#fff;padding:1.5rem;position:relative">
+                            <button type="button" class="btn-ghost modal-close-button" data-close-card aria-label="Close card" style="position:absolute;top:1rem;right:1rem;color:#fff">${icon('x', 18)}</button>
+                            <div style="display:flex;align-items:center;gap:.65rem;margin-bottom:1rem">
+                                <span style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:rgba(255,255,255,0.2)">
+                                    ${icon(pledge.type === 'blood' ? 'droplets' : 'heart-handshake', 22)}
+                                </span>
+                                <div>
+                                    <span style="font-size:.72rem;letter-spacing:0.05em;text-transform:uppercase;color:#ccfbf1;font-weight:700">Official Donor Recognition Card</span>
+                                    <h3 style="font-size:1.25rem;margin:.15rem 0 0;color:#fff">SmartCare Donor Honor Roll</h3>
+                                </div>
+                            </div>
+                            <div style="background:rgba(0,0,0,0.2);padding:1rem;border-radius:10px;border:1px solid rgba(255,255,255,0.15)">
+                                <div style="display:flex;justify-content:space-between;margin-bottom:.5rem">
+                                    <div>
+                                        <small style="color:#ccfbf1;font-size:.7rem;display:block">HONORARY DONOR</small>
+                                        <strong style="font-size:1.15rem;letter-spacing:0.02em">${esc(pledge.name)}</strong>
+                                    </div>
+                                    <div style="text-align:right">
+                                        <small style="color:#ccfbf1;font-size:.7rem;display:block">${pledge.type === 'blood' ? 'BLOOD GROUP' : 'PLEDGED'}</small>
+                                        <strong style="font-size:1.25rem;color:#fef08a">${esc(pledge.group)}</strong>
+                                    </div>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;font-size:.75rem;color:#e6fffa;border-top:1px solid rgba(255,255,255,0.15);padding-top:.5rem">
+                                    <span>Ref: <strong>${donorId}</strong></span>
+                                    <span>City: ${esc(pledge.city || 'Hyderabad')}</span>
+                                    <span>Date: ${dateStr}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="padding:1.25rem;background:var(--surface)">
+                            <div style="display:flex;align-items:flex-start;gap:.75rem;background:var(--canvas);padding:.85rem;border-radius:8px;border:1px solid var(--line);margin-bottom:1.25rem">
+                                ${icon('shield-check', 20)}
+                                <div style="font-size:.82rem;color:var(--muted);line-height:1.4">
+                                    <strong style="color:var(--ink);display:block;margin-bottom:.15rem">Thank you for pledging care to our community!</strong>
+                                    Registered in the SmartCare Community Donor Pool. You may show this digital card at any partner hospital blood bank or coordination desk.
+                                </div>
+                            </div>
+
+                            <div class="modal-actions" style="display:flex;justify-content:space-between;gap:.5rem">
+                                <button type="button" class="btn-secondary btn-icon" id="btn-print-donor-card">
+                                    ${icon('printer', 14)} Print Card
+                                </button>
+                                <button type="button" class="btn-primary" data-close-card style="padding:.45rem 1.25rem">
+                                    Done
+                                </button>
+                            </div>
+                        </div>
+                    </section>
+                `;
+
+                if (window.lucide) window.lucide.createIcons();
+
+                const close = () => backdrop.remove();
+                backdrop.querySelectorAll('[data-close-card]').forEach(b => b.onclick = close);
+                backdrop.onclick = e => { if (e.target === backdrop) close(); };
+
+                const printBtn = backdrop.querySelector('#btn-print-donor-card');
+                if (printBtn) {
+                    printBtn.onclick = () => window.print();
+                }
+
+                document.body.appendChild(backdrop);
+            }
 
             // Mobile view toggle
             const mobileToggle = container.querySelector('#pd-mobile-view-toggle');

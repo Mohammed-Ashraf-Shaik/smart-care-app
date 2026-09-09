@@ -117,6 +117,17 @@
                 </div>
             </div>
             <main class="provider-shell patient-shell" data-section="patient-dashboard">
+                ${activeVisit ? `
+                    <div class="patient-mobile-queue-dock" role="status" aria-live="polite">
+                        <div class="mobile-queue-info">
+                            <div class="mobile-queue-title"><span class="pulse-dot"></span> <strong>${esc(activeVisit.hospital || 'SmartCare Centre')}</strong> · ${esc(visitStatusLabel(liveStatus))}</div>
+                            <div class="mobile-queue-meta">Live Queue: <strong>${esc(queuePosition)}</strong> · Window: ${esc(queueEstimate)}</div>
+                        </div>
+                        <button type="button" class="btn-secondary btn-icon btn-sm btn-view-rx" data-visit-id="${esc(activeVisit.id)}" style="font-size:.75rem;padding:.35rem .65rem;flex-shrink:0">
+                            ${icon('file-text', 13)} Slip
+                        </button>
+                    </div>
+                ` : ''}
                 ${!isApplyTab ? `
                 <header class="provider-header">
                     <div>
@@ -272,6 +283,7 @@
             <div class="nav-divider"></div>
             <a href="/ambulance" data-route="/ambulance" style="color:#e53e3e">${icon('siren', 16)}<span>Ambulance SOS</span></a>
             <a href="/pharmacy" data-route="/pharmacy">${icon('pill', 16)}<span>Pharmacy</span></a>
+            <a href="/verify-rx" data-route="/verify-rx">${icon('shield-check', 16)}<span>Verify Rx</span></a>
             <a href="/dashboard/patient/donations" data-route="/dashboard/patient/donations">${icon('heart-handshake', 16)}<span>Donations</span></a>
             <a href="/dashboard/patient/help" data-route="/dashboard/patient/help">${icon('circle-help', 16)}<span>Help</span></a>
             <button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>
@@ -303,6 +315,37 @@
 
         const manageButton = container.querySelector('#manage-appointment');
         if (manageButton && activeVisit) manageButton.onclick = () => showAppointmentManager(activeVisit, manageButton);
+
+        container.querySelectorAll('.btn-reschedule-free').forEach(button => {
+            button.onclick = () => {
+                const visitId = button.dataset.visitId;
+                const visit = state.patientVisits.find(item => String(item.id) === String(visitId)) || recentlyCancelledVisit;
+                if (visit) {
+                    showAppointmentManager(visit, button);
+                } else {
+                    navigate('/dashboard/patient/apply/1');
+                }
+            };
+        });
+
+        container.querySelectorAll('.btn-claim-refund').forEach(button => {
+            button.onclick = async () => {
+                const visitId = button.dataset.visitId;
+                button.disabled = true;
+                button.innerHTML = `${icon('loader', 14)} Processing refund...`;
+                if (window.lucide) window.lucide.createIcons();
+                const res = await window.App.Store.claimRefund(visitId);
+                if (res.success) {
+                    window.App.UI.toast(`₹125 refund initiated successfully to original UPI/account. Ref: ${res.ref}`, 'success');
+                    navigate('/dashboard/patient');
+                } else {
+                    button.disabled = false;
+                    button.innerHTML = `${icon('receipt', 15)} Claim ₹125 refund`;
+                    if (window.lucide) window.lucide.createIcons();
+                    window.App.UI.toast(res.error || 'Failed to process refund.', 'error');
+                }
+            };
+        });
 
         function showAppointmentManager(visit, trigger) {
             const slots = getAppointmentSlots();

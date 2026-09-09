@@ -132,9 +132,38 @@
     let legacyDraft = readStorage(draftKey);
     const patientVisitKey = 'smartcare.patientVisits';
     let legacyVisits = readStorage(patientVisitKey);
-    const defaultVisits = [{ id: 'visit-demo-001', hospital: 'SmartCare Community Hospital', city: 'Hyderabad', reason: 'General consultation', date: '18 Jul 2026', status: 'Completed', reference: 'SC-DEMO18' }, { id: 'visit-demo-002', hospital: 'Green Cross Medical Centre', city: 'Hyderabad', reason: 'Follow-up consultation', date: '04 Jun 2026', status: 'Completed', reference: 'SC-DEMO04' }];
+    const defaultVisits = [
+        {
+            id: 'SC-DEMO-ASHA',
+            hospital: 'SmartCare Community Hospital',
+            city: 'Hyderabad',
+            doctorName: 'Dr Meera Shah',
+            department: 'General medicine',
+            consultationType: 'In-person consultation',
+            appointmentDate: new Date().toISOString().slice(0, 10),
+            appointmentSlot: '11:00 am',
+            reason: 'Seasonal wheezing and asthma follow-up',
+            date: 'Today',
+            status: 'Waiting',
+            reference: 'SC-DEMO-ASHA'
+        },
+        { id: 'visit-demo-001', hospital: 'SmartCare Community Hospital', city: 'Hyderabad', reason: 'General consultation', date: '18 Jul 2026', status: 'Completed', reference: 'SC-DEMO18' },
+        { id: 'visit-demo-002', hospital: 'Green Cross Medical Centre', city: 'Hyderabad', reason: 'Follow-up consultation', date: '04 Jun 2026', status: 'Completed', reference: 'SC-DEMO04' }
+    ];
     const prescriptionsKey = 'smartcare.prescriptions';
     const defaultPrescriptions = {
+        'SC-DEMO-ASHA': {
+            rxId: 'RX-2026-DEMO01',
+            assessment: 'Seasonal wheezing; mild reactive airway exacerbation managed with bronchodilators.',
+            medicines: [
+                { name: 'Salbutamol Inhaler', strength: '100 mcg', dosage: '2 puffs SOS', duration: '30 days', instructions: 'Use with spacer during acute wheezing' },
+                { name: 'Montelukast', strength: '10 mg', dosage: 'One tablet at night', duration: '14 days', instructions: 'Take after dinner' }
+            ],
+            labSummary: 'Peak Expiratory Flow: 390 L/min. Lungs clear to auscultation.',
+            providerName: 'Dr Meera Shah',
+            issuedAt: 'Today',
+            demo: true
+        },
         'visit-demo-001': {
             assessment: 'Seasonal upper respiratory symptoms; demo clinical summary only.',
             medicines: [{ name: 'Paracetamol', strength: '500 mg', dosage: 'One tablet when needed', duration: 'Up to 3 days', instructions: 'Take after food; follow clinician guidance' }],
@@ -430,7 +459,11 @@
             } catch {}
             legacyVisits = null;
         }
-        state.patientVisits = Array.isArray(visits) ? visits : normalizedEmail === 'patient@smartcare.demo' ? cloneData(defaultVisits) : [];
+        if (normalizedEmail === 'patient@smartcare.demo') {
+            state.patientVisits = Array.isArray(visits) && visits.some(v => v.id === 'SC-DEMO-ASHA') ? visits : cloneData(defaultVisits);
+        } else {
+            state.patientVisits = Array.isArray(visits) ? visits : [];
+        }
     }
 
     function loadPatientProfile(email) {

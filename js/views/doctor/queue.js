@@ -91,6 +91,9 @@
             <a class="active" href="/dashboard/queue" data-route="/dashboard/queue">${icon('list-ordered', 16)}<span>Queue</span></a>
             <a href="/dashboard/analytics" data-route="/dashboard/analytics">${icon('bar-chart-3', 16)}<span>Analytics</span></a>
             <div class="nav-divider"></div>
+            <a href="/ambulance" data-route="/ambulance" style="color:#e53e3e">${icon('siren', 16)}<span>Ambulance Fleet</span></a>
+            <a href="/pharmacy" data-route="/pharmacy">${icon('pill', 16)}<span>Pharmacy Dispenser</span></a>
+            <a href="/verify-rx" data-route="/verify-rx">${icon('shield-check', 16)}<span>Verify Rx</span></a>
             <a href="${donRoute}" data-route="${donRoute}">${icon('heart-handshake', 16)}<span>Donations</span></a>
             <a href="${helpRoute}" data-route="${helpRoute}">${icon('circle-help', 16)}<span>Help</span></a>
             <button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>
@@ -153,7 +156,19 @@
                                         <td data-label="Status"><span class="queue-cell-content"><span class="queue-status ${statusClass(patient.status)}">${statusLabel(patient.status)}</span></span></td>
                                         <td data-label="Clinician"><span class="queue-cell-content">${esc(patient.doctorName || patient.doctor_name || patient.doctorPref || patient.doctor_pref || 'General care')}</span></td>
                                         <td data-label="Centre"><span class="queue-cell-content">${esc(patient.hospital || state.loggedHospital || 'Care centre')}<small>${esc(patient.city || state.loggedCity || 'Location pending')}</small></span></td>
-                                        <td data-label="Action"><span class="queue-cell-content">${action ? `<button class="text-link queue-action" type="button" data-action="${action}" data-id="${esc(patient.id)}">${label}</button>` : `<span class="queue-status">${label}</span>`}</span></td>
+                                        <td data-label="Action">
+                                            <span class="queue-cell-content" style="display:inline-flex;align-items:center;gap:.4rem;flex-wrap:wrap">
+                                                ${action ? `<button class="text-link queue-action" type="button" data-action="${action}" data-id="${esc(patient.id)}">${label}</button>` : `<span class="queue-status">${label}</span>`}
+                                                <button type="button" class="btn-secondary btn-icon btn-passport-quick" data-id="${esc(patient.id)}" style="font-size:.75rem;padding:.2rem .55rem" title="View Patient Medical Passport">
+                                                    ${icon('file-text', 13)} Passport
+                                                </button>
+                                                ${(patient.status === 'in_progress' || patient.status === 'called' || patient.status === 'completed') ? `
+                                                    <button type="button" class="btn-secondary btn-icon btn-rx-quick" data-id="${esc(patient.id)}" style="font-size:.75rem;padding:.2rem .55rem" title="Open Clinical Notes &amp; Rx">
+                                                        ${icon('notebook-pen', 13)} Notes &amp; Rx
+                                                    </button>
+                                                ` : ''}
+                                            </span>
+                                        </td>
                                     </tr>
                                 `;
                             }).join('')}
@@ -161,6 +176,35 @@
                     </table>
                 </div>
             `;
+
+            region.querySelectorAll('.btn-passport-quick').forEach(button => button.onclick = () => {
+                const patient = state.queue.find(item => String(item.id) === String(button.dataset.id));
+                if (patient) {
+                    const ownerEmail = patient.patientEmail || (patient.name === 'Asha Rao' ? 'patient@smartcare.demo' : '');
+                    const history = window.App.Store.getMedicalHistory(ownerEmail);
+                    window.App.UI.showMedicalPassportModal({
+                        passportId: patient.id === 'SC-DEMO-ASHA' || patient.name === 'Asha Rao' ? 'SC-PASSPORT-8924' : `SC-PASSPORT-${patient.id}`,
+                        profile: {
+                            name: patient.name,
+                            age: patient.age || '32',
+                            gender: patient.gender || 'Female',
+                            city: patient.city || 'Hyderabad'
+                        },
+                        history: history || {}
+                    });
+                }
+            });
+
+            region.querySelectorAll('.btn-rx-quick').forEach(button => button.onclick = () => {
+                const patient = state.queue.find(item => String(item.id) === String(button.dataset.id));
+                if (patient) {
+                    if (window.App.UI.showPrescriptionEditor) {
+                        window.App.UI.showPrescriptionEditor(patient);
+                    } else if (window.App.UI.showPrescriptionModal) {
+                        window.App.UI.showPrescriptionModal(patient);
+                    }
+                }
+            });
 
             region.querySelectorAll('.queue-action').forEach(button => button.onclick = async () => {
                 const patient = state.queue.find(item => String(item.id) === String(button.dataset.id));

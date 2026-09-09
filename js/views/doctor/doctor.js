@@ -112,6 +112,7 @@
             }
         };
     }
+    window.App.UI.showPrescriptionEditor = showPrescriptionEditor;
 
     window.App.Views.Doctor = function () {
         const { state, setView, getQueueMetrics, getNextPatient, sortQueue, transitionPatient, logout, getCareTeam } = window.App.Store;
@@ -133,24 +134,38 @@
                 <td data-label="Priority"><span class="queue-cell-content"><span class="priority-chip ${priorityClass(patient.triage)}">${esc(patient.triage || 'Unassessed')}</span></span></td>
                 <td data-label="Status"><span class="queue-cell-content"><span class="queue-status queue-status-${String(patient.status || 'waiting').toLowerCase().replace('_', '-')}">${statusLabel(patient.status)}</span></span></td>
                 <td data-label="Clinician"><span class="queue-cell-content">${esc(patient.doctorName || patient.doctor_name || patient.doctorPref || patient.doctor_pref || 'General care')}</span></td>
-                <td data-label="Centre"><span class="queue-cell-content">${esc(patient.hospital || state.loggedHospital || 'Care centre')}<small>${esc(patient.city || state.loggedCity || 'Location pending')}</small></span></td>
+                <td data-label="Actions">
+                    <span class="queue-cell-content" style="display:flex;gap:.35rem;flex-wrap:wrap">
+                        <button type="button" class="btn-secondary btn-icon btn-row-passport" data-patient-id="${esc(patient.id)}" style="font-size:.72rem;padding:.25rem .55rem" title="View Patient Medical Passport">
+                            ${icon('file-text', 13)} Passport
+                        </button>
+                        <button type="button" class="btn-secondary btn-icon btn-row-rx" data-patient-id="${esc(patient.id)}" style="font-size:.72rem;padding:.25rem .55rem" title="Author Clinical Notes &amp; Rx">
+                            ${icon('notebook-pen', 13)} Notes &amp; Rx
+                        </button>
+                    </span>
+                </td>
             </tr>
         `).join('');
 
         const activeAmbulance = window.App.Store.getActiveAmbulance?.();
         const traumaBanner = (activeAmbulance && activeAmbulance.status === 'dispatched') ? `
-            <div class="emergency-trauma-banner" style="background:#fff5f5;border:2px solid #feb2b2;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+            <div class="emergency-trauma-banner" style="background:rgba(229, 62, 62, 0.08);border:2px solid rgba(229, 62, 62, 0.35);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap">
                 <div style="display:flex;align-items:center;gap:.75rem">
                     <span style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:#e53e3e;color:#fff;font-weight:bold">
                         ${icon('siren', 22)}
                     </span>
                     <div>
-                        <strong style="color:#c53030;font-size:1.02rem;display:block">🚨 INCOMING EMERGENCY TRAUMA ALERT (${esc(activeAmbulance.typeLabel)})</strong>
-                        <p style="margin:.15rem 0 0;font-size:.85rem;color:#4a5568">Patient: <strong>${esc(activeAmbulance.patientName)}</strong> · Vehicle: <strong>${esc(activeAmbulance.driver.vehicleNo)}</strong> · ETA: <span style="color:#c53030;font-weight:700">~${activeAmbulance.etaMinutes} mins</span></p>
+                        <strong style="color:#c53030;font-size:1.02rem;display:flex;align-items:center;gap:.4rem">
+                            ${icon('siren', 16)} INCOMING EMERGENCY TRAUMA ALERT (${esc(activeAmbulance.typeLabel)})
+                        </strong>
+                        <p style="margin:.15rem 0 0;font-size:.85rem;color:var(--muted)">Patient: <strong>${esc(activeAmbulance.patientName)}</strong> · Vehicle: <strong>${esc(activeAmbulance.driver.vehicleNo)}</strong> · ETA: <span style="color:#c53030;font-weight:700">~${activeAmbulance.etaMinutes} mins</span></p>
                     </div>
                 </div>
-                <div style="display:flex;gap:.5rem;align-items:center">
-                    <span class="badge" style="background:#fed7d7;color:#9b2c2c;font-weight:600;padding:.4rem .8rem;border-radius:6px">ICU Bed Held</span>
+                <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+                    <span class="badge" style="background:rgba(229,62,62,0.15);color:#9b2c2c;font-weight:600;padding:.4rem .8rem;border-radius:6px">ICU Bed Held</span>
+                    <button type="button" class="btn-primary btn-icon" id="ack-trauma-btn" style="font-size:.78rem;padding:.4rem .75rem;background:#c53030;border-color:#c53030">
+                        ${icon('check', 14)} Prep Trauma Bay 01
+                    </button>
                 </div>
             </div>` : '';
 
@@ -207,14 +222,30 @@
                         <div class="eyebrow"><span class="eyebrow-dot"></span> ${currentStatus === 'in_progress' ? 'Current consultation' : 'Next in line'}</div>
                         <h2>${current ? esc(current.name) : 'Queue is clear'}</h2>
                         <p>${current ? `${esc(current.problem || current.symptoms || 'General consultation')} · ${statusLabel(current.status)}` : 'There are no patients waiting for this care centre right now.'}</p>
-                        ${current ? `<div class="provider-hero-meta"><span class="priority-chip ${priorityClass(current.triage)}">${esc(current.triage || 'Unassessed')} priority</span><span>${icon('stethoscope', 14)} ${esc(current.doctorName || current.doctor_name || current.doctorPref || current.doctor_pref || 'General care')}</span></div>` : ''}
+                        ${current ? `<div class="provider-hero-meta" style="display:flex;align-items:center;gap:.65rem;flex-wrap:wrap">
+                            <span class="priority-chip ${priorityClass(current.triage)}">${esc(current.triage || 'Unassessed')} priority</span>
+                            <select id="hero-change-triage" style="font-size:.78rem;padding:.2rem .5rem;border-radius:6px;background:var(--surface);border:1px solid var(--line);color:var(--ink);cursor:pointer" title="Quick adjust triage priority">
+                                <option value="Green" ${current.triage === 'Green' ? 'selected' : ''}>Green (Standard)</option>
+                                <option value="Yellow" ${current.triage === 'Yellow' ? 'selected' : ''}>Yellow (Urgent)</option>
+                                <option value="Red" ${current.triage === 'Red' ? 'selected' : ''}>Red (Emergency)</option>
+                            </select>
+                            <span>${icon('stethoscope', 14)} ${esc(current.doctorName || current.doctor_name || current.doctorPref || current.doctor_pref || 'General care')}</span>
+                        </div>` : ''}
                         <div class="provider-hero-actions" style="flex-wrap:wrap;gap:.5rem">
                             <button id="complete-patient" class="btn-primary btn-icon" ${currentAction[0] ? '' : 'disabled'}>
                                 ${currentAction[1]} ${icon(currentStatus === 'in_progress' ? 'check' : 'arrow-right', 16)}
                             </button>
-                            ${current ? `<button id="doctor-cancel-patient" class="btn-secondary btn-icon" type="button" style="border-color:#feb2b2;color:#c53030">
-                                ${icon('ban', 15)} Cancel / Reschedule
-                            </button>` : ''}
+                            ${current ? `
+                                <button id="btn-view-passport" class="btn-secondary btn-icon" type="button" title="View Patient Medical Passport &amp; History">
+                                    ${icon('file-text', 15)} Medical Passport
+                                </button>
+                                <button id="btn-record-vitals" class="btn-secondary btn-icon" type="button" title="Record Clinical Vitals">
+                                    ${icon('activity', 15)} Record Vitals
+                                </button>
+                                <button id="doctor-cancel-patient" class="btn-secondary btn-icon" type="button" style="border-color:#feb2b2;color:#c53030">
+                                    ${icon('ban', 15)} Cancel / Reschedule
+                                </button>
+                            ` : ''}
                             <button id="scan-qr-btn" class="btn-secondary btn-icon" type="button">
                                 ${icon('qr-code', 16)} Scan Patient QR
                             </button>
@@ -248,7 +279,7 @@
                         </div>
                         <span class="status-eyebrow" style="color:var(--teal)"><i style="background:var(--teal)"></i> Live</span>
                     </div>
-                    ${state.queue.length ? `<div class="queue-table-wrap"><table class="queue-table"><thead><tr><th>Patient</th><th>Reason for visit</th><th>Priority</th><th>Status</th><th>Clinician queue</th><th>Centre</th></tr></thead><tbody>${rows}</tbody></table></div>` : `<div class="provider-empty">${icon('coffee', 30)}<p>Queue clear. New visits will appear here.</p></div>`}
+                    ${state.queue.length ? `<div class="queue-table-wrap"><table class="queue-table"><thead><tr><th>Patient</th><th>Reason for visit</th><th>Priority</th><th>Status</th><th>Clinician queue</th><th>Actions</th></tr></thead><tbody>${rows}</tbody></table></div>` : `<div class="provider-empty">${icon('coffee', 30)}<p>Queue clear. New visits will appear here.</p></div>`}
                 </section>
                 ${cancelledSection}
                 <div id="doctor-message" class="provider-notice" hidden></div>
@@ -267,6 +298,9 @@
             <a href="/dashboard/queue" data-route="/dashboard/queue">${icon('list-ordered', 16)}<span>Queue</span></a>
             <a href="/dashboard/analytics" data-route="/dashboard/analytics">${icon('bar-chart-3', 16)}<span>Analytics</span></a>
             <div class="nav-divider"></div>
+            <a href="/ambulance" data-route="/ambulance" style="color:#e53e3e">${icon('siren', 16)}<span>Ambulance Fleet</span></a>
+            <a href="/pharmacy" data-route="/pharmacy">${icon('pill', 16)}<span>Pharmacy Dispenser</span></a>
+            <a href="/verify-rx" data-route="/verify-rx">${icon('shield-check', 16)}<span>Verify Rx</span></a>
             <a href="/dashboard/hospital/donations" data-route="/dashboard/hospital/donations">${icon('heart-handshake', 16)}<span>Donations</span></a>
             <a href="/dashboard/hospital/help" data-route="/dashboard/hospital/help">${icon('circle-help', 16)}<span>Help</span></a>
             <button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>
@@ -373,6 +407,131 @@
                 if (window.lucide) window.lucide.createIcons();
             };
         }
+
+        function openPatientPassport(patient) {
+            const ownerEmail = patient.patientEmail || (patient.name === 'Asha Rao' ? 'patient@smartcare.demo' : '');
+            const history = window.App.Store.getMedicalHistory(ownerEmail);
+            const passportData = {
+                passportId: patient.id === 'SC-DEMO-ASHA' || patient.name === 'Asha Rao' ? 'SC-PASSPORT-8924' : `SC-PASSPORT-${patient.id}`,
+                profile: {
+                    name: patient.name,
+                    age: patient.age || '32',
+                    gender: patient.gender || 'Female',
+                    city: patient.city || 'Hyderabad'
+                },
+                history: history || {}
+            };
+            window.App.UI.showMedicalPassportModal(passportData);
+        }
+
+        function showVitalsModal(patient) {
+            const backdrop = document.createElement('div');
+            backdrop.className = 'modal-backdrop';
+            const existingRx = window.App.Store.getPrescription(patient.id) || {};
+            const vitals = existingRx.vitals || { bp: '120/80', pulse: '76', spo2: '99', temp: '98.4' };
+            backdrop.innerHTML = `
+                <section class="modal-card" role="dialog" aria-modal="true" style="max-width:440px">
+                    <div class="modal-heading">
+                        <div>
+                            <h2>${icon('activity', 18)} Record Clinical Vitals</h2>
+                            <p>Patient: <strong>${esc(patient.name)}</strong> · ${esc(patient.age)}Y / ${esc(patient.gender || 'F')}</p>
+                        </div>
+                        <button type="button" class="btn-ghost modal-close-button" data-close-vitals>${icon('x', 18)}</button>
+                    </div>
+                    <form id="vitals-form" style="display:grid;grid-template-columns:1fr 1fr;gap:.85rem;margin-top:.75rem">
+                        <div class="field">
+                            <label for="vital-bp" style="font-size:.82rem;font-weight:600">Blood Pressure (mmHg)</label>
+                            <input id="vital-bp" type="text" value="${esc(vitals.bp || '120/80')}" placeholder="120/80" required style="width:100%;padding:.5rem .7rem;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink)">
+                        </div>
+                        <div class="field">
+                            <label for="vital-pulse" style="font-size:.82rem;font-weight:600">Pulse / Heart Rate (bpm)</label>
+                            <input id="vital-pulse" type="number" value="${esc(vitals.pulse || '76')}" placeholder="76" required style="width:100%;padding:.5rem .7rem;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink)">
+                        </div>
+                        <div class="field">
+                            <label for="vital-spo2" style="font-size:.82rem;font-weight:600">Oxygen SpO2 (%)</label>
+                            <input id="vital-spo2" type="number" value="${esc(vitals.spo2 || '99')}" placeholder="99" required style="width:100%;padding:.5rem .7rem;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink)">
+                        </div>
+                        <div class="field">
+                            <label for="vital-temp" style="font-size:.82rem;font-weight:600">Body Temp (°F)</label>
+                            <input id="vital-temp" type="text" value="${esc(vitals.temp || '98.4')}" placeholder="98.4" required style="width:100%;padding:.5rem .7rem;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink)">
+                        </div>
+                        <div class="modal-actions" style="grid-column:1 / -1;display:flex;justify-content:flex-end;gap:.5rem;margin-top:.5rem">
+                            <button type="button" class="btn-secondary" data-close-vitals>Cancel</button>
+                            <button type="submit" class="btn-primary btn-icon">${icon('check', 15)} Save Vitals</button>
+                        </div>
+                    </form>
+                </section>
+            `;
+            document.body.appendChild(backdrop);
+            if (window.lucide) window.lucide.createIcons();
+            const close = () => backdrop.remove();
+            backdrop.querySelectorAll('[data-close-vitals]').forEach(b => b.onclick = close);
+            backdrop.onclick = e => { if (e.target === backdrop) close(); };
+            backdrop.querySelector('#vitals-form').onsubmit = e => {
+                e.preventDefault();
+                const bp = backdrop.querySelector('#vital-bp').value.trim();
+                const pulse = backdrop.querySelector('#vital-pulse').value.trim();
+                const spo2 = backdrop.querySelector('#vital-spo2').value.trim();
+                const temp = backdrop.querySelector('#vital-temp').value.trim();
+                const updatedRx = {
+                    ...existingRx,
+                    vitals: { bp, pulse, spo2, temp },
+                    hospital: patient.hospital || 'SmartCare Community Hospital',
+                    patientName: patient.name,
+                    doctorName: patient.doctorName || 'Dr Meera Shah'
+                };
+                window.App.Store.savePrescription(patient.id, updatedRx);
+                close();
+                window.App.UI.toast(`Vitals saved for ${patient.name} (BP: ${bp}, SpO2: ${spo2}%).`, 'success');
+            };
+        }
+
+        const ackTraumaBtn = container.querySelector('#ack-trauma-btn');
+        if (ackTraumaBtn) {
+            ackTraumaBtn.onclick = () => {
+                ackTraumaBtn.disabled = true;
+                ackTraumaBtn.innerHTML = `${icon('check-check', 14)} Trauma Bay 01 Ready`;
+                if (window.lucide) window.lucide.createIcons();
+                window.App.UI.toast('Trauma Bay 01 prepped and resuscitation team on immediate standby.', 'success');
+            };
+        }
+
+        const passportBtn = container.querySelector('#btn-view-passport');
+        if (passportBtn && current) {
+            passportBtn.onclick = () => openPatientPassport(current);
+        }
+
+        const vitalsBtn = container.querySelector('#btn-record-vitals');
+        if (vitalsBtn && current) {
+            vitalsBtn.onclick = () => showVitalsModal(current);
+        }
+
+        const triageSelect = container.querySelector('#hero-change-triage');
+        if (triageSelect && current) {
+            triageSelect.onchange = async () => {
+                const newTriage = triageSelect.value;
+                await window.App.DB.updatePatient(current.id, { triage: newTriage });
+                const fresh = await window.App.DB.fetchQueue();
+                window.App.Store.updateQueue(fresh);
+                window.App.UI.toast(`Triage updated to ${newTriage} for ${current.name}.`, 'info');
+            };
+        }
+
+        container.querySelectorAll('.btn-row-passport').forEach(btn => {
+            btn.onclick = () => {
+                const pId = btn.dataset.patientId;
+                const patient = state.queue.find(p => String(p.id) === String(pId));
+                if (patient) openPatientPassport(patient);
+            };
+        });
+
+        container.querySelectorAll('.btn-row-rx').forEach(btn => {
+            btn.onclick = () => {
+                const pId = btn.dataset.patientId;
+                const patient = state.queue.find(p => String(p.id) === String(pId));
+                if (patient) showPrescriptionEditor(patient);
+            };
+        });
 
         const scanBtn = container.querySelector('#scan-qr-btn');
         if (scanBtn) {

@@ -7,27 +7,59 @@
     if (!supabaseEnabled) {
         const queueKey = 'smartcare.demoQueue';
         const accountsKey = 'smartcare.localAccounts';
-        const defaultQueue = [{
-            id: 'SC-DEMO001',
-            name: 'Maya Singh',
-            age: 29,
-            gender: 'Female',
-            doctorPref: 'General consultation',
-            area: 'Hyderabad',
-            symptoms: 'Follow-up consultation',
-            problem: 'Follow-up consultation',
-            hospital: 'SmartCare Community Hospital',
-            country: 'India',
-            state: 'Telangana',
-            city: 'Hyderabad',
-            triage: 'Green',
-            fee: 125,
-            status: 'waiting',
-            created_at: new Date(Date.now() - 18 * 60000).toISOString()
-        }];
+        const defaultQueue = [
+            {
+                id: 'SC-DEMO-ASHA',
+                name: 'Asha Rao',
+                patientEmail: 'patient@smartcare.demo',
+                age: 32,
+                gender: 'Female',
+                doctorPref: 'Internal medicine',
+                doctorId: 'meera-shah',
+                doctorName: 'Dr Meera Shah',
+                department: 'General medicine',
+                consultationType: 'In-person consultation',
+                appointmentDate: new Date().toISOString().slice(0, 10),
+                appointmentSlot: '11:00 am',
+                area: 'Banjara Hills',
+                symptoms: 'Seasonal wheezing and asthma follow-up',
+                problem: 'Seasonal wheezing and asthma follow-up',
+                hospital: 'SmartCare Community Hospital',
+                queueHospital: 'SmartCare Community Hospital',
+                country: 'India',
+                state: 'Telangana',
+                city: 'Hyderabad',
+                triage: 'Yellow',
+                fee: 125,
+                status: 'waiting',
+                created_at: new Date(Date.now() - 12 * 60000).toISOString()
+            },
+            {
+                id: 'SC-DEMO001',
+                name: 'Maya Singh',
+                age: 29,
+                gender: 'Female',
+                doctorPref: 'General consultation',
+                area: 'Hyderabad',
+                symptoms: 'Follow-up consultation',
+                problem: 'Follow-up consultation',
+                hospital: 'SmartCare Community Hospital',
+                country: 'India',
+                state: 'Telangana',
+                city: 'Hyderabad',
+                triage: 'Green',
+                fee: 125,
+                status: 'waiting',
+                created_at: new Date(Date.now() - 18 * 60000).toISOString()
+            }
+        ];
 
         const storedQueue = readStorage(queueKey);
         const demoQueue = Array.isArray(storedQueue) && storedQueue.length ? storedQueue : defaultQueue;
+        if (!demoQueue.some(item => item.id === 'SC-DEMO-ASHA')) {
+            demoQueue.unshift(defaultQueue[0]);
+            try { window.localStorage.setItem(queueKey, JSON.stringify(demoQueue)); } catch {}
+        }
         const seededVisit = demoQueue.find(item => item.id === 'SC-DEMO001' && String(item.status || '').toLowerCase() === 'waiting');
         if (seededVisit && Date.now() - new Date(seededVisit.created_at || 0).getTime() > 2 * 60 * 60 * 1000) {
             seededVisit.created_at = new Date(Date.now() - 18 * 60000).toISOString();

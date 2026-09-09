@@ -9,8 +9,17 @@
 
         let activeBooking = getActiveAmbulance();
         let selectedType = 'ALS';
+        let etaTimer = null;
+
+        function clearEtaTimer() {
+            if (etaTimer) {
+                clearInterval(etaTimer);
+                etaTimer = null;
+            }
+        }
 
         function render() {
+            clearEtaTimer();
             activeBooking = getActiveAmbulance();
 
             container.innerHTML = `
@@ -65,11 +74,11 @@
                                     <span style="color:var(--teal);display:flex;align-items:center;gap:.35rem">${icon('hospital', 14)} ${esc(activeBooking.hospital)} (ICU Ready)</span>
                                 </div>
                                 <div style="width:100%;height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;position:relative">
-                                    <div style="width:65%;height:100%;background:linear-gradient(90deg, #e53e3e, #f56565);border-radius:4px;transition:width 1s"></div>
+                                    <div id="eta-progress-bar" style="width:65%;height:100%;background:linear-gradient(90deg, #e53e3e, #f56565);border-radius:4px;transition:width 1s"></div>
                                 </div>
                                 <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);margin-top:.5rem">
                                     <span>Trauma Team Pre-Alerted</span>
-                                    <span>Distance: 3.2 km away</span>
+                                    <span id="eta-distance">Distance: 3.2 km away</span>
                                     <span>Trauma Bed Held</span>
                                 </div>
                             </div>
@@ -270,6 +279,47 @@
                         render();
                     }
                 };
+            }
+            // Live countdown & progress updater for dispatched ambulance
+            if (activeBooking && activeBooking.status === 'dispatched') {
+                const totalSeconds = (activeBooking.etaMinutes || 7) * 60;
+                const dispatchTime = activeBooking.dispatchedAt ? new Date(activeBooking.dispatchedAt).getTime() : Date.now();
+
+                function updateEta() {
+                    if (!container.isConnected) {
+                        clearEtaTimer();
+                        return;
+                    }
+                    const elapsedSeconds = Math.max(0, Math.floor((Date.now() - dispatchTime) / 1000));
+                    const remainingSeconds = Math.max(0, totalSeconds - elapsedSeconds);
+                    const countdownEl = container.querySelector('#eta-countdown');
+                    const progressEl = container.querySelector('#eta-progress-bar');
+                    const distanceEl = container.querySelector('#eta-distance');
+
+                    if (!countdownEl) {
+                        clearEtaTimer();
+                        return;
+                    }
+
+                    if (remainingSeconds <= 0) {
+                        countdownEl.textContent = 'Arrived on scene';
+                        countdownEl.style.color = '#38a169';
+                        if (progressEl) progressEl.style.width = '100%';
+                        if (distanceEl) distanceEl.textContent = 'Distance: At pickup location (0.0 km)';
+                        clearEtaTimer();
+                    } else {
+                        const m = Math.floor(remainingSeconds / 60);
+                        const s = remainingSeconds % 60;
+                        countdownEl.textContent = m > 0 ? `~${m}m ${s < 10 ? '0' : ''}${s}s` : `~${s}s`;
+                        const pct = Math.min(96, Math.max(15, Math.round(((totalSeconds - remainingSeconds) / totalSeconds) * 100)));
+                        if (progressEl) progressEl.style.width = `${pct}%`;
+                        const dist = Math.max(0.1, (remainingSeconds / totalSeconds) * 3.5).toFixed(1);
+                        if (distanceEl) distanceEl.textContent = `Distance: ${dist} km away`;
+                    }
+                }
+
+                updateEta();
+                etaTimer = setInterval(updateEta, 1000);
             }
         }
 

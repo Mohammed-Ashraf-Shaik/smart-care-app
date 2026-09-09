@@ -1658,8 +1658,85 @@ html { scroll-behavior: smooth; }
     }
 
     /* Push content up so bottom rows aren't hidden behind the bar */
-    .workspace-content {
-        padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px)) !important;
+    .workspace-content,
+    .ambulance-main-shell,
+    .pharmacy-main-shell,
+    .flow-shell,
+    .section-application,
+    .patient-application-shell,
+    .provider-shell,
+    .patient-shell,
+    .doctor-console,
+    .patient-history-shell {
+        padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px)) !important;
+    }
+}
+
+/* Patient Mobile Sticky Queue Dock */
+.patient-mobile-queue-dock {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .patient-mobile-queue-dock {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        background: var(--surface);
+        border: 1px solid rgba(13, 148, 136, 0.3);
+        border-left: 4px solid var(--teal, #0d9488);
+        border-radius: 10px;
+        margin: 0.75rem 0.5rem 0.5rem;
+        box-shadow: 0 4px 12px rgba(13, 148, 136, 0.08);
+    }
+
+    .patient-mobile-queue-dock .mobile-queue-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        font-size: 0.8rem;
+        min-width: 0;
+    }
+
+    .patient-mobile-queue-dock .mobile-queue-title {
+        font-weight: 600;
+        color: var(--ink);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .patient-mobile-queue-dock .mobile-queue-meta {
+        color: var(--muted);
+        font-size: 0.75rem;
+    }
+
+    .patient-mobile-queue-dock .pulse-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10b981;
+        margin-right: 4px;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: queuePulse 2s infinite;
+    }
+}
+
+@keyframes queuePulse {
+    0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+    }
+    100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
     }
 }
 
@@ -5774,6 +5851,364 @@ html { scroll-behavior: smooth; }
     /* Cart summary card becomes stacked */
     .pharmacy-cart-layout {
         grid-template-columns: 1fr !important;
+    }
+}
+
+/* --- Verify Prescription Dedicated Styles --- */
+.rx-lookup-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.04);
+}
+.rx-search-form {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.rx-search-input-wrap {
+    position: relative;
+    flex: 1 1 280px;
+    display: flex;
+    align-items: center;
+}
+.rx-search-icon {
+    position: absolute;
+    left: 0.9rem;
+    color: var(--muted);
+    pointer-events: none;
+    display: flex;
+    align-items: center;
+}
+.rx-search-input-wrap input {
+    width: 100%;
+    padding: 0.75rem 0.9rem 0.75rem 2.5rem;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--canvas);
+    color: var(--ink);
+    font-size: 0.95rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.rx-search-input-wrap input:focus {
+    outline: none;
+    border-color: var(--teal);
+    box-shadow: 0 0 0 3px rgba(35, 78, 82, 0.15);
+}
+.rx-search-actions {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.rx-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    padding: 1.25rem 0;
+    border-bottom: 1px solid var(--line);
+}
+.rx-meta-item small {
+    display: block;
+    color: var(--muted);
+    font-size: 0.78rem;
+    margin-bottom: 0.2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+}
+.rx-meta-item strong {
+    font-size: 0.95rem;
+    color: var(--ink);
+    display: block;
+}
+.rx-diagnosis-block {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--line);
+}
+.rx-section-title {
+    font-size: 0.88rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+    color: var(--muted);
+    margin: 0 0 0.5rem;
+}
+.rx-diagnosis-text {
+    margin: 0;
+    font-size: 0.95rem;
+    color: var(--ink);
+    line-height: 1.5;
+    background: var(--canvas);
+    padding: 0.85rem 1rem;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+}
+.rx-meds-section {
+    padding: 1.25rem 0;
+}
+.rx-med-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 0.85rem;
+    margin-top: 0.75rem;
+}
+.rx-med-card {
+    background: var(--canvas);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 1rem;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.rx-med-card:hover {
+    border-color: var(--teal);
+    transform: translateY(-2px);
+}
+.rx-med-card-top {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 0.6rem;
+}
+.rx-med-badge {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    display: grid;
+    place-items: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--teal);
+    flex-shrink: 0;
+}
+.rx-med-title-wrap {
+    flex: 1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.4rem;
+}
+.rx-med-name {
+    font-size: 0.92rem;
+    color: var(--ink);
+}
+.badge-dosage {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    color: var(--teal);
+    font-size: 0.75rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 6px;
+    font-weight: 600;
+}
+.rx-med-card-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+    border-top: 1px dashed var(--line);
+    padding-top: 0.5rem;
+}
+.rx-med-card-meta strong {
+    color: var(--ink);
+}
+.rx-action-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+}
+.rx-action-links {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.btn-dispense-cta {
+    background: #2b6cb0;
+    border-color: #2b6cb0;
+    color: #fff;
+    font-weight: 600;
+}
+.btn-dispense-cta:hover {
+    background: #2c5282;
+    border-color: #2c5282;
+}
+.rx-locked-notice {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #e53e3e;
+    background: rgba(229, 62, 62, 0.08);
+    padding: 0.45rem 0.9rem;
+    border-radius: 8px;
+    border: 1px solid rgba(229, 62, 62, 0.25);
+}
+
+@media (max-width: 600px) {
+    .rx-search-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .rx-search-actions {
+        width: 100%;
+    }
+    .rx-search-actions button {
+        flex: 1;
+        justify-content: center;
+    }
+    .rx-action-footer {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .rx-action-links {
+        width: 100%;
+    }
+    .rx-action-links > * {
+        flex: 1;
+        justify-content: center;
+    }
+    .btn-dispense-cta {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+/* ==========================================================================
+   Comprehensive Mobile & Touch Optimization (Universal Polish)
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    .modal-backdrop {
+        padding: 0.75rem !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .modal-card,
+    .prescription-modal,
+    .passport-review-modal,
+    .appointment-manager {
+        width: 100% !important;
+        max-width: 100% !important;
+        max-height: 88vh !important;
+        overflow-y: auto !important;
+        border-radius: 16px !important;
+        padding: 1.15rem 1rem !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+    }
+
+    .prescription-modal-body,
+    .passport-review-banner,
+    .passport-review-grid {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+    }
+
+    .prescription-modal-actions,
+    .modal-actions {
+        flex-direction: column-reverse !important;
+        gap: 0.5rem !important;
+        width: 100% !important;
+    }
+
+    .prescription-modal-actions button,
+    .modal-actions button {
+        width: 100% !important;
+        min-height: 46px !important;
+        justify-content: center !important;
+    }
+
+    /* Queue & History Table horizontal touch scroll */
+    .queue-table-wrap,
+    .table-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        border-radius: 12px !important;
+    }
+
+    /* Flow topbar actions wrap smoothly on narrow devices */
+    .flow-topbar-actions {
+        gap: 0.4rem !important;
+        flex-wrap: wrap !important;
+    }
+
+    .topbar-control-group {
+        gap: 0.35rem !important;
+    }
+
+    .topbar-sos-btn,
+    .theme-toggle-btn {
+        min-height: 38px !important;
+        padding: 0.35rem 0.65rem !important;
+    }
+
+    /* Patient Hero & Doctor Hero action buttons full width on small mobile */
+    .provider-hero-actions {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        gap: 0.5rem !important;
+    }
+
+    .provider-hero-actions button,
+    .provider-hero-actions a {
+        width: 100% !important;
+        min-height: 46px !important;
+        justify-content: center !important;
+    }
+
+    /* Form grid responsive stacking */
+    .form-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .form-grid .span-2,
+    .form-grid .full {
+        grid-column: 1 / -1 !important;
+    }
+
+    /* Vitals form inputs touch clearance */
+    #vitals-form {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Care panel redesigned */
+    .care-panel-redesigned {
+        padding: 1rem !important;
+    }
+
+    .hosp-picker-row {
+        flex-direction: column !important;
+    }
+
+    .hosp-pick-btn {
+        width: 100% !important;
+    }
+
+    /* Safe bottom clearance for fixed mobile navigation bar across all views */
+    .flow-shell,
+    .workspace-shell,
+    .patient-shell,
+    .section-dashboard,
+    .section-patient-history,
+    .verify-rx-shell,
+    .ambulance-main-shell,
+    .pharmacy-main-shell {
+        padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px)) !important;
     }
 }
 
