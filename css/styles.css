@@ -1569,6 +1569,90 @@ html { scroll-behavior: smooth; }
     .provider-hero-actions { flex-direction: column; align-items: stretch; }
 }
 
+@media (max-width: 480px) {
+    .patient-appointment-card {
+        grid-template-columns: 2.4rem minmax(0, 1fr);
+        gap: 0.65rem;
+        padding: 0.85rem;
+    }
+    .appointment-actions {
+        grid-column: 1 / -1;
+        width: 100%;
+        align-items: stretch;
+    }
+    .appointment-actions > div {
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .appointment-actions button,
+    .appointment-actions a {
+        flex: 1 1 100%;
+        min-height: 44px;
+        justify-content: center;
+    }
+    .patient-cancellation-banner .appointment-copy > div {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+    .patient-cancellation-banner button,
+    .patient-cancellation-banner .badge {
+        width: 100%;
+        min-height: 44px;
+        justify-content: center;
+    }
+    .profile-form-actions {
+        flex-direction: column;
+        align-items: stretch !important;
+    }
+    .profile-form-actions button {
+        width: 100%;
+        min-height: 44px;
+        justify-content: center;
+    }
+    .patient-visit {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    .patient-visit-icon {
+        display: none;
+    }
+    .visit-status,
+    .visit-actions {
+        grid-column: 1;
+        width: 100%;
+    }
+    .visit-actions button {
+        width: 100%;
+        min-height: 44px;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 380px) {
+    .patient-appointment-card {
+        grid-template-columns: 1fr;
+    }
+    .patient-appointment-card .appointment-icon {
+        width: 2.4rem;
+        height: 2.4rem;
+        margin-bottom: 0.25rem;
+    }
+    .patient-stats,
+    .provider-stats {
+        grid-template-columns: 1fr !important;
+    }
+    .patient-appointment-card > .text-link {
+        grid-column: 1;
+        width: 100%;
+    }
+    .appointment-telemetry > span {
+        min-width: 100% !important;
+        flex: 1 1 100% !important;
+    }
+}
+
 /* ═══════════════════════════════════════════════
    MOBILE BOTTOM NAVIGATION BAR
    Hidden on desktop, visible on mobile ≤ 768px

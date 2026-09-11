@@ -31,14 +31,14 @@
                 return `
                 <div class="patient-visit">
                     <div class="patient-visit-icon">${icon('clipboard-check', 18)}</div>
-                    <div>
+                    <div style="min-width:0;overflow-wrap:anywhere">
                         <strong>${esc(visit.hospital || 'SmartCare centre')}</strong>
-                        <p>${esc(visit.reason || 'General consultation')} · Ref: ${esc(visit.reference || visit.id || 'SC-DEMO')}</p>
+                        <p style="overflow-wrap:anywhere;word-break:break-word">${esc(visit.reason || 'General consultation')} · Ref: <span style="font-family:monospace;font-size:0.85em">${esc(visit.reference || visit.id || 'SC-DEMO')}</span></p>
                         <small>${esc(visit.date || 'Recent date')} · Status: <span class="visit-status">${esc(visitStatusLabel(visit.status))}</span></small>
                     </div>
                     <div class="visit-actions">
-                        <button type="button" class="btn-secondary btn-icon btn-view-rx" data-visit-id="${esc(visit.id)}" style="font-size:.72rem;min-height:2.2rem;padding:.35rem .75rem">
-                            ${icon(hasPrescription ? 'file-text' : 'file-question', 14)} <span>${hasPrescription ? 'View demo record' : 'No record yet'}</span>
+                        <button type="button" class="btn-secondary btn-icon btn-view-rx" data-visit-id="${esc(visit.id)}" style="font-size:.78rem;min-height:44px;padding:.5rem .85rem">
+                            ${icon(hasPrescription ? 'file-text' : 'file-question', 15)} <span>${hasPrescription ? 'View record' : 'No record'}</span>
                         </button>
                     </div>
                 </div>`;
@@ -48,21 +48,21 @@
         const recentlyCancelledVisit = state.patientVisits.find(visit => ['cancelled', 'withdrawn'].includes(String(visit.status || '').toLowerCase()) && (visit.cancelledBy === 'doctor' || (Date.now() - new Date(visit.cancelledAt || visit.date || Date.now()).getTime() < 48 * 3600 * 1000)));
 
         const cancellationBanner = recentlyCancelledVisit ? `
-            <section class="patient-appointment-card patient-cancellation-banner ${recentlyCancelledVisit.cancelledBy === 'doctor' ? 'doctor-cancelled' : 'patient-cancelled'}" style="border-left:4px solid ${recentlyCancelledVisit.cancelledBy === 'doctor' ? '#e53e3e' : '#f59e0b'};margin-bottom:1.25rem;background:var(--surface)">
-                <div class="appointment-icon" style="color:${recentlyCancelledVisit.cancelledBy === 'doctor' ? '#e53e3e' : '#f59e0b'}">${icon(recentlyCancelledVisit.cancelledBy === 'doctor' ? 'triangle-alert' : 'info', 22)}</div>
-                <div class="appointment-copy" style="flex:1">
-                    <span class="eyebrow" style="color:${recentlyCancelledVisit.cancelledBy === 'doctor' ? '#e53e3e' : '#f59e0b'}"><span class="eyebrow-dot" style="background:${recentlyCancelledVisit.cancelledBy === 'doctor' ? '#e53e3e' : '#f59e0b'}"></span> ${recentlyCancelledVisit.cancelledBy === 'doctor' ? 'Appointment Cancelled by Hospital' : 'Appointment Cancelled'}</span>
+            <section class="patient-appointment-card patient-cancellation-banner ${recentlyCancelledVisit.cancelledBy === 'doctor' ? 'doctor-cancelled' : 'patient-cancelled'}" style="border-left:4px solid ${recentlyCancelledVisit.cancelledBy === 'doctor' ? 'var(--red, #e53e3e)' : 'var(--amber, #f59e0b)'};margin-bottom:1.25rem;background:var(--surface);border-top:1px solid var(--line);border-right:1px solid var(--line);border-bottom:1px solid var(--line)">
+                <div class="appointment-icon" style="color:${recentlyCancelledVisit.cancelledBy === 'doctor' ? 'var(--red, #e53e3e)' : 'var(--amber, #f59e0b)'};background:color-mix(in srgb, ${recentlyCancelledVisit.cancelledBy === 'doctor' ? 'var(--red, #e53e3e)' : 'var(--amber, #f59e0b)'} 12%, transparent)">${icon(recentlyCancelledVisit.cancelledBy === 'doctor' ? 'triangle-alert' : 'info', 22)}</div>
+                <div class="appointment-copy" style="flex:1;min-width:0">
+                    <span class="eyebrow" style="color:${recentlyCancelledVisit.cancelledBy === 'doctor' ? 'var(--red, #e53e3e)' : 'var(--amber, #f59e0b)'}"><span class="eyebrow-dot" style="background:${recentlyCancelledVisit.cancelledBy === 'doctor' ? 'var(--red, #e53e3e)' : 'var(--amber, #f59e0b)'}"></span> ${recentlyCancelledVisit.cancelledBy === 'doctor' ? 'Appointment Cancelled by Hospital' : 'Appointment Cancelled'}</span>
                     <h2 style="font-size:1.15rem;margin:.25rem 0">${recentlyCancelledVisit.cancelledBy === 'doctor' ? `Dr. ${esc(recentlyCancelledVisit.doctorName || 'Clinician')} had an unexpected schedule change` : `You cancelled this appointment`}</h2>
-                    <p style="margin:.25rem 0;font-size:.9rem"><strong>Reason:</strong> ${esc(recentlyCancelledVisit.cancellationReason || (recentlyCancelledVisit.cancelledBy === 'doctor' ? 'Doctor summoned for emergency surgery duty' : 'Schedule conflict'))}</p>
-                    <small>Centre: ${esc(recentlyCancelledVisit.hospital)} | Ref: <strong>${esc(recentlyCancelledVisit.id)}</strong></small>
+                    <p style="margin:.25rem 0;font-size:.9rem;overflow-wrap:anywhere"><strong>Reason:</strong> ${esc(recentlyCancelledVisit.cancellationReason || (recentlyCancelledVisit.cancelledBy === 'doctor' ? 'Doctor summoned for emergency surgery duty' : 'Schedule conflict'))}</p>
+                    <small style="overflow-wrap:anywhere">Centre: ${esc(recentlyCancelledVisit.hospital)} | Ref: <strong>${esc(recentlyCancelledVisit.id)}</strong></small>
                     <div style="margin-top:.75rem;display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
-                        <button type="button" class="btn-primary btn-icon btn-reschedule-free" data-visit-id="${esc(recentlyCancelledVisit.id)}" style="font-size:.82rem;padding:.45rem .85rem">
-                            ${icon('calendar-clock', 15)} Reschedule free of charge
+                        <button type="button" class="btn-primary btn-icon btn-reschedule-free" data-visit-id="${esc(recentlyCancelledVisit.id)}" style="font-size:.85rem;min-height:44px;padding:.5rem .95rem">
+                            ${icon('calendar-clock', 16)} Reschedule free of charge
                         </button>
                         ${recentlyCancelledVisit.refundStatus === 'processed'
-                            ? `<span class="badge" style="background:#e6fffa;color:#234e52;border:1px solid #b2f5ea;padding:.45rem .85rem;border-radius:6px;font-size:.82rem;font-weight:600">${icon('check-circle', 14)} Refund Processed (${esc(recentlyCancelledVisit.refundRef || 'REF-OK')})</span>`
-                            : `<button type="button" class="btn-secondary btn-icon btn-claim-refund" data-visit-id="${esc(recentlyCancelledVisit.id)}" style="font-size:.82rem;padding:.45rem .85rem">
-                                ${icon('receipt', 15)} Claim ₹125 refund
+                            ? `<span class="badge" style="background:var(--mint);color:var(--teal-dark);border:1px solid var(--line);min-height:44px;padding:.5rem .95rem;border-radius:var(--radius-sm);font-size:.82rem;font-weight:600;display:inline-flex;align-items:center;gap:.4rem">${icon('check-circle', 15)} Refund Processed (${esc(recentlyCancelledVisit.refundRef || 'REF-OK')})</span>`
+                            : `<button type="button" class="btn-secondary btn-icon btn-claim-refund" data-visit-id="${esc(recentlyCancelledVisit.id)}" style="font-size:.85rem;min-height:44px;padding:.5rem .95rem">
+                                ${icon('receipt', 16)} Claim ₹125 refund
                                </button>`
                         }
                     </div>
@@ -72,12 +72,12 @@
         const appointmentCard = activeVisit ? `
             <section class="patient-appointment-card" aria-label="Next appointment and live queue status">
                 <div class="appointment-icon">${icon('calendar-clock', 22)}</div>
-                <div class="appointment-copy">
+                <div class="appointment-copy" style="min-width:0">
                     <span class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> Next appointment</span>
                     <h2>${esc(activeVisit.hospital || 'SmartCare centre')}</h2>
                     <p>${esc(activeVisit.department || 'General medicine')} | ${esc(activeVisit.doctorName || 'Next available clinician')}</p>
                     <small>${esc(activeVisit.consultationType || 'In-person consultation')} | ${esc(activeVisit.appointmentDate || activeVisit.date || 'Date pending')} at ${esc(activeVisit.appointmentSlot || 'Next available')}</small>
-                    <small>Reference: <strong>${esc(activeVisit.id || 'SC-DEMO')}</strong></small>
+                    <small style="overflow-wrap:anywhere">Reference: <strong>${esc(activeVisit.id || 'SC-DEMO')}</strong></small>
                     <div class="appointment-telemetry" aria-live="polite">
                         <span><small>Live position</small><strong>${esc(queuePosition)}</strong></span>
                         <span><small>Patients ahead</small><strong>${patientsAhead === null ? '—' : patientsAhead}</strong></span>
@@ -87,10 +87,10 @@
                 <div class="appointment-actions">
                     <strong>${esc(visitStatusLabel(liveStatus))}</strong>
                     <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
-                        <button type="button" class="btn-secondary btn-icon btn-view-rx" data-visit-id="${esc(activeVisit.id)}" style="font-size:.72rem;min-height:2.2rem;padding:.35rem .65rem">
-                            ${icon('file-text', 14)} Clinical slip
+                        <button type="button" class="btn-secondary btn-icon btn-view-rx" data-visit-id="${esc(activeVisit.id)}" style="font-size:.78rem;min-height:44px;padding:.5rem .85rem">
+                            ${icon('file-text', 15)} Clinical slip
                         </button>
-                        <button id="manage-appointment" class="btn-secondary btn-icon" type="button">${icon('calendar-cog', 14)} Manage</button>
+                        <button id="manage-appointment" class="btn-secondary btn-icon" type="button" style="font-size:.78rem;min-height:44px;padding:.5rem .85rem">${icon('calendar-cog', 15)} Manage</button>
                     </div>
                 </div>
             </section>` : `
@@ -123,8 +123,8 @@
                             <div class="mobile-queue-title"><span class="pulse-dot"></span> <strong>${esc(activeVisit.hospital || 'SmartCare Centre')}</strong> · ${esc(visitStatusLabel(liveStatus))}</div>
                             <div class="mobile-queue-meta">Live Queue: <strong>${esc(queuePosition)}</strong> · Window: ${esc(queueEstimate)}</div>
                         </div>
-                        <button type="button" class="btn-secondary btn-icon btn-sm btn-view-rx" data-visit-id="${esc(activeVisit.id)}" style="font-size:.75rem;padding:.35rem .65rem;flex-shrink:0">
-                            ${icon('file-text', 13)} Slip
+                        <button type="button" class="btn-secondary btn-icon btn-sm btn-view-rx" data-visit-id="${esc(activeVisit.id)}" style="font-size:.78rem;min-height:44px;padding:.45rem .85rem;flex-shrink:0;display:inline-flex;align-items:center;gap:.4rem">
+                            ${icon('file-text', 14)} Slip
                         </button>
                     </div>
                 ` : ''}
@@ -180,7 +180,9 @@
                             </div>
                             <a class="text-link text-link-dark btn-icon" data-route="/dashboard/patient/apply/1" href="/dashboard/patient/apply/1">Book again ${icon('arrow-up-right', 15)}</a>
                         </div>
-                        <div class="patient-visit-list">${visitRows}</div>
+                        <div class="overflow-x-auto w-full" style="width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch">
+                            <div class="patient-visit-list">${visitRows}</div>
+                        </div>
                     </section>` : ''}
                 ${showProfile ? `
                     <section id="tab-profile" data-tab-panel="profile" class="provider-card patient-profile-card">
@@ -238,9 +240,9 @@
                                 <label for="pf-allergies">Known Drug Allergies</label>
                                 <input id="pf-allergies" type="text" value="${esc(patientData.allergies || '')}" placeholder="e.g. Penicillin, Sulfa drugs (Leave blank if none)">
                             </div>
-                            <div class="field full" style="display:flex;flex-direction:row;justify-content:space-between;align-items:center;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--line)">
-                                <span class="hint">Saved automatically to your browser profile.</span>
-                                <button type="submit" class="btn-primary btn-icon" id="btn-save-profile">
+                            <div class="field full profile-form-actions" style="display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:0.75rem;margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--line)">
+                                <span class="hint" style="margin:0">Saved automatically to your browser profile.</span>
+                                <button type="submit" class="btn-primary btn-icon" id="btn-save-profile" style="min-height:44px;padding:.5rem 1.15rem">
                                     ${icon('save', 16)} Save Profile Changes
                                 </button>
                             </div>
@@ -355,23 +357,24 @@
             const exitLabel = 'Cancel appointment';
             const backdrop = document.createElement('div');
             backdrop.className = 'modal-backdrop';
-            backdrop.innerHTML = `<section class="modal-card appointment-manager" role="dialog" aria-modal="true" aria-labelledby="appointment-manager-title">
+            backdrop.style.cssText = 'overflow-y:auto;padding:1rem;display:flex;align-items:center;justify-content:center;';
+            backdrop.innerHTML = `<section class="modal-card appointment-manager" role="dialog" aria-modal="true" aria-labelledby="appointment-manager-title" style="max-height:calc(100dvh - 2rem);overflow-y:auto;width:100%;max-width:520px;box-sizing:border-box">
                 <div class="modal-heading">
-                    <div>
+                    <div style="min-width:0">
                         <h2 id="appointment-manager-title">Manage appointment</h2>
-                        <p>${esc(visit.hospital || 'SmartCare centre')} | ${esc(visit.doctorName || 'Clinician assignment pending')}</p>
+                        <p style="overflow-wrap:anywhere">${esc(visit.hospital || 'SmartCare centre')} | ${esc(visit.doctorName || 'Clinician assignment pending')}</p>
                     </div>
-                    <button type="button" class="btn-ghost modal-close-button" data-close-manager aria-label="Close appointment manager">${icon('x', 18)}</button>
+                    <button type="button" class="btn-ghost modal-close-button" data-close-manager aria-label="Close appointment manager" style="min-width:44px;min-height:44px;display:grid;place-items:center">${icon('x', 18)}</button>
                 </div>
                 <form id="reschedule-form" class="appointment-manager-form">
                     <div class="field">
                         <label for="reschedule-slot">Choose another available slot</label>
-                        <select id="reschedule-slot" ${canReschedule ? '' : 'disabled'}>${slots.map(slot => `<option value="${esc(slot.value)}" ${slot.value === currentSlotValue ? 'selected' : ''}>${esc(slot.label)}</option>`).join('')}</select>
+                        <select id="reschedule-slot" ${canReschedule ? '' : 'disabled'} style="font-size:16px;min-height:44px">${slots.map(slot => `<option value="${esc(slot.value)}" ${slot.value === currentSlotValue ? 'selected' : ''}>${esc(slot.label)}</option>`).join('')}</select>
                         <span class="hint">${canReschedule ? 'Rescheduling releases your old slot and immediately updates the hospital queue.' : 'This visit cannot be rescheduled after the hospital calls the patient.'}</span>
                     </div>
-                    <div class="modal-actions">
-                        <button type="button" class="btn-secondary" data-close-manager>Keep current booking</button>
-                        <button type="submit" class="btn-primary btn-icon" ${canReschedule ? '' : 'disabled'}>${icon('calendar-clock', 15)} Save new time</button>
+                    <div class="modal-actions" style="gap:.65rem">
+                        <button type="button" class="btn-secondary" data-close-manager style="min-height:44px">Keep current booking</button>
+                        <button type="submit" class="btn-primary btn-icon" ${canReschedule ? '' : 'disabled'} style="min-height:44px">${icon('calendar-clock', 15)} Save new time</button>
                     </div>
                 </form>
                 <div class="appointment-danger-zone">
@@ -379,10 +382,10 @@
                         <strong>Cancel appointment</strong>
                         <p>This releases your doctor appointment slot back to other patients in need.</p>
                     </div>
-                    <button id="begin-withdraw" class="btn-danger" type="button">Cancel appointment</button>
+                    <button id="begin-withdraw" class="btn-danger" type="button" style="min-height:44px">Cancel appointment</button>
                     <div id="withdraw-confirmation" class="withdraw-confirmation" hidden style="margin-top:.75rem">
                         <p style="font-weight:600;font-size:.9rem;margin-bottom:.35rem">Select reason for cancellation:</p>
-                        <select id="patient-cancel-reason" style="width:100%;margin-bottom:.75rem;padding:.5rem .75rem;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink)">
+                        <select id="patient-cancel-reason" style="width:100%;margin-bottom:.75rem;padding:.65rem .85rem;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:16px;min-height:44px;box-sizing:border-box">
                             <option value="Schedule conflict or travel">Schedule conflict or travel</option>
                             <option value="Emergency resolved / Feeling better">Emergency resolved / Feeling better</option>
                             <option value="Visiting alternate clinic">Visiting alternate clinic</option>
@@ -390,8 +393,8 @@
                             <option value="Personal circumstances">Personal circumstances</option>
                         </select>
                         <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-                            <button class="btn-secondary" id="keep-appointment" type="button">Keep appointment</button>
-                            <button class="btn-danger" id="confirm-withdraw" type="button">Confirm cancellation</button>
+                            <button class="btn-secondary" id="keep-appointment" type="button" style="min-height:44px;flex:1 1 140px">Keep appointment</button>
+                            <button class="btn-danger" id="confirm-withdraw" type="button" style="min-height:44px;flex:1 1 140px">Confirm cancellation</button>
                         </div>
                     </div>
                 </div>

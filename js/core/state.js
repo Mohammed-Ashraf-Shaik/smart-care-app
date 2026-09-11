@@ -549,6 +549,34 @@
         } catch {}
     }
     function hydrateSession() {
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const demoRole = (urlParams.get('demo') || urlParams.get('autologin') || '').toLowerCase();
+            if (demoRole) {
+                if (demoRole === 'patient') {
+                    state.isLogged = true; state.loggedEmail = 'patient@smartcare.demo'; state.loggedRole = 'patient';
+                    state.loggedHospital = 'SmartCare Community Hospital'; state.loggedCountry = 'India'; state.loggedState = 'Telangana'; state.loggedCity = 'Hyderabad';
+                    state.sessionExpiresAt = Date.now() + 86400000;
+                    loadPatientAccount(state.loggedEmail); loadPatientProfile(state.loggedEmail);
+                    persistSession();
+                    return;
+                }
+                if (demoRole === 'doctor' || demoRole === 'hospital') {
+                    state.isLogged = true; state.loggedEmail = 'hospital@smartcare.demo'; state.loggedRole = 'doctor';
+                    state.loggedHospital = 'SmartCare Community Hospital'; state.loggedCountry = 'India'; state.loggedState = 'Telangana'; state.loggedCity = 'Hyderabad';
+                    state.sessionExpiresAt = Date.now() + 86400000;
+                    persistSession();
+                    return;
+                }
+                if (demoRole === 'staff' || demoRole === 'admin') {
+                    state.isLogged = true; state.loggedEmail = 'admin@smartcare.demo'; state.loggedRole = 'staff';
+                    state.loggedHospital = 'SmartCare Community Hospital'; state.loggedCountry = 'India'; state.loggedState = 'Telangana'; state.loggedCity = 'Hyderabad';
+                    state.sessionExpiresAt = Date.now() + 86400000;
+                    persistSession();
+                    return;
+                }
+            }
+        } catch {}
         const session = readStorage(sessionKey);
         if (session && session.expiresAt && session.expiresAt > Date.now()) {
             state.isLogged = true; state.loggedEmail = session.email || ''; state.loggedRole = session.role || ''; state.loggedHospital = session.hospital || ''; state.loggedCountry = session.country || ''; state.loggedState = session.state || ''; state.loggedCity = session.city || ''; state.sessionExpiresAt = session.expiresAt;
