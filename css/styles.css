@@ -6296,4 +6296,231 @@ html { scroll-behavior: smooth; }
     }
 }
 
+/* ==========================================================================
+   Module 1 Subsystem: Real Camera QR Scanner, HUD, Print, and Dark Mode
+   ========================================================================== */
+
+/* 1. Real Camera Viewfinder & HUD Reticle */
+.real-qr-viewfinder {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    height: 270px;
+    margin: 0 auto;
+    background: #000;
+    border-radius: 14px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--teal, #0f5ca8);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
+
+.real-qr-viewfinder video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.qr-hud-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.hud-reticle-corner {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    border: 3px solid #38bdf8;
+}
+
+.corner-tl {
+    top: 24px;
+    left: 24px;
+    border-right: none;
+    border-bottom: none;
+    border-top-left-radius: 8px;
+}
+
+.corner-tr {
+    top: 24px;
+    right: 24px;
+    border-left: none;
+    border-bottom: none;
+    border-top-right-radius: 8px;
+}
+
+.corner-bl {
+    bottom: 24px;
+    left: 24px;
+    border-right: none;
+    border-top: none;
+    border-bottom-left-radius: 8px;
+}
+
+.corner-br {
+    bottom: 24px;
+    right: 24px;
+    border-left: none;
+    border-top: none;
+    border-bottom-right-radius: 8px;
+}
+
+.hud-laser-sweep {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #38bdf8 50%, transparent);
+    box-shadow: 0 0 12px #38bdf8;
+    animation: laserSweep 2s ease-in-out infinite;
+}
+
+@keyframes laserSweep {
+    0% {
+        top: 25px;
+        opacity: 0.2;
+    }
+    50% {
+        top: calc(100% - 25px);
+        opacity: 1;
+    }
+    100% {
+        top: 25px;
+        opacity: 0.2;
+    }
+}
+
+.hud-instruction-badge {
+    position: absolute;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.75);
+    color: #e2e8f0;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.3rem 0.75rem;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    white-space: nowrap;
+}
+
+.camera-error-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.92);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    text-align: center;
+    z-index: 5;
+}
+
+.camera-off-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(239, 68, 68, 0.18);
+    color: #ef4444;
+    margin: 0 auto;
+}
+
+/* 2. QR Magnifier Modal */
+.qr-magnifier-card {
+    background: var(--surface) !important;
+    border: 1px solid var(--line) !important;
+    color: var(--ink) !important;
+}
+
+.qr-magnifier-display {
+    background: #ffffff !important;
+    color: #000000 !important;
+}
+
+/* 3. Clinical Allergy Pre-Alert Banner & Jan Aushadhi Generic Formulary Card */
+.allergy-pre-alert-strip {
+    transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .allergy-pre-alert-strip {
+    background: rgba(221, 107, 32, 0.14) !important;
+    border-color: rgba(246, 173, 85, 0.35) !important;
+}
+
+.generic-formulary-box {
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.generic-formulary-box:hover {
+    border-color: var(--teal);
+}
+
+[data-theme="dark"] .generic-formulary-box {
+    background: var(--surface) !important;
+    border-color: var(--line) !important;
+}
+
+/* 4. Single-Page OPD Boarding Pass Print Optimization */
+@media print {
+    body * {
+        visibility: hidden !important;
+    }
+    .appointment-pass-card,
+    .appointment-pass-card * {
+        visibility: visible !important;
+    }
+    .appointment-pass-card {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        max-width: 480px !important;
+        margin: 0 auto !important;
+        border: 2px solid #000 !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+        background: #fff !important;
+        color: #000 !important;
+    }
+    .flow-topbar,
+    .flow-header,
+    .confirmation-hero-bar,
+    .confirmation-next-section,
+    .confirmation-action-buttons,
+    .modal-backdrop,
+    .mobile-bottom-nav {
+        display: none !important;
+    }
+}
+
+/* 5. Mobile Touch Sizing (>= 44px) */
+@media (max-width: 768px) {
+    .qr-action-toolbar button,
+    .qr-action-toolbar label,
+    .demo-qr-chip,
+    #btn-submit-manual-qr,
+    #btn-enlarge-qr,
+    #btn-sync-passport,
+    .confirmation-action-buttons button {
+        min-height: 44px;
+        min-width: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+
 

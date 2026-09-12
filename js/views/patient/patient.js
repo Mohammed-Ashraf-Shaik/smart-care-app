@@ -128,6 +128,12 @@
         function renderProfile(target) {
             target.innerHTML = `
                 <form id="patient-profile-step" class="profile-step-form" novalidate>
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:1rem">
+                        <span style="font-size:.8rem;color:var(--muted)">Enter personal details or sync with digital health ID:</span>
+                        <button type="button" id="btn-sync-passport" class="btn-secondary btn-icon btn-compact" title="Auto-fill verified details from ABHA health passport">
+                            ${icon('shield-check', 14)} <span>Sync ABHA Passport (SC-PASSPORT-8924)</span>
+                        </button>
+                    </div>
                     <div class="form-grid profile-grid">
                         <div class="field">
                             <label for="patient-name">Full name <span>*</span></label>
@@ -164,6 +170,24 @@
             const ageInput = target.querySelector('#patient-age');
             const preferenceInputs = [...target.querySelectorAll('input[name="pref"]')];
             const clearError = () => target.querySelector('.inline-error')?.remove();
+
+            const syncPassportBtn = target.querySelector('#btn-sync-passport');
+            if (syncPassportBtn) {
+                syncPassportBtn.onclick = () => {
+                    clearError();
+                    nameInput.value = 'Asha Rao';
+                    ageInput.value = '32';
+                    const genPref = preferenceInputs.find(i => i.value === 'General consultation');
+                    if (genPref) genPref.checked = true;
+                    updatePatientData('name', 'Asha Rao');
+                    updatePatientData('age', '32');
+                    updatePatientData('doctorPref', 'General consultation');
+                    updatePatientData('passportId', 'SC-PASSPORT-8924');
+                    markDraftSaved();
+                    window.App.UI?.toast?.('Synced with SmartCare ABHA Passport SC-PASSPORT-8924', 'success');
+                };
+            }
+
             nameInput.oninput = event => { clearError(); updatePatientData('name', event.target.value); markDraftSaved(); };
             ageInput.oninput = event => { clearError(); updatePatientData('age', event.target.value); markDraftSaved(); };
             preferenceInputs.forEach(input => input.onchange = event => { clearError(); updatePatientData('doctorPref', event.target.value); markDraftSaved(); });
@@ -500,6 +524,19 @@
                     <span class="safety-text">Demo queue booking · For acute emergencies, call local emergency services immediately.</span>
                     ${demoMirror ? `<span class="demo-badge">${icon('presentation', 12)} Presentation mode</span>` : ''}
                 </div>
+
+                ${(patientData.name?.toLowerCase().includes('asha') || patientData.passportId || demoMirror) ? `
+                    <div class="allergy-pre-alert-strip" role="alert" style="margin-bottom:1rem;background:rgba(221,107,32,0.08);border:1px solid rgba(221,107,32,0.35);border-radius:10px;padding:.85rem 1rem;display:flex;align-items:flex-start;gap:.75rem">
+                        <span style="color:#dd6b20;display:flex;margin-top:2px">${icon('shield-alert', 20)}</span>
+                        <div>
+                            <strong style="color:var(--ink);font-size:.88rem;display:block">Clinical Allergy Pre-Alert: Verified Penicillin Allergy on File (SC-PASSPORT-8924)</strong>
+                            <p style="margin:.25rem 0 0;font-size:.8rem;color:var(--muted)">
+                                Attending clinician will be notified in advance to avoid contraindicated beta-lactam antibiotics and adjust prescription recommendations.
+                            </p>
+                        </div>
+                    </div>
+                ` : ''}
+
                 <div class="review-grid step3-review-grid">
                     <div class="step3-fields">
                         <section class="care-selection-section" aria-labelledby="care-team-title">
@@ -530,6 +567,22 @@
                                 </div>
                             </div>
                         </section>
+
+                        <!-- PMBI Jan Aushadhi Generic Substitution Toggle -->
+                        <div class="generic-formulary-box" style="margin-bottom:1.25rem;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:.85rem 1rem">
+                            <label style="display:flex;align-items:flex-start;gap:.75rem;cursor:pointer">
+                                <input type="checkbox" id="generic-formulary-optin" ${patientData.genericOptIn !== false ? 'checked' : ''} style="margin-top:3px;width:18px;height:18px;accent-color:var(--teal)">
+                                <div style="flex:1">
+                                    <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+                                        <strong style="font-size:.88rem;color:var(--ink)">Opt into PMBI Jan Aushadhi Generic Medicine Formulary</strong>
+                                        <span class="badge" style="background:#e6fffa;color:#234e52;font-weight:700;font-size:.72rem;padding:.2rem .5rem;border-radius:12px">Save up to 75%</span>
+                                    </div>
+                                    <p style="margin:.25rem 0 0;font-size:.8rem;color:var(--muted)">
+                                        Prioritizes government-certified high-efficacy generic equivalents to significantly lower out-of-pocket prescription expenses.
+                                    </p>
+                                </div>
+                            </label>
+                        </div>
 
                         <div class="field symptom-search-field">
                             <fieldset class="symptom-picker">
@@ -815,7 +868,7 @@
                             </div>
 
                             <div class="pass-qr-strip">
-                                <img src="${qrUrl}" alt="Check-in QR Code" class="pass-qr-img">
+                                <img src="${qrUrl}" alt="Check-in QR Code" class="pass-qr-img" id="pass-qr-image" style="cursor:pointer" title="Click to magnify QR code for reception scanner guns">
                                 <div class="pass-qr-details">
                                     <span class="pass-qr-label">${icon('qr-code', 13)} Scan at hospital counter</span>
                                     <div class="token-card compact-token-card" data-reference="${esc(booking)}" role="button" tabindex="0" title="Click to copy reference">
@@ -826,6 +879,9 @@
                                         ${icon('copy', 16)}
                                     </div>
                                     <small class="copy-hint-text">Click token to copy</small>
+                                    <button type="button" id="btn-enlarge-qr" class="btn-ghost btn-compact btn-icon" style="margin-top:.45rem;font-size:.76rem" title="Enlarge for hospital barcode gun">
+                                        ${icon('maximize-2', 13)} <span>Enlarge for Barcode Gun</span>
+                                    </button>
                                 </div>
                             </div>
                         </section>
@@ -855,6 +911,15 @@
                                     ${icon(isPaid ? 'badge-check' : 'credit-card', 16)}
                                     <span>${isPaid ? `Payment done ✓ (Ref: ${esc(paymentTxn)})` : 'Simulate "Payment Done" portal (₹125)'}</span>
                                 </button>
+                                <button id="btn-print-slip" class="btn-secondary btn-icon" type="button">
+                                    ${icon('printer', 16)} <span>Print appointment slip</span>
+                                </button>
+                                <button id="btn-save-passport" class="btn-secondary btn-icon" type="button">
+                                    ${icon('shield-check', 16)} <span>Save to Medical Passport</span>
+                                </button>
+                                <button id="btn-share-pass" class="btn-secondary btn-icon" type="button">
+                                    ${icon('share-2', 16)} <span>Share boarding pass</span>
+                                </button>
                                 <button id="btn-book-another" class="btn-secondary btn-icon" type="button">
                                     ${icon('calendar-plus', 16)} <span>Book another appointment</span>
                                 </button>
@@ -878,6 +943,49 @@
             const confirmedHospital = confirmedVisit?.hospital || patientData.hospital || 'SmartCare Community Hospital';
             const confirmedPatient = patientData.name || 'Patient';
             const confirmedDoctor = confirmedVisit?.doctorName || patientData.doctorName || 'Assigned Clinician';
+
+            // QR Magnifier modal triggers
+            const qrImage = container.querySelector('#pass-qr-image');
+            const enlargeBtn = container.querySelector('#btn-enlarge-qr');
+            const openMagnifier = () => window.App.UI.showQRMagnifierModal(booking, confirmedHospital, confirmedPatient);
+            if (qrImage) qrImage.onclick = openMagnifier;
+            if (enlargeBtn) enlargeBtn.onclick = openMagnifier;
+
+            // Print slip action
+            const printBtn = container.querySelector('#btn-print-slip');
+            if (printBtn) printBtn.onclick = () => window.print();
+
+            // Save to medical passport
+            const savePassportBtn = container.querySelector('#btn-save-passport');
+            if (savePassportBtn) {
+                savePassportBtn.onclick = () => {
+                    window.App.UI.toast(`Appointment ${booking} linked to Medical Passport SC-PASSPORT-8924.`, 'success');
+                };
+            }
+
+            // Web Share API handler
+            const shareBtn = container.querySelector('#btn-share-pass');
+            if (shareBtn) {
+                shareBtn.onclick = async () => {
+                    const shareData = {
+                        title: 'SmartCare Appointment Pass',
+                        text: `SmartCare Appointment at ${confirmedHospital}\nPatient: ${confirmedPatient}\nReference Token: ${booking}\nStatus: Waiting for centre`,
+                        url: window.location.href
+                    };
+                    if (navigator.share) {
+                        try {
+                            await navigator.share(shareData);
+                        } catch {}
+                    } else {
+                        try {
+                            await navigator.clipboard.writeText(`SmartCare Appointment Pass - ${confirmedHospital}\nRef: ${booking}\nURL: ${window.location.href}`);
+                            window.App.UI.toast('Boarding pass details copied to clipboard.', 'success');
+                        } catch {
+                            window.App.UI.toast(`Reference Token: ${booking}`, 'info');
+                        }
+                    }
+                };
+            }
 
             const token = container.querySelector('.token-card');
             if (token) {

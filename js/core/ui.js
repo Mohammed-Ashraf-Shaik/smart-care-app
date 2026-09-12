@@ -268,7 +268,31 @@
         return `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(text)}`;
     }
 
-    function showQRScannerModal(onScanSuccess) {
+    function playScanAudioFeedback() {
+        try {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtx) return;
+            const ctx = new AudioCtx();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, ctx.currentTime);
+            gain.gain.setValueAtTime(0.12, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.15);
+        } catch {}
+    }
+
+    function triggerHapticFeedback() {
+        try {
+            if (navigator.vibrate) navigator.vibrate([40, 30, 40]);
+        } catch {}
+    }
+
+    function showQRScannerModal(onScanSuccess, title = 'Scan Patient / Rx QR Code') {
         const modalId = 'qr-scanner-modal-container';
         let existing = document.getElementById(modalId);
         if (existing) existing.remove();
@@ -276,26 +300,81 @@
 
         const backdrop = document.createElement('div');
         backdrop.id = modalId;
-        backdrop.className = 'modal-backdrop';
+        backdrop.className = 'modal-backdrop real-qr-modal-backdrop';
 
         backdrop.innerHTML = `
-            <div class="prescription-modal" style="max-width:520px" role="dialog" aria-modal="true" aria-labelledby="qr-scanner-title">
-                <div class="prescription-modal-header">
-                    <h3 id="qr-scanner-title">${icon('qr-code', 18)} Scan Patient QR Code</h3>
+            <div class="modal-card real-qr-scanner-card" style="max-width:480px" role="dialog" aria-modal="true" aria-labelledby="qr-scanner-title">
+                <div class="modal-heading" style="margin-bottom:.75rem">
+                    <div>
+                        <h2 id="qr-scanner-title" style="font-size:1.15rem;display:flex;align-items:center;gap:.5rem">
+                            ${icon('qr-code', 18)} ${esc(title)}
+                        </h2>
+                        <p style="margin:0;font-size:.8rem;color:var(--muted)">Point camera at appointment pass, ABHA passport, or e-Prescription.</p>
+                    </div>
                     <button type="button" class="btn-ghost modal-close-button" id="close-qr-modal" aria-label="Close scanner">${icon('x', 18)}</button>
                 </div>
-                <div class="prescription-modal-body" style="text-align:center">
-                    <p style="margin:0 0 1rem;font-size:.8rem;color:var(--muted)">
-                        Scan an appointment ticket to check in, or a Medical History code to open its read-only clinical summary.
-                    </p>
-                    <div id="qr-camera-reader" style="width:100%;max-width:380px;min-height:250px;margin:0 auto 1rem;border-radius:.8rem;overflow:hidden;border:1px dashed var(--teal);background:#000"></div>
+
+                <!-- Viewfinder HUD -->
+                <div class="real-qr-viewfinder" id="scanner-viewfinder-wrap">
+                    <video id="real-qr-video" playsinline muted autoplay></video>
+                    <canvas id="real-qr-canvas" style="display:none"></canvas>
                     
-                    <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--line)">
-                        <p style="margin:0 0 .5rem;font-size:.76rem;color:var(--muted)">Or type / paste reference ID manually:</p>
-                        <div style="display:flex;gap:.5rem">
-                            <input type="text" id="manual-qr-input" placeholder="e.g. SC-DEMO001 or SC-PASSPORT-8924" style="flex:1;padding:.55rem .75rem;border:1px solid var(--line);border-radius:.5rem;font-size:.84rem;font-weight:700">
-                            <button type="button" class="btn-primary" id="btn-submit-manual-qr">Open code</button>
+                    <div class="qr-hud-overlay">
+                        <div class="hud-reticle-corner corner-tl"></div>
+                        <div class="hud-reticle-corner corner-tr"></div>
+                        <div class="hud-reticle-corner corner-bl"></div>
+                        <div class="hud-reticle-corner corner-br"></div>
+                        <div class="hud-laser-sweep"></div>
+                        <div class="hud-instruction-badge">${icon('camera', 13)} Align QR code within frame</div>
+                    </div>
+
+                    <div id="camera-error-overlay" class="camera-error-overlay" style="display:none">
+                        <div class="error-msg-box">
+                            <span class="camera-off-icon">${icon('camera-off', 24)}</span>
+                            <p id="camera-error-text" style="font-size:.85rem;margin:.4rem 0">Camera access initializing or unavailable.</p>
+                            <label class="btn-primary btn-compact btn-icon" style="cursor:pointer;display:inline-flex;margin-top:.4rem">
+                                ${icon('upload', 14)} <span>Upload QR Image File</span>
+                                <input type="file" id="camera-fallback-file-input" accept="image/*" style="display:none">
+                            </label>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Quick Action Bar -->
+                <div class="qr-action-toolbar" style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;margin:1rem 0 .5rem">
+                    <button type="button" id="btn-switch-camera" class="btn-secondary btn-compact btn-icon" title="Toggle front / rear camera">
+                        ${icon('refresh-cw', 14)} <span>Switch Camera</span>
+                    </button>
+                    <label class="btn-secondary btn-compact btn-icon" style="cursor:pointer;display:inline-flex" title="Upload screenshot or photo">
+                        ${icon('image', 14)} <span>Upload Image</span>
+                        <input type="file" id="qr-file-input" accept="image/*" style="display:none">
+                    </label>
+                </div>
+
+                <!-- Demo Token Quick Selectors -->
+                <div class="qr-demo-shortcuts" style="background:var(--surface);border:1px solid var(--line);border-radius:.6rem;padding:.6rem;margin-bottom:.75rem">
+                    <span style="font-size:.72rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.03em;display:block;margin-bottom:.35rem">
+                        ${icon('presentation', 12)} Quick Presentation Shortcuts
+                    </span>
+                    <div style="display:flex;flex-wrap:wrap;gap:.35rem">
+                        <button type="button" class="btn-ghost btn-compact demo-qr-chip" data-token="SC-DEMO-ASHA" style="font-size:.76rem;padding:.3rem .55rem;background:var(--canvas);border:1px solid var(--line);border-radius:.4rem">
+                            Asha Rao (Pass)
+                        </button>
+                        <button type="button" class="btn-ghost btn-compact demo-qr-chip" data-token="SC-PASSPORT-8924" style="font-size:.76rem;padding:.3rem .55rem;background:var(--canvas);border:1px solid var(--line);border-radius:.4rem">
+                            ABHA Passport
+                        </button>
+                        <button type="button" class="btn-ghost btn-compact demo-qr-chip" data-token="RX-2026-DEMO01" style="font-size:.76rem;padding:.3rem .55rem;background:var(--canvas);border:1px solid var(--line);border-radius:.4rem">
+                            E-Rx Token
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Manual Code Input Fallback -->
+                <div style="border-top:1px solid var(--line);padding-top:.75rem">
+                    <label for="manual-qr-input" style="font-size:.75rem;color:var(--muted);display:block;margin-bottom:.35rem">Or enter reference string directly:</label>
+                    <div style="display:flex;gap:.4rem">
+                        <input type="text" id="manual-qr-input" placeholder="e.g. SC-DEMO-ASHA or RX-2026-DEMO01" style="flex:1;padding:.5rem .75rem;border:1px solid var(--line);border-radius:.5rem;font-size:.84rem;font-weight:700;background:var(--surface);color:var(--ink)">
+                        <button type="button" class="btn-primary btn-compact" id="btn-submit-manual-qr">Submit</button>
                     </div>
                 </div>
             </div>
@@ -303,17 +382,26 @@
 
         document.body.appendChild(backdrop);
         if (window.lucide) window.lucide.createIcons();
-        backdrop.querySelector('#close-qr-modal').focus();
 
-        let scannerInstance = null;
+        let stream = null;
+        let animationFrameId = null;
+        let facingMode = 'environment';
+        let isDestroyed = false;
 
-        const stopScanner = async () => {
-            if (scannerInstance) {
-                try {
-                    await scannerInstance.stop();
-                    scannerInstance.clear();
-                } catch {}
-                scannerInstance = null;
+        const video = backdrop.querySelector('#real-qr-video');
+        const canvas = backdrop.querySelector('#real-qr-canvas');
+        const errorOverlay = backdrop.querySelector('#camera-error-overlay');
+        const errorText = backdrop.querySelector('#camera-error-text');
+
+        const stopScanner = () => {
+            isDestroyed = true;
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+            if (stream) {
+                stream.getTracks().forEach(t => t.stop());
+                stream = null;
             }
             backdrop.remove();
             if (previousFocus?.isConnected) previousFocus.focus();
@@ -324,42 +412,215 @@
         backdrop.onkeydown = e => { if (e.key === 'Escape') stopScanner(); };
 
         const handleSuccess = (code) => {
-            if (!code) return;
-            toast('QR code scanned.', 'info');
+            if (!code || isDestroyed) return;
+            playScanAudioFeedback();
+            triggerHapticFeedback();
+            toast('QR Code detected successfully.', 'success');
             stopScanner();
-            if (typeof onScanSuccess === 'function') onScanSuccess(code);
+            if (typeof onScanSuccess === 'function') onScanSuccess(String(code).trim());
         };
 
-        backdrop.querySelector('#btn-submit-manual-qr').onclick = () => {
-            const val = backdrop.querySelector('#manual-qr-input').value.trim();
-            if (val) handleSuccess(val);
-        };
-        backdrop.querySelector('#manual-qr-input').onkeydown = e => {
-            if (e.key === 'Enter') {
-                const val = backdrop.querySelector('#manual-qr-input').value.trim();
-                if (val) handleSuccess(val);
+        // Frame scanner loop using jsQR
+        const scanFrame = () => {
+            if (isDestroyed) return;
+            if (video && canvas && video.readyState === video.HAVE_ENOUGH_DATA) {
+                const ctx = canvas.getContext('2d', { willReadFrequently: true });
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                if (window.jsQR) {
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    const code = window.jsQR(imageData.data, imageData.width, imageData.height, {
+                        inversionAttempts: 'dontInvert'
+                    });
+                    if (code && code.data && code.data.trim()) {
+                        handleSuccess(code.data.trim());
+                        return;
+                    }
+                }
             }
+            animationFrameId = requestAnimationFrame(scanFrame);
         };
 
-        if (window.Html5Qrcode) {
+        // Start hardware camera stream
+        async function startCamera() {
+            if (stream) {
+                stream.getTracks().forEach(t => t.stop());
+                stream = null;
+            }
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+
             try {
-                scannerInstance = new window.Html5Qrcode("qr-camera-reader");
-                scannerInstance.start(
-                    { facingMode: "environment" },
-                    { fps: 10, qrbox: { width: 220, height: 220 } },
-                    (decodedText) => {
-                        handleSuccess(decodedText);
-                    },
-                    () => {}
-                ).catch(err => {
-                    console.warn("Camera scan start warning:", err);
-                    const readerEl = backdrop.querySelector('#qr-camera-reader');
-                    if (readerEl) readerEl.innerHTML = `<div style="padding:2rem 1rem;color:#fff;font-size:.8rem"><p style="margin:0 0 .5rem">${icon('camera-off', 18)} Camera preview unavailable</p><small style="color:#aaa">Use the manual entry box below if camera permission is denied.</small></div>`;
+                errorOverlay.style.display = 'none';
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('Camera hardware API not available in this browser.');
+                }
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: { ideal: facingMode }, width: { ideal: 1280 }, height: { ideal: 720 } },
+                    audio: false
                 });
-            } catch (e) {
-                console.error("Html5Qrcode error:", e);
+
+                if (isDestroyed) {
+                    stream.getTracks().forEach(t => t.stop());
+                    return;
+                }
+
+                if (video) {
+                    video.srcObject = stream;
+                    video.setAttribute('playsinline', 'true');
+                    await video.play().catch(() => {});
+                }
+                animationFrameId = requestAnimationFrame(scanFrame);
+            } catch (err) {
+                console.warn('Camera stream initialisation:', err);
+                if (errorOverlay) {
+                    errorOverlay.style.display = 'flex';
+                    errorText.textContent = err.name === 'NotAllowedError'
+                        ? 'Camera permission was denied. Please allow access or upload an image.'
+                        : 'Unable to open camera stream. Use image upload or manual code entry below.';
+                }
             }
         }
+
+        startCamera();
+
+        // Switch camera toggle
+        const switchBtn = backdrop.querySelector('#btn-switch-camera');
+        if (switchBtn) {
+            switchBtn.onclick = () => {
+                facingMode = facingMode === 'environment' ? 'user' : 'environment';
+                startCamera();
+            };
+        }
+
+        // File upload decoder
+        const processImageFile = (file) => {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                const img = new Image();
+                img.onload = () => {
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = img.width;
+                    tempCanvas.height = img.height;
+                    const ctx = tempCanvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0);
+                    if (window.jsQR) {
+                        const imgData = ctx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+                        const result = window.jsQR(imgData.data, imgData.width, imgData.height);
+                        if (result && result.data) {
+                            handleSuccess(result.data.trim());
+                            return;
+                        }
+                    }
+                    toast('No QR code detected in this image. Try another file.', 'error');
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        const fileInput = backdrop.querySelector('#qr-file-input');
+        if (fileInput) fileInput.onchange = e => processImageFile(e.target.files?.[0]);
+        const fallbackFileInput = backdrop.querySelector('#camera-fallback-file-input');
+        if (fallbackFileInput) fallbackFileInput.onchange = e => processImageFile(e.target.files?.[0]);
+
+        // Demo quick chips
+        backdrop.querySelectorAll('.demo-qr-chip').forEach(btn => {
+            btn.onclick = () => handleSuccess(btn.dataset.token);
+        });
+
+        // Manual submit
+        const submitBtn = backdrop.querySelector('#btn-submit-manual-qr');
+        const manualInput = backdrop.querySelector('#manual-qr-input');
+        const doManual = () => {
+            const val = manualInput?.value.trim();
+            if (val) handleSuccess(val);
+        };
+        if (submitBtn) submitBtn.onclick = doManual;
+        if (manualInput) manualInput.onkeydown = e => { if (e.key === 'Enter') doManual(); };
+    }
+
+    function showQRMagnifierModal(bookingId = 'SC-DEMO', hospitalName = 'SmartCare Community Hospital', patientName = 'Patient') {
+        const modalId = 'qr-magnifier-modal-container';
+        document.getElementById(modalId)?.remove();
+        const previousFocus = document.activeElement;
+
+        const qrDataUrl = generateQRCodeDataUrl(bookingId);
+        const backdrop = document.createElement('div');
+        backdrop.id = modalId;
+        backdrop.className = 'modal-backdrop qr-magnifier-backdrop';
+
+        backdrop.innerHTML = `
+            <div class="modal-card qr-magnifier-card" role="dialog" aria-modal="true" aria-labelledby="qr-magnifier-title" style="max-width:440px;text-align:center">
+                <div class="modal-heading" style="justify-content:space-between">
+                    <div>
+                        <h2 id="qr-magnifier-title" style="font-size:1.2rem;margin:0;display:flex;align-items:center;gap:.4rem">
+                            ${icon('maximize-2', 18)} Digital Check-In Pass
+                        </h2>
+                        <small style="color:var(--muted)">Optimized for hospital laser &amp; optical barcode guns</small>
+                    </div>
+                    <button type="button" class="btn-ghost modal-close-button" id="close-magnifier-modal">${icon('x', 18)}</button>
+                </div>
+
+                <div class="qr-magnifier-display" style="background:#fff;padding:1.5rem;border-radius:1rem;margin:1rem auto;display:inline-block;box-shadow:0 4px 20px rgba(0,0,0,0.12);border:2px solid var(--line)">
+                    <img src="${qrDataUrl}" alt="High-contrast QR Code" style="width:240px;height:240px;display:block;margin:0 auto;image-rendering:pixelated">
+                    <div style="margin-top:.75rem;padding:.4rem .8rem;background:#f7fafc;border-radius:.5rem;border:1px solid #e2e8f0;display:inline-flex;align-items:center;gap:.4rem">
+                        <code style="font-size:1.15rem;font-weight:800;letter-spacing:.05em;color:#1a202c">${esc(bookingId)}</code>
+                        <button type="button" id="btn-copy-magnified-token" class="btn-ghost btn-compact" title="Copy reference" style="padding:.2rem">${icon('copy', 14)}</button>
+                    </div>
+                </div>
+
+                <div class="qr-magnifier-meta" style="margin-bottom:1.25rem;text-align:left;background:var(--surface);padding:.75rem 1rem;border-radius:.6rem;border:1px solid var(--line)">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:.3rem">
+                        <span style="font-size:.82rem;color:var(--muted)">Patient:</span>
+                        <strong style="font-size:.88rem">${esc(patientName)}</strong>
+                    </div>
+                    <div style="display:flex;justify-content:space-between">
+                        <span style="font-size:.82rem;color:var(--muted)">Care Centre:</span>
+                        <strong style="font-size:.88rem;color:var(--teal)">${esc(hospitalName)}</strong>
+                    </div>
+                </div>
+
+                <p style="font-size:.78rem;color:var(--muted);margin:0 0 1rem;line-height:1.4">
+                    ${icon('info', 13)} Hold screen 10–15 cm from scanner laser with screen brightness set to maximum.
+                </p>
+
+                <div class="modal-actions" style="display:flex;gap:.5rem;justify-content:center">
+                    <button type="button" id="btn-magnifier-print" class="btn-secondary btn-icon">
+                        ${icon('printer', 15)} Print Slip
+                    </button>
+                    <button type="button" id="btn-magnifier-close" class="btn-primary">
+                        Done
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(backdrop);
+        if (window.lucide) window.lucide.createIcons();
+
+        const close = () => {
+            backdrop.remove();
+            if (previousFocus?.isConnected) previousFocus.focus();
+        };
+
+        backdrop.querySelector('#close-magnifier-modal').onclick = close;
+        backdrop.querySelector('#btn-magnifier-close').onclick = close;
+        backdrop.onclick = e => { if (e.target === backdrop) close(); };
+        backdrop.onkeydown = e => { if (e.key === 'Escape') close(); };
+
+        backdrop.querySelector('#btn-magnifier-print').onclick = () => window.print();
+        backdrop.querySelector('#btn-copy-magnified-token').onclick = async () => {
+            try {
+                await navigator.clipboard.writeText(bookingId);
+                toast('Token copied to clipboard.', 'success');
+            } catch {}
+        };
     }
 
     function showMedicalPassportModal(passport = {}) {
@@ -694,5 +955,5 @@
         syncMobileBottomNav(window.App?.Store?.state?.loggedRole, window.App?.Store?.state?.route);
     }
 
-    window.App.UI = { icon, footer, toast, topbarControls, bindTopbarControls, mobileBottomNav, bindMobileBottomNav, syncMobileBottomNav, generateQRCodeDataUrl, showQRScannerModal, showMedicalPassportModal, showPrescriptionModal };
+    window.App.UI = { icon, footer, toast, topbarControls, bindTopbarControls, mobileBottomNav, bindMobileBottomNav, syncMobileBottomNav, generateQRCodeDataUrl, showQRScannerModal, showQRMagnifierModal, showMedicalPassportModal, showPrescriptionModal };
 })();
