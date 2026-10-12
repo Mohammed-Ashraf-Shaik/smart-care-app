@@ -68,7 +68,7 @@
 
                             <!-- Live Route Progress Visualizer -->
                             <div style="margin:1.5rem 0;background:var(--canvas);border-radius:12px;padding:1.25rem;border:1px solid var(--line)">
-                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;font-size:.85rem;font-weight:600">
+                                <div class="amb-route-waypoints" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;font-size:.85rem;font-weight:600">
                                     <span style="color:#e53e3e;display:flex;align-items:center;gap:.35rem">${icon('navigation', 14)} Fleet Dispatch Centre</span>
                                     <span style="display:flex;align-items:center;gap:.35rem">${icon('map-pin', 14)} ${esc(activeBooking.pickupAddress)}</span>
                                     <span style="color:var(--teal);display:flex;align-items:center;gap:.35rem">${icon('hospital', 14)} ${esc(activeBooking.hospital)} (ICU Ready)</span>
@@ -76,7 +76,7 @@
                                 <div style="width:100%;height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;position:relative">
                                     <div id="eta-progress-bar" style="width:65%;height:100%;background:linear-gradient(90deg, #e53e3e, #f56565);border-radius:4px;transition:width 1s"></div>
                                 </div>
-                                <div style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);margin-top:.5rem">
+                                <div class="amb-route-sublabels" style="display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);margin-top:.5rem">
                                     <span>Trauma Team Pre-Alerted</span>
                                     <span id="eta-distance">Distance: 3.2 km away</span>
                                     <span>Trauma Bed Held</span>
@@ -197,7 +197,7 @@
                                     <span style="font-size:.85rem;color:var(--muted)">
                                         ${icon('lock', 13)} Zero prepayment required for dispatch
                                     </span>
-                                    <button type="button" id="btn-dispatch-now" class="btn-primary btn-icon" style="background:#e53e3e;border-color:#e53e3e;font-size:1.05rem;padding:.8rem 1.8rem;border-radius:8px;box-shadow:0 4px 15px rgba(229,62,62,0.3)">
+                                    <button type="button" id="btn-dispatch-now" class="btn-primary btn-icon btn-dispatch-urgent" style="background:#e53e3e;border-color:#e53e3e;font-size:1.05rem;padding:.8rem 1.8rem;border-radius:8px;box-shadow:0 4px 15px rgba(229,62,62,0.3)">
                                         ${icon('siren', 20)} DISPATCH AMBULANCE NOW
                                     </button>
                                 </div>

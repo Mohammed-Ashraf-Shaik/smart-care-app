@@ -92,7 +92,7 @@
                                 </a>
                             </div>
 
-                            <div class="pharmacy-grid-layout" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));gap:1.5rem">
+                            <div class="pharmacy-grid-layout">
                                 
                                 <!-- Left Column: Medicines Catalog -->
                                 <div>
@@ -244,16 +244,16 @@
                                         <tbody>
                                             ${patientOrders.map(o => `
                                                 <tr>
-                                                    <td><strong>${esc(o.id)}</strong><br><small style="color:var(--muted)">${esc(o.rxId)}</small></td>
-                                                    <td>${o.items.map(i => `${esc(i.name)} (${i.qty})`).join(', ')}</td>
-                                                    <td>${esc(o.counterNo || o.fulfillmentType)}</td>
-                                                    <td><strong>₹${o.total}</strong></td>
-                                                    <td>
+                                                    <td data-label="Order Ref"><strong>${esc(o.id)}</strong><br><small style="color:var(--muted)">${esc(o.rxId)}</small></td>
+                                                    <td data-label="Items">${o.items.map(i => `${esc(i.name)} (${i.qty})`).join(', ')}</td>
+                                                    <td data-label="Fulfillment">${esc(o.counterNo || o.fulfillmentType)}</td>
+                                                    <td data-label="Total"><strong>₹${o.total}</strong></td>
+                                                    <td data-label="Status">
                                                         <span class="badge" style="background:${o.status === 'ready' ? '#e6fffa' : o.status === 'completed' ? '#edf2f7' : '#ebf8ff'};color:${o.status === 'ready' ? '#234e52' : o.status === 'completed' ? '#4a5568' : '#2b6cb0'};font-weight:600">
                                                             ${o.status === 'ready' ? '🟢 Ready for Pickup' : o.status === 'placed' ? '🟡 Being Packed' : 'Completed'}
                                                         </span>
                                                     </td>
-                                                    <td>
+                                                    <td data-label="Actions">
                                                         <button type="button" class="btn-secondary btn-icon btn-track-order" data-order-id="${esc(o.id)}" style="font-size:.78rem;padding:.3rem .65rem">
                                                             ${icon('navigation', 14)} Track
                                                         </button>

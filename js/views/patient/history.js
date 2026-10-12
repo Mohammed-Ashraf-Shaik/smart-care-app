@@ -304,7 +304,7 @@
                                         <strong style="font-size:.85rem;color:var(--teal-dark);display:block;margin-bottom:.6rem">1. Previous Doctor &amp; Primary Clinic</strong>
                                         <div style="display:grid;gap:.6rem">
                                             <input id="edit-doc-name" type="text" value="${esc(prevDoc.doctorName)}" placeholder="Doctor Name (e.g. Dr. Ramesh Sharma)" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
-                                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
+                                            <div class="modal-form-grid-2col">
                                                 <input id="edit-hosp-name" type="text" value="${esc(prevDoc.hospitalName)}" placeholder="Hospital / Clinic Name" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
                                                 <input id="edit-doc-phone" type="text" value="${esc(prevDoc.contactPhone)}" placeholder="Contact Phone Number" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
                                             </div>
@@ -316,7 +316,7 @@
                                         <strong style="font-size:.85rem;color:var(--teal-dark);display:block;margin-bottom:.6rem">2. Add Effective Medication</strong>
                                         <div style="display:grid;gap:.6rem">
                                             <input id="edit-med-name" type="text" value="" placeholder="Medication Name (e.g. Dolo 650)" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
-                                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
+                                            <div class="modal-form-grid-2col">
                                                 <input id="edit-med-dosage" type="text" value="" placeholder="Dosage (e.g. 650mg as needed)" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
                                                 <input id="edit-med-condition" type="text" value="" placeholder="Condition Treated" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
                                             </div>
@@ -354,7 +354,7 @@
                                     <div class="modal-section-card">
                                         <strong style="font-size:.85rem;color:var(--teal-dark);display:block;margin-bottom:.6rem">6. Add Condition or Care Preference</strong>
                                         <div style="display:grid;gap:.6rem">
-                                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
+                                            <div class="modal-form-grid-2col">
                                                 <input id="edit-disease-name" type="text" value="" placeholder="Disease (e.g. Type-2 Diabetes)" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
                                                 <input id="edit-disease-since" type="text" value="" placeholder="Duration (e.g. 3 years)" style="width:100%;padding:.6rem;border-radius:.5rem;border:1px solid var(--line)">
                                             </div>
