@@ -7414,6 +7414,659 @@ html { scroll-behavior: smooth; }
     }
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   SMARTCARE ENHANCEMENTS: FOOTER, NAV TOGGLE, MOBILE & PDF PRINT
+   ═══════════════════════════════════════════════════════════════ */
+
+/* 1. Eliminate negative empty space below footer */
+.site-footer {
+    margin-top: 1.5rem !important;
+    margin-bottom: 0 !important;
+    padding-bottom: 0.75rem !important;
+}
+.footer-bottom {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+}
+.flow-shell,
+.app-shell,
+.workspace-shell {
+    padding-bottom: 0 !important;
+}
+body:not(:has(.mobile-bottom-nav)) .flow-shell,
+body:not(:has(.mobile-bottom-nav)) .app-shell,
+body:not(:has(.mobile-bottom-nav)) .landing-main {
+    padding-bottom: 0 !important;
+}
+
+/* 2. Sidebar Toggle & Expand Button at Top Left */
+#sidebar-toggle-btn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.65rem;
+    padding: 0.35rem 0.55rem;
+    border-radius: 8px;
+    background: var(--mint);
+    color: var(--teal-dark);
+    border: 1px solid var(--line);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: all 0.15s ease;
+}
+#sidebar-toggle-btn:hover {
+    background: var(--teal);
+    color: #fff;
+}
+.flow-topbar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 0.5rem;
+}
+.flow-topbar .brand-lockup {
+    margin-right: auto;
+}
+.flow-topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+/* 3. Minimal Landing Page Header */
+.shell-nav-minimal {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding-top: 0.65rem !important;
+    padding-bottom: 0.65rem !important;
+}
+.shell-nav-minimal .brand-lockup {
+    flex-shrink: 0;
+}
+.shell-nav-minimal .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+}
+
+/* 4. Patient History Mobile Responsiveness */
+.section-patient-history {
+    padding: clamp(0.75rem, 3vw, 1.25rem) clamp(0.5rem, 3vw, 1rem) 3rem !important;
+    max-width: 100% !important;
+    overflow-x: hidden !important;
+}
+.history-header-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+}
+@media (max-width: 640px) {
+    .section-patient-history .history-header-actions {
+        flex-direction: column;
+        align-items: stretch;
+        width: 100%;
+    }
+    .section-patient-history .history-header-actions button {
+        width: 100%;
+        justify-content: center;
+    }
+    .patient-history-overview-card {
+        padding: 0.9rem !important;
+    }
+    .history-grid {
+        grid-template-columns: 1fr !important;
+        gap: 0.85rem !important;
+    }
+    .history-pillar-card {
+        padding: 0.95rem !important;
+        border-radius: 0.85rem !important;
+    }
+    #printable-medical-report {
+        max-width: 100% !important;
+        overflow-x: hidden !important;
+    }
+}
+
+/* 5. Color-coded Downloadable PDF & Print Optimization */
+@media print {
+    @page {
+        size: A4;
+        margin: 12mm 14mm 14mm 14mm;
+    }
+
+    body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    #pdf-print-header {
+        display: block !important;
+        padding-bottom: 1rem !important;
+        border-bottom: 2.5px solid #0a3b69 !important;
+        margin-bottom: 1.25rem !important;
+    }
+
+    /* Color-coded Pillar Cards for Downloadable PDF */
+    .pillar-card-medications {
+        border: 1.5px solid #0f5ca8 !important;
+        border-left: 6px solid #0f5ca8 !important;
+        background: #f7fafc !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+    .pillar-card-medications .pillar-head h3 {
+        color: #0a3b69 !important;
+    }
+
+    .pillar-card-allergies {
+        border: 1.5px solid #e53e3e !important;
+        border-left: 6px solid #e53e3e !important;
+        background: #fff5f5 !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+    .pillar-card-allergies .pillar-head h3 {
+        color: #9b2c2c !important;
+    }
+    .pillar-card-allergies .history-item-row {
+        background: #fffafa !important;
+        border: 1px solid #fed7d7 !important;
+    }
+
+    .pillar-card-conditions {
+        border: 1.5px solid #dd6b20 !important;
+        border-left: 6px solid #dd6b20 !important;
+        background: #fffaf0 !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+    .pillar-card-conditions .pillar-head h3 {
+        color: #9c4221 !important;
+    }
+
+    .pillar-card-protocols {
+        border: 1.5px solid #6b46c1 !important;
+        border-left: 6px solid #6b46c1 !important;
+        background: #faf5ff !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+    .pillar-card-protocols .pillar-head h3 {
+        color: #553c9a !important;
+    }
+
+    .patient-history-overview-card {
+        border: 1.5px solid #b8daf5 !important;
+        background: #f0f7fc !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+
+    .history-item-row {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    #pdf-print-footer {
+        display: block !important;
+        margin-top: 1.5rem !important;
+        padding-top: 0.75rem !important;
+        border-top: 1.5px solid #cbd5e1 !important;
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+}
+
+/* ==========================================================================
+   ROOTSHELL ENTERPRISE VIEWPORT ARCHITECTURE
+   ========================================================================== */
+
+/* Shell Viewport: 100vh lock with column flex */
+.workspace-shell {
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+/* Hide marketing footer in workspace */
+.workspace-shell .site-footer {
+    display: none !important;
+}
+
+/* Header: 56px (h-14 / 3.5rem) sticky topbar */
+.workspace-shell .flow-topbar {
+    height: 3.5rem !important;
+    min-height: 3.5rem !important;
+    max-height: 3.5rem !important;
+    flex: 0 0 3.5rem !important;
+    margin: 0 !important;
+    padding: 0 1.25rem !important;
+    border-radius: 0 !important;
+    border-bottom: 1px solid var(--line) !important;
+    background: var(--surface) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
+    z-index: 50 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 0.75rem !important;
+    box-sizing: border-box !important;
+}
+
+.workspace-shell .flow-topbar .brand-lockup {
+    margin-right: auto;
+    flex-shrink: 0;
+}
+
+.workspace-shell .flow-topbar-actions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+/* Provider Shell: Flex row container filling remaining viewport */
+.workspace-shell .provider-shell {
+    display: flex !important;
+    flex-direction: row !important;
+    flex: 1 1 0% !important;
+    min-height: 0 !important;
+    height: calc(100vh - 3.5rem) !important;
+    max-height: calc(100vh - 3.5rem) !important;
+    overflow: hidden !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    gap: 0 !important;
+}
+
+/* Sidebar Height Rule: h-full shrink-0 overflow-y-auto inside flex container.
+   NEVER stretches beyond 100vh */
+.workspace-shell .workspace-tabs.desktop-sidebar {
+    height: 100% !important;
+    max-height: 100% !important;
+    flex-shrink: 0 !important;
+    width: 256px !important;
+    min-width: 256px !important;
+    max-width: 256px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    scrollbar-width: thin !important;
+    padding: 0.75rem 0.5rem !important;
+    margin: 0 !important;
+    background: var(--surface) !important;
+    border-right: 1px solid var(--line) !important;
+    box-sizing: border-box !important;
+    transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    z-index: 20 !important;
+    position: static !important;
+    top: auto !important;
+}
+
+/* Collapsed Sidebar: 64px width (w-16) */
+.workspace-shell .provider-shell.sidebar-collapsed .workspace-tabs.desktop-sidebar {
+    width: 64px !important;
+    min-width: 64px !important;
+    max-width: 64px !important;
+    padding: 0.75rem 0.35rem !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    transform: none !important;
+    pointer-events: auto !important;
+}
+
+/* Collapsed Nav items: center icon, hide labels */
+.workspace-shell .provider-shell.sidebar-collapsed .workspace-tabs.desktop-sidebar a,
+.workspace-shell .provider-shell.sidebar-collapsed .workspace-tabs.desktop-sidebar button {
+    justify-content: center !important;
+    padding: 0.6rem 0.25rem !important;
+}
+.workspace-shell .provider-shell.sidebar-collapsed .workspace-tabs.desktop-sidebar a span,
+.workspace-shell .provider-shell.sidebar-collapsed .workspace-tabs.desktop-sidebar button span,
+.workspace-shell .provider-shell.sidebar-collapsed .workspace-tabs.desktop-sidebar .sidebar-font-scaler {
+    display: none !important;
+}
+
+/* Sidebar Nav Items Container */
+.sidebar-nav-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    overflow-y: auto;
+    overflow-x: hidden;
+    flex: 1 1 auto;
+    padding-bottom: 0.5rem;
+}
+
+/* Active Nav item in SmartCare styling */
+.workspace-tabs a.active, 
+.workspace-tabs button.active {
+    color: #ffffff !important;
+    background: var(--teal) !important;
+    border-color: var(--teal) !important;
+    box-shadow: 0 4px 12px rgba(15, 92, 168, 0.3) !important;
+    border-radius: 0.65rem !important;
+}
+
+/* Sidebar Bottom Utility Area */
+.sidebar-utility-area {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    flex-shrink: 0;
+    margin-top: auto;
+    padding-top: 0.55rem;
+    border-top: 1px solid var(--line);
+    background: inherit;
+}
+
+.sidebar-utility-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    min-height: 2.35rem;
+    border-radius: 0.65rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid transparent;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+}
+.sidebar-utility-btn:hover {
+    background: var(--mint);
+    color: var(--teal);
+}
+.sidebar-signout-btn {
+    color: #ef4444 !important;
+}
+.sidebar-signout-btn svg {
+    color: #ef4444 !important;
+}
+.sidebar-signout-btn:hover {
+    background: rgba(239, 68, 68, 0.1) !important;
+    color: #dc2626 !important;
+}
+.sidebar-signout-btn:hover svg {
+    color: #dc2626 !important;
+}
+
+/* Font Scaler Segmented Control */
+.sidebar-font-scaler {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--canvas);
+    border: 1px solid var(--line);
+    border-radius: 0.55rem;
+    padding: 2px;
+    gap: 2px;
+    margin-bottom: 0.25rem;
+}
+.font-scale-btn {
+    flex: 1;
+    min-height: 1.8rem;
+    padding: 0.15rem 0.3rem;
+    border-radius: 0.4rem;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 700;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s ease;
+    font-family: inherit;
+}
+.font-scale-btn:hover {
+    color: var(--ink);
+    background: var(--surface);
+}
+.font-scale-btn.active {
+    background: var(--teal) !important;
+    color: #ffffff !important;
+    font-weight: 800;
+}
+
+/* Main Canvas: Independent scrolling */
+.workspace-shell .workspace-content {
+    flex: 1 1 0% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    min-height: 0 !important;
+    min-width: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 1.25rem 1.5rem 3.5rem !important;
+    box-sizing: border-box !important;
+    background: var(--canvas) !important;
+}
+
+/* User Identity Pill in Header */
+.topbar-user-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.25rem 0.6rem 0.25rem 0.35rem;
+    border-radius: 9999px;
+    border: 1px solid var(--line);
+    background: var(--canvas);
+    color: var(--ink);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+    font-size: 0.8rem;
+}
+.topbar-user-pill:hover {
+    border-color: var(--teal);
+    background: var(--mint);
+}
+.topbar-user-avatar {
+    width: 1.85rem;
+    height: 1.85rem;
+    border-radius: 50%;
+    background: var(--teal);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: -0.02em;
+}
+.topbar-user-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.1;
+    text-align: left;
+}
+.topbar-user-name {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--ink);
+}
+.topbar-user-role {
+    font-size: 0.64rem;
+    font-weight: 700;
+    color: var(--teal);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.topbar-user-caret {
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Role Switcher Modal */
+.role-switcher-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(10, 25, 45, 0.65);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    animation: roleFadeIn 0.18s ease;
+}
+@keyframes roleFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.role-switcher-dialog {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 1.25rem;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
+    padding: 1.5rem;
+    box-sizing: border-box;
+}
+.role-switcher-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--line);
+}
+.role-switcher-close-btn {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--line);
+    background: var(--canvas);
+    color: var(--muted);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+}
+.role-switcher-close-btn:hover {
+    color: var(--ink);
+    border-color: var(--ink);
+}
+.role-switcher-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin: 1.25rem 0;
+}
+.role-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem 1.15rem;
+    border-radius: 0.95rem;
+    border: 1.5px solid var(--line);
+    background: var(--surface);
+    color: var(--ink);
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    font-family: inherit;
+    width: 100%;
+}
+.role-card:hover {
+    border-color: var(--teal);
+    background: var(--canvas);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(15, 92, 168, 0.1);
+}
+.role-card.active-role {
+    border-color: var(--teal);
+    background: color-mix(in srgb, var(--teal) 7%, var(--surface));
+    box-shadow: 0 0 0 1px var(--teal);
+}
+.role-card-icon {
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: #fff;
+}
+.role-icon-patient {
+    background: linear-gradient(135deg, #0ea5e9, #0284c7);
+}
+.role-icon-hospital {
+    background: linear-gradient(135deg, #10b981, #059669);
+}
+.role-icon-ops {
+    background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+}
+.role-card-info {
+    flex: 1;
+    min-width: 0;
+}
+.role-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+.role-card-top strong {
+    font-size: 0.95rem;
+    color: var(--ink);
+}
+.role-active-tag {
+    font-size: 0.65rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    background: var(--teal);
+    color: #fff;
+    padding: 0.15rem 0.5rem;
+    border-radius: 9999px;
+    letter-spacing: 0.05em;
+}
+.role-card-email {
+    font-size: 0.75rem;
+    color: var(--muted);
+    font-family: monospace;
+    display: block;
+    margin: 0.1rem 0 0.35rem;
+}
+.role-card-desc {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin: 0;
+    line-height: 1.35;
+}
+.role-switcher-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--line);
+}
+
 
 
 

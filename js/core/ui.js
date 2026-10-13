@@ -2,7 +2,9 @@
     const icon = (name, size = 18) => `<i data-lucide="${name}" width="${size}" height="${size}"></i>`;
     const esc = (value = '') => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
 
-    const footer = () => `
+    const footer = (isWorkspace = false) => {
+        if (isWorkspace) return '';
+        return `
         <footer class="site-footer" data-section="site-footer">
             <div class="footer-inner">
                 <div class="footer-brand">
@@ -34,6 +36,7 @@
                 <span>Last updated: 25 August 2026</span>
             </div>
         </footer>`;
+    };
 
     function toast(message, type = 'info') {
         let region = document.querySelector('[data-toast-region]');
@@ -42,8 +45,26 @@
         window.setTimeout(() => { item.classList.add('toast-leaving'); window.setTimeout(() => item.remove(), 220); }, 3200);
     }
 
+    try {
+        const savedScale = localStorage.getItem('smartcare.fontScale');
+        if (savedScale) document.documentElement.style.fontSize = savedScale;
+    } catch {}
+
     function getCurrentTheme() {
         return document.documentElement.getAttribute('data-theme') || 'light';
+    }
+
+    function getSidebarUtilityHtml() {
+        return `
+            <div class="sidebar-utility-area">
+                <button type="button" id="sidebar-role-switch-btn" class="sidebar-utility-btn sidebar-role-switch-btn" title="Quick Role Switcher (Patient / Hospital / Operations)">
+                    ${icon('users', 16)}<span>Role Switch</span>
+                </button>
+                <button type="button" id="workspace-logout" class="sidebar-utility-btn sidebar-signout-btn" title="Sign out of workspace">
+                    ${icon('log-out', 16)}<span>Sign out</span>
+                </button>
+            </div>
+        `;
     }
 
     function topbarControls(isWorkspace = false) {
@@ -52,7 +73,7 @@
         const themeLabel = theme === 'dark' ? 'Dark' : 'Light';
         const currentRoute = window.App?.Store?.state?.route || window.location.pathname;
         const isAmbulancePage = currentRoute.includes('/ambulance');
-        
+
         return `
             <div class="topbar-control-group">
                 ${!isAmbulancePage ? `
@@ -61,7 +82,7 @@
                     </a>
                 ` : ''}
                 ${isWorkspace ? `
-                    <button type="button" class="topbar-control-btn mobile-menu-btn" id="sidebar-toggle-btn" aria-label="Open navigation" aria-expanded="false" title="Toggle Navigation">
+                    <button type="button" class="topbar-control-btn mobile-menu-btn topbar-sidebar-left-btn" id="sidebar-toggle-btn" aria-label="Toggle Navigation" aria-expanded="true" title="Toggle Navigation">
                         ${icon('menu', 18)}
                     </button>
                 ` : ''}
@@ -82,6 +103,67 @@
                     ${icon(themeIcon, 15)} <span>${themeLabel}</span>
                 </button>
             </div>
+        `;
+    }
+
+    function workspaceSidebar(activeRoute = '') {
+        const state = window.App?.Store?.state || {};
+        const isStaff = state.loggedRole === 'staff';
+        const isDoctor = state.loggedRole === 'doctor' || state.loggedRole === 'hospital';
+        const isPatient = !isStaff && !isDoctor;
+        const isActive = (route) => (activeRoute === route ? ' class="active"' : '');
+
+        let navLinks = '';
+        if (isPatient) {
+            navLinks = `
+                <a href="/dashboard/patient" data-route="/dashboard/patient"${isActive('/dashboard/patient')}>${icon('layout-dashboard', 16)}<span>Overview</span></a>
+                <a href="/dashboard/patient/apply/1" data-route="/dashboard/patient/apply/1" data-tab="apply"${isActive('/dashboard/patient/apply/1')}>${icon('calendar-plus', 16)}<span>Book appointment</span></a>
+                <a href="/dashboard/patient/history" data-route="/dashboard/patient/history"${isActive('/dashboard/patient/history')}>${icon('file-text', 16)}<span>Medical History</span></a>
+                <a href="/dashboard/patient?tab=visits" data-tab="visits" data-tab-route="/dashboard/patient"${isActive('/dashboard/patient?tab=visits')}>${icon('clipboard-check', 16)}<span>Previous visits</span></a>
+                <a href="/dashboard/patient?tab=profile" data-tab="profile" data-tab-route="/dashboard/patient"${isActive('/dashboard/patient?tab=profile')}>${icon('user-round', 16)}<span>Profile</span></a>
+                <div class="nav-divider"></div>
+                <a href="/ambulance" data-route="/ambulance"${isActive('/ambulance')} style="color:#e53e3e">${icon('siren', 16)}<span>Ambulance SOS</span></a>
+                <a href="/pharmacy" data-route="/pharmacy"${isActive('/pharmacy')}>${icon('pill', 16)}<span>Pharmacy</span></a>
+                <a href="/verify-rx" data-route="/verify-rx"${isActive('/verify-rx')}>${icon('shield-check', 16)}<span>Verify Rx</span></a>
+                <a href="/dashboard/patient/donations" data-route="/dashboard/patient/donations"${isActive('/dashboard/patient/donations')}>${icon('heart-handshake', 16)}<span>Donations</span></a>
+                <a href="/dashboard/patient/help" data-route="/dashboard/patient/help"${isActive('/dashboard/patient/help')}>${icon('circle-help', 16)}<span>Help</span></a>
+            `;
+        } else if (isStaff) {
+            const helpRoute = '/dashboard/admin/help';
+            const donationsRoute = '/dashboard/admin/donations';
+            navLinks = `
+                <a href="/dashboard/admin" data-route="/dashboard/admin"${isActive('/dashboard/admin')}>${icon('layout-dashboard', 16)}<span>Operations</span></a>
+                <a href="/dashboard/admin?tab=rooms" data-tab="rooms" data-tab-route="/dashboard/admin"${isActive('/dashboard/admin?tab=rooms')}>${icon('door-open', 16)}<span>Rooms</span></a>
+                <a href="/dashboard/queue" data-route="/dashboard/queue"${isActive('/dashboard/queue')}>${icon('list-ordered', 16)}<span>Queue</span></a>
+                <a href="/dashboard/analytics" data-route="/dashboard/analytics"${isActive('/dashboard/analytics')}>${icon('bar-chart-3', 16)}<span>Analytics</span></a>
+                <div class="nav-divider"></div>
+                <a href="/ambulance" data-route="/ambulance"${isActive('/ambulance')} style="color:#e53e3e">${icon('siren', 16)}<span>Ambulance Fleet</span></a>
+                <a href="/pharmacy" data-route="/pharmacy"${isActive('/pharmacy')}>${icon('pill', 16)}<span>Pharmacy Dispenser</span></a>
+                <a href="/verify-rx" data-route="/verify-rx"${isActive('/verify-rx')}>${icon('shield-check', 16)}<span>Verify Rx</span></a>
+                <a href="${donationsRoute}" data-route="${donationsRoute}"${isActive(donationsRoute)}>${icon('heart-handshake', 16)}<span>Donations</span></a>
+                <a href="${helpRoute}" data-route="${helpRoute}"${isActive(helpRoute)}>${icon('circle-help', 16)}<span>Help</span></a>
+            `;
+        } else {
+            const helpRoute = '/dashboard/hospital/help';
+            const donationsRoute = '/dashboard/hospital/donations';
+            navLinks = `
+                <a href="/dashboard/hospital" data-route="/dashboard/hospital"${isActive('/dashboard/hospital')}>${icon('layout-dashboard', 16)}<span>Overview</span></a>
+                <a href="/dashboard/queue" data-route="/dashboard/queue"${isActive('/dashboard/queue')}>${icon('list-ordered', 16)}<span>Queue</span></a>
+                <a href="/dashboard/analytics" data-route="/dashboard/analytics"${isActive('/dashboard/analytics')}>${icon('bar-chart-3', 16)}<span>Analytics</span></a>
+                <div class="nav-divider"></div>
+                <a href="/ambulance" data-route="/ambulance"${isActive('/ambulance')} style="color:#e53e3e">${icon('siren', 16)}<span>Ambulance Fleet</span></a>
+                <a href="/pharmacy" data-route="/pharmacy"${isActive('/pharmacy')}>${icon('pill', 16)}<span>Pharmacy Dispenser</span></a>
+                <a href="/verify-rx" data-route="/verify-rx"${isActive('/verify-rx')}>${icon('shield-check', 16)}<span>Verify Rx</span></a>
+                <a href="${donationsRoute}" data-route="${donationsRoute}"${isActive(donationsRoute)}>${icon('heart-handshake', 16)}<span>Donations</span></a>
+                <a href="${helpRoute}" data-route="${helpRoute}"${isActive(helpRoute)}>${icon('circle-help', 16)}<span>Help</span></a>
+            `;
+        }
+
+        return `
+            <div class="sidebar-nav-items">
+                ${navLinks}
+            </div>
+            ${getSidebarUtilityHtml()}
         `;
     }
 
@@ -130,8 +212,31 @@
         }
 
         const sidebarToggleBtn = container.querySelector('#sidebar-toggle-btn');
+        const flowTopbar = container.querySelector('.flow-topbar');
+        if (sidebarToggleBtn && flowTopbar && sidebarToggleBtn.parentElement !== flowTopbar) {
+            flowTopbar.insertBefore(sidebarToggleBtn, flowTopbar.firstChild);
+        }
         const workspaceTabs = container.querySelector('.workspace-tabs');
         const providerShell = container.querySelector('.provider-shell');
+
+        // Ensure sidebar has bottom utility area if not present
+        if (workspaceTabs && !workspaceTabs.querySelector('.sidebar-utility-area')) {
+            const existingLogout = workspaceTabs.querySelector('#workspace-logout');
+            if (existingLogout) existingLogout.remove();
+            const utilityDiv = document.createElement('div');
+            utilityDiv.innerHTML = getSidebarUtilityHtml();
+            workspaceTabs.appendChild(utilityDiv.firstElementChild);
+        }
+
+        // Bind logout buttons
+        container.querySelectorAll('#workspace-logout').forEach(btn => {
+            if (window.App?.Store?.logout) btn.onclick = window.App.Store.logout;
+        });
+
+        // Bind role switcher button
+        container.querySelectorAll('#sidebar-role-switch-btn').forEach(btn => {
+            btn.onclick = () => showRoleSwitcherModal();
+        });
 
         if (!sidebarToggleBtn || !workspaceTabs) return;
 
@@ -179,10 +284,6 @@
                 workspaceTabs.classList.add('mobile-drawer');
                 workspaceTabs.classList.remove('desktop-sidebar');
                 workspaceTabs.style.top = '';
-                if (providerShell) {
-                    providerShell.style.gridTemplateColumns = '';
-                    providerShell.style.marginLeft = '';
-                }
                 closeDrawer();
             } else {
                 // Move sidebar back into provider-shell as first child
@@ -193,10 +294,6 @@
                 workspaceTabs.classList.add('desktop-sidebar');
                 workspaceTabs.style.top = '';
                 document.querySelectorAll('.workspace-drawer-backdrop').forEach(el => el.remove());
-                // Restore desktop collapsed state if needed
-                if (providerShell && providerShell.classList.contains('sidebar-collapsed')) {
-                    providerShell.style.gridTemplateColumns = '0px minmax(0, 1fr)';
-                }
                 sidebarToggleBtn.setAttribute('aria-expanded', String(!providerShell?.classList.contains('sidebar-collapsed')));
             }
         }
@@ -231,7 +328,7 @@
                     document.querySelectorAll('.workspace-drawer-backdrop').forEach(el => el.remove());
                 }
             } else {
-                // Desktop: toggle collapse
+                // Desktop: toggle collapse (256px <-> 64px)
                 if (providerShell) {
                     const isCollapsed = providerShell.classList.toggle('sidebar-collapsed');
                     sidebarToggleBtn.title = isCollapsed ? 'Expand navigation' : 'Collapse navigation';
@@ -249,6 +346,107 @@
                     if (window.innerWidth < 768) closeDrawer();
                 });
             }
+        });
+    }
+
+    function showRoleSwitcherModal() {
+        document.querySelectorAll('.role-switcher-modal-backdrop').forEach(el => el.remove());
+
+        const state = window.App?.Store?.state || {};
+        const currentRole = state.loggedRole || '';
+        const isCurrent = (role) => (currentRole === role || (role === 'doctor' && currentRole === 'hospital') || (role === 'staff' && currentRole === 'ops'));
+
+        const modalBackdrop = document.createElement('div');
+        modalBackdrop.className = 'modal-backdrop role-switcher-modal-backdrop';
+        modalBackdrop.setAttribute('role', 'dialog');
+        modalBackdrop.setAttribute('aria-modal', 'true');
+        modalBackdrop.setAttribute('aria-labelledby', 'role-modal-title');
+
+        modalBackdrop.innerHTML = `
+            <div class="modal-dialog role-switcher-dialog" style="max-width: 580px; width: 92%;">
+                <div class="role-switcher-head">
+                    <div>
+                        <div class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> Simulation & Workspace Mode</div>
+                        <h2 id="role-modal-title" style="margin: 0.25rem 0 0; font-size: 1.35rem; font-weight: 800; color: var(--ink);">Switch Workspace Role</h2>
+                        <p style="margin: 0.35rem 0 0; font-size: 0.82rem; color: var(--muted);">Instant zero-logout role simulation for demo presentations and triage workflows.</p>
+                    </div>
+                    <button type="button" class="role-switcher-close-btn" aria-label="Close dialog">
+                        ${icon('x', 18)}
+                    </button>
+                </div>
+                <div class="role-switcher-options">
+                    <button type="button" class="role-card ${isCurrent('patient') ? 'active-role' : ''}" data-target-role="patient">
+                        <div class="role-card-icon role-icon-patient">${icon('user-round', 22)}</div>
+                        <div class="role-card-info">
+                            <div class="role-card-top">
+                                <strong>Patient Portal</strong>
+                                ${isCurrent('patient') ? '<span class="role-active-tag">Active</span>' : ''}
+                            </div>
+                            <span class="role-card-email">patient@gmail.com</span>
+                            <p class="role-card-desc">Book appointments, track live queue, view medical history & digital prescriptions.</p>
+                        </div>
+                    </button>
+
+                    <button type="button" class="role-card ${isCurrent('doctor') ? 'active-role' : ''}" data-target-role="doctor">
+                        <div class="role-card-icon role-icon-hospital">${icon('stethoscope', 22)}</div>
+                        <div class="role-card-info">
+                            <div class="role-card-top">
+                                <strong>Hospital & Clinician</strong>
+                                ${isCurrent('doctor') ? '<span class="role-active-tag">Active</span>' : ''}
+                            </div>
+                            <span class="role-card-email">hospital@gmail.com</span>
+                            <p class="role-card-desc">Doctor consultation desk, triage queue, prescription generation, blood & organ network.</p>
+                        </div>
+                    </button>
+
+                    <button type="button" class="role-card ${isCurrent('staff') ? 'active-role' : ''}" data-target-role="staff">
+                        <div class="role-card-icon role-icon-ops">${icon('shield-check', 22)}</div>
+                        <div class="role-card-info">
+                            <div class="role-card-top">
+                                <strong>Operations & Desk</strong>
+                                ${isCurrent('staff') ? '<span class="role-active-tag">Active</span>' : ''}
+                            </div>
+                            <span class="role-card-email">ops@gmail.com</span>
+                            <p class="role-card-desc">Emergency bed management, room allocation, queue telemetry, and hospital analytics.</p>
+                        </div>
+                    </button>
+                </div>
+                <div class="role-switcher-foot">
+                    <span style="font-size: 0.76rem; color: var(--muted);">${icon('info', 13)} Switches session instantly with PIN verified.</span>
+                    <button type="button" class="btn-secondary btn-close-modal" style="font-size: 0.8rem; padding: 0.45rem 1rem;">Close</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modalBackdrop);
+        if (window.lucide) window.lucide.createIcons();
+
+        function closeModal() {
+            modalBackdrop.classList.add('modal-leaving');
+            setTimeout(() => modalBackdrop.remove(), 180);
+        }
+
+        modalBackdrop.querySelector('.role-switcher-close-btn')?.addEventListener('click', closeModal);
+        modalBackdrop.querySelector('.btn-close-modal')?.addEventListener('click', closeModal);
+        modalBackdrop.addEventListener('click', (e) => {
+            if (e.target === modalBackdrop) closeModal();
+        });
+
+        modalBackdrop.querySelectorAll('.role-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const targetRole = card.dataset.targetRole;
+                if (isCurrent(targetRole)) {
+                    toast('Already in this workspace role', 'info');
+                    closeModal();
+                    return;
+                }
+                closeModal();
+                if (window.App?.Store?.switchRole) {
+                    window.App.Store.switchRole(targetRole);
+                    const label = targetRole === 'patient' ? 'Patient Portal' : targetRole === 'doctor' ? 'Hospital & Clinician' : 'Operations & Desk';
+                    toast(`Switched to ${label}`, 'success');
+                }
+            });
         });
     }
 
@@ -955,5 +1153,5 @@
         syncMobileBottomNav(window.App?.Store?.state?.loggedRole, window.App?.Store?.state?.route);
     }
 
-    window.App.UI = { icon, footer, toast, topbarControls, bindTopbarControls, mobileBottomNav, bindMobileBottomNav, syncMobileBottomNav, generateQRCodeDataUrl, showQRScannerModal, showQRMagnifierModal, showMedicalPassportModal, showPrescriptionModal };
+    window.App.UI = { icon, footer, toast, topbarControls, bindTopbarControls, workspaceSidebar, showRoleSwitcherModal, mobileBottomNav, bindMobileBottomNav, syncMobileBottomNav, generateQRCodeDataUrl, showQRScannerModal, showQRMagnifierModal, showMedicalPassportModal, showPrescriptionModal };
 })();

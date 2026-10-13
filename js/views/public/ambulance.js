@@ -21,6 +21,9 @@
         function render() {
             clearEtaTimer();
             activeBooking = getActiveAmbulance();
+            const isLogged = Boolean(state.isLogged);
+            const overviewRoute = state.loggedRole === 'staff' ? '/dashboard/admin' : (state.loggedRole === 'doctor' || state.loggedRole === 'hospital') ? '/dashboard/hospital' : '/dashboard/patient';
+            container.className = isLogged ? 'flow-shell workspace-shell' : 'flow-shell';
 
             container.innerHTML = `
                 <div class="flow-topbar">
@@ -29,12 +32,21 @@
                         <span><span class="brand-name">SmartCare</span><span class="brand-caption" style="color:#e53e3e;font-weight:700">Emergency Response</span></span>
                     </a>
                     <div class="flow-topbar-actions">
-                        ${window.App.UI.topbarControls(false)}
-                        <a class="back-link" data-route="/" href="/">${icon('arrow-left', 16)} Back to home</a>
+                        ${window.App.UI.topbarControls(isLogged)}
+                        ${isLogged ? `<a class="back-link" data-route="${overviewRoute}" href="${overviewRoute}">${icon('arrow-left', 16)} Back to dashboard</a>` : `<a class="back-link" data-route="/" href="/">${icon('arrow-left', 16)} Back to home</a>`}
                     </div>
                 </div>
 
-                <main class="ambulance-main-shell" style="max-width:960px;margin:1.5rem auto;padding:0 1rem" role="main">
+                ${isLogged ? `
+                    <div class="provider-shell">
+                        <aside class="workspace-drawer workspace-tabs" data-section="workspace-nav" aria-label="Workspace navigation">
+                            ${window.App.UI.workspaceSidebar('/ambulance')}
+                        </aside>
+                        <div class="workspace-content">
+                            <main class="ambulance-main-shell" style="max-width:960px;margin:0 auto;padding:0 1rem" role="main">
+                ` : `
+                    <main class="ambulance-main-shell" style="max-width:960px;margin:1.5rem auto;padding:0 1rem" role="main">
+                `}
                     <div class="emergency-headline" style="text-align:center;margin-bottom:2rem">
                         <span class="badge" style="background:#fed7d7;color:#c53030;font-weight:700;padding:.4rem .9rem;border-radius:20px;display:inline-flex;align-items:center;gap:.4rem;font-size:.85rem">
                             ${icon('zap', 14)} 24/7 SmartCare Emergency Trauma Fleet
@@ -204,11 +216,22 @@
                             </section>
                         </div>
                     `}
-                </main>
-                ${window.App.UI.footer(false)}
+                ${isLogged ? `
+                            </main>
+                        </div>
+                    </div>
+                ` : `
+                    </main>
+                `}
+                ${window.App.UI.footer(isLogged)}
             `;
 
             window.App.UI.bindTopbarControls(container);
+            if (isLogged) {
+                window.App.UI.syncMobileBottomNav(state.loggedRole, state.route);
+            } else {
+                document.querySelectorAll('.mobile-bottom-nav').forEach(el => el.remove());
+            }
             if (window.lucide) window.lucide.createIcons();
 
             // Bind Type selector chips

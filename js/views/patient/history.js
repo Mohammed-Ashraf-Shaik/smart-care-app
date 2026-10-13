@@ -60,14 +60,14 @@
                     <button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>
                 </aside>
 
-                <main class="workspace-content section-patient-history" data-section="patient-history" aria-label="Patient medical history" style="padding:1.25rem 1rem 4rem">
+                <main class="workspace-content section-patient-history" data-section="patient-history" aria-label="Patient medical history">
                     
                     <!-- ON-SCREEN HEADER & BODY ACTIONS -->
                     <div class="flow-header print-hide" style="margin-bottom:1.5rem">
                         <div style="display:flex;justify-content:space-between;align-items:start;width:100%;flex-wrap:wrap;gap:1rem">
                             <div>
                                 <div class="eyebrow eyebrow-dark"><span class="eyebrow-dot"></span> Medical History (Share ID: ${esc(dynamicPassportId)})</div>
-                                <h1 style="font-size:1.6rem;margin:.2rem 0">Patient Medical History</h1>
+                                <h1 style="font-size:clamp(1.3rem, 4vw, 1.7rem);margin:.2rem 0">Patient Medical History</h1>
                                 <p style="font-size:.88rem;color:var(--muted)">Manage your medical records, effective medicines, allergies, and care preferences in one portable profile.</p>
                             </div>
                             <div style="display:flex;align-items:center;gap:.4rem;background:var(--mint);color:var(--teal);font-size:.76rem;font-weight:600;padding:.4rem .85rem;border-radius:2rem">
@@ -76,7 +76,7 @@
                         </div>
 
                         <!-- PAGE BODY ACTION BUTTONS -->
-                        <div class="flow-header-actions print-hide" style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-top:1.25rem">
+                        <div class="flow-header-actions print-hide history-header-actions" style="display:flex;gap:.75rem;align-items:center;flex-wrap:wrap;margin-top:1.25rem">
                             <button id="edit-passport-btn" class="btn-primary btn-icon" type="button" style="min-height:2.4rem">
                                 ${icon('plus-circle', 16)} <span>Add / Edit Medical Record</span>
                             </button>
@@ -97,7 +97,7 @@
                             </strong>
                             <span class="badge" style="background:#e8f4fb;color:var(--teal);font-size:.72rem">Verified Profile</span>
                         </div>
-                        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));gap:1rem;font-size:.84rem">
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 140px), 1fr));gap:.85rem;font-size:.84rem">
                             <div><small style="color:var(--muted);display:block">Full Name</small><strong>${esc(patientName)}</strong></div>
                             <div><small style="color:var(--muted);display:block">Age / Gender</small><strong>${esc(patientAge)} / ${esc(patientGender)}</strong></div>
                             <div><small style="color:var(--muted);display:block">City</small><strong>${esc(patientCity)}</strong></div>
@@ -112,24 +112,24 @@
                         <div id="pdf-print-header" class="print-only">
                             <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:1rem;border-bottom:2.5px solid #0a3b69;margin-bottom:1.25rem">
                                 <div style="display:flex;align-items:center;gap:.75rem">
-                                    <span style="width:2.4rem;height:2.4rem;display:grid;place-items:center;background:#0a3b69;color:#fff;border-radius:.6rem;font-weight:bold">${icon('heart-pulse', 22)}</span>
+                                    <span style="width:2.6rem;height:2.6rem;display:grid;place-items:center;background:#0a3b69;color:#fff;border-radius:.6rem;font-weight:bold">${icon('heart-pulse', 24)}</span>
                                     <div>
-                                        <strong style="font-size:1.4rem;color:#0a3b69;letter-spacing:-.03em;display:block">SmartCare Healthcare Systems</strong>
-                                        <small style="color:#5a7a8e;font-size:.78rem;font-weight:600">Official Patient Profile &amp; Medical History Report</small>
+                                        <strong style="font-size:1.45rem;color:#0a3b69;letter-spacing:-.03em;display:block">SmartCare Healthcare Systems</strong>
+                                        <small style="color:#0f5ca8;font-size:.82rem;font-weight:700">Official Patient Profile &amp; Medical Passport Report</small>
                                     </div>
                                 </div>
                                 <div style="text-align:right">
-                                    <span style="display:block;font-size:.82rem;color:#0a3b69;font-weight:800">HISTORY SHARE ID: ${esc(dynamicPassportId)}</span>
-                                    <span style="display:block;font-size:.74rem;color:#5a7a8e;font-weight:600">Report Date: ${esc(new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }))}</span>
+                                    <span style="display:block;font-size:.85rem;color:#0a3b69;font-weight:800;letter-spacing:.03em">PASSPORT ID: ${esc(dynamicPassportId)}</span>
+                                    <span style="display:block;font-size:.76rem;color:#5a7a8e;font-weight:600">Generated: ${esc(new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }))}</span>
                                 </div>
                             </div>
 
                             <!-- PATIENT DEMOGRAPHICS PRINT SUMMARY -->
-                            <div style="padding:1rem;border:1px solid #c2dcf3;border-radius:.75rem;background:#f0f7fc;margin-bottom:1.25rem;display:grid;grid-template-columns:repeat(4, 1fr);gap:1rem;font-size:.82rem">
-                                <div><strong>Patient Name:</strong> <span>${esc(patientName)}</span></div>
-                                <div><strong>Age / Gender:</strong> <span>${esc(patientAge)} / ${esc(patientGender)}</span></div>
-                                <div><strong>City:</strong> <span>${esc(patientCity)}</span></div>
-                                <div><strong>Last Synced:</strong> <span>${esc(lastUpdated)}</span></div>
+                            <div style="padding:1rem;border:1.5px solid #b8daf5;border-radius:.75rem;background:#f0f7fc;margin-bottom:1.25rem;display:grid;grid-template-columns:repeat(4, 1fr);gap:1rem;font-size:.84rem">
+                                <div><strong style="color:#0a3b69;display:block;font-size:.74rem;text-transform:uppercase">Patient Name</strong><span style="font-weight:700;font-size:.95rem">${esc(patientName)}</span></div>
+                                <div><strong style="color:#0a3b69;display:block;font-size:.74rem;text-transform:uppercase">Age &amp; Gender</strong><span style="font-weight:700">${esc(patientAge)} / ${esc(patientGender)}</span></div>
+                                <div><strong style="color:#0a3b69;display:block;font-size:.74rem;text-transform:uppercase">City Location</strong><span style="font-weight:700">${esc(patientCity)}</span></div>
+                                <div><strong style="color:#0a3b69;display:block;font-size:.74rem;text-transform:uppercase">Verification Status</strong><span style="font-weight:700;color:#0b754f">✓ Verified Active</span></div>
                             </div>
                         </div>
 
@@ -167,10 +167,10 @@
                         </div>
 
                         <!-- 4-PILLAR MEDICAL HISTORY GRID -->
-                        <div class="history-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(290px, 1fr));gap:1.25rem">
+                        <div class="history-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 280px), 1fr));gap:1.25rem">
                             
                             <!-- PILLAR 1: EFFECTIVE MEDICATIONS -->
-                            <div class="card history-pillar-card" style="padding:1.25rem;border-radius:1.2rem;background:var(--surface);border:1px solid var(--line)">
+                            <div class="card history-pillar-card pillar-card-medications" style="padding:1.25rem;border-radius:1.2rem;background:var(--surface);border:1px solid #b8daf5;border-left:4px solid var(--teal)">
                                 <div class="pillar-head" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.65rem;border-bottom:1px solid var(--line)">
                                     <div style="display:flex;align-items:center;gap:.6rem">
                                         <span style="width:2rem;height:2rem;display:grid;place-items:center;border-radius:.5rem;background:#e8f4fb;color:var(--teal)">${icon('pill', 18)}</span>
@@ -196,7 +196,7 @@
                             </div>
 
                             <!-- PILLAR 2: ALLERGIES & AVOID LIST -->
-                            <div class="card history-pillar-card" style="padding:1.25rem;border-radius:1.2rem;background:var(--surface);border:1px solid #fecaca">
+                            <div class="card history-pillar-card pillar-card-allergies" style="padding:1.25rem;border-radius:1.2rem;background:var(--surface);border:1px solid #fecaca;border-left:4px solid #dc2626">
                                 <div class="pillar-head" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.65rem;border-bottom:1px solid #fee2e2">
                                     <div style="display:flex;align-items:center;gap:.6rem">
                                         <span style="width:2rem;height:2rem;display:grid;place-items:center;border-radius:.5rem;background:#fee2e2;color:#dc2626">${icon('triangle-alert', 18)}</span>
@@ -223,11 +223,11 @@
                             </div>
 
                             <!-- PILLAR 3: OPTIMAL CARE CONDITIONS -->
-                            <div class="card history-pillar-card" style="padding:1.25rem;border-radius:1.2rem;background:var(--surface);border:1px solid var(--line)">
-                                <div class="pillar-head" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.65rem;border-bottom:1px solid var(--line)">
+                            <div class="card history-pillar-card pillar-card-conditions" style="padding:1.25rem;border-radius:1.2rem;background:var(--surface);border:1px solid #fed7aa;border-left:4px solid #ea580c">
+                                <div class="pillar-head" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.65rem;border-bottom:1px solid #ffedd5">
                                     <div style="display:flex;align-items:center;gap:.6rem">
-                                        <span style="width:2rem;height:2rem;display:grid;place-items:center;border-radius:.5rem;background:#fef3c7;color:#d97706">${icon('shield-alert', 18)}</span>
-                                        <h3 style="margin:0;font-size:1.02rem;color:var(--teal-dark)">Optimal Care Conditions</h3>
+                                        <span style="width:2rem;height:2rem;display:grid;place-items:center;border-radius:.5rem;background:#ffedd5;color:#ea580c">${icon('shield-alert', 18)}</span>
+                                        <h3 style="margin:0;font-size:1.02rem;color:#c2410c">Optimal Care Conditions</h3>
                                     </div>
                                 </div>
                                 <p style="font-size:.78rem;color:var(--muted);margin-bottom:.85rem">Dietary, positioning, &amp; environmental guidelines.</p>
@@ -245,11 +245,11 @@
                             </div>
 
                             <!-- PILLAR 4: EMERGENCY PROTOCOLS -->
-                            <div class="card history-pillar-card" style="padding:1.25rem;border-radius:1.2rem;background:var(--surface);border:1px solid var(--line)">
-                                <div class="pillar-head" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.65rem;border-bottom:1px solid var(--line)">
+                            <div class="card history-pillar-card pillar-card-protocols" style="padding:1.25rem;border-radius:1.2rem;background:var(--surface);border:1px solid #ddd6fe;border-left:4px solid #7c3aed">
+                                <div class="pillar-head" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.65rem;border-bottom:1px solid #ede9fe">
                                     <div style="display:flex;align-items:center;gap:.6rem">
-                                        <span style="width:2rem;height:2rem;display:grid;place-items:center;border-radius:.5rem;background:#e0e7ff;color:#4338ca">${icon('siren', 18)}</span>
-                                        <h3 style="margin:0;font-size:1.02rem;color:var(--teal-dark)">Emergency Protocols</h3>
+                                        <span style="width:2rem;height:2rem;display:grid;place-items:center;border-radius:.5rem;background:#ede9fe;color:#7c3aed">${icon('siren', 18)}</span>
+                                        <h3 style="margin:0;font-size:1.02rem;color:#6d28d9">Emergency Protocols</h3>
                                     </div>
                                 </div>
                                 <p style="font-size:.78rem;color:var(--muted);margin-bottom:.85rem">Step-by-step crisis action plans for attending doctors.</p>

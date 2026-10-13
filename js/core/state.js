@@ -752,6 +752,55 @@
         return true;
     }
     function logout() { window.App.DB?.signOut?.(); state.isLogged = false; state.loggedEmail = ''; state.loggedRole = ''; state.loggedHospital = ''; state.loggedCountry = ''; state.loggedState = ''; state.loggedCity = ''; state.sessionExpiresAt = 0; try { window.localStorage.removeItem(sessionKey); } catch {} document.querySelectorAll('.mobile-bottom-nav').forEach(el => el.remove()); navigate('/'); }
+    function switchRole(targetRole) {
+        if (targetRole === 'patient') {
+            state.isLogged = true;
+            state.loggedEmail = 'patient@gmail.com';
+            state.loggedRole = 'patient';
+            state.loggedHospital = 'SmartCare Community Hospital';
+            state.loggedCountry = 'India';
+            state.loggedState = 'Telangana';
+            state.loggedCity = 'Hyderabad';
+            state.sessionExpiresAt = Date.now() + 86400000;
+            loadPatientAccount(state.loggedEmail);
+            loadPatientProfile(state.loggedEmail);
+            persistSession();
+            updateQueue(fullQueue);
+            navigate('/dashboard/patient');
+            return true;
+        }
+        if (targetRole === 'doctor' || targetRole === 'hospital') {
+            state.isLogged = true;
+            state.loggedEmail = 'hospital@gmail.com';
+            state.loggedRole = 'doctor';
+            state.loggedHospital = 'SmartCare Community Hospital';
+            state.loggedCountry = 'India';
+            state.loggedState = 'Telangana';
+            state.loggedCity = 'Hyderabad';
+            state.sessionExpiresAt = Date.now() + 86400000;
+            state.patientVisits = [];
+            persistSession();
+            updateQueue(fullQueue);
+            navigate('/dashboard/hospital');
+            return true;
+        }
+        if (targetRole === 'staff' || targetRole === 'ops') {
+            state.isLogged = true;
+            state.loggedEmail = 'ops@gmail.com';
+            state.loggedRole = 'staff';
+            state.loggedHospital = 'SmartCare Community Hospital';
+            state.loggedCountry = 'India';
+            state.loggedState = 'Telangana';
+            state.loggedCity = 'Hyderabad';
+            state.sessionExpiresAt = Date.now() + 86400000;
+            state.patientVisits = [];
+            persistSession();
+            updateQueue(fullQueue);
+            navigate('/dashboard/admin');
+            return true;
+        }
+        return false;
+    }
     function resetPatient() { state.step = 1; state.patientData = emptyPatientData(); state.userCoords = null; state.tempHospitals = []; state.searchRadius = 0; state.careResultsFetchedAt = ''; clearDraft(); }
     function getRevenue() { return state.queue.reduce((total, patient) => total + (Number(patient.fee) || 0), 0); }
     function queueStatus(patient) { return String(patient?.status || 'waiting').toLowerCase(); }
@@ -841,5 +890,5 @@
     syncRoute(true, false);
     window.setInterval(() => { if (state.isLogged && state.sessionExpiresAt && state.sessionExpiresAt <= Date.now()) logout(); }, 60000);
     if (window.App.DB) initSync(); else window.addEventListener('load', () => { if (window.App.DB) initSync(); });
-    window.App.Store = { state, subscribe, setView, navigate, navigateTab, syncRoute, setStep, setAuthTarget, updatePatientData, updateQueue, setLoggedLocation, setLogin, recordPatientVisit, logout, getRevenue, getQueueMetrics, getNextPatient, sortQueue, transitionPatient, cancelAppointment, claimRefund, persistDraft, hrefFor, hrefForTab, getDonationsData, saveDonationsData, addHospitalDonation, addPatientDonation, getMedicalHistory, saveMedicalHistory, registerMedicalPassport, getMedicalPassport, getPrescription, getPrescriptionByRxId, savePrescription, dispensePrescription, getActiveAmbulance, bookAmbulance, cancelAmbulance, getPharmacyOrders, createPharmacyOrder, updatePharmacyOrderStatus, getCareTeam, getAppointmentSlots };
+    window.App.Store = { state, subscribe, setView, navigate, navigateTab, syncRoute, setStep, setAuthTarget, updatePatientData, updateQueue, setLoggedLocation, setLogin, recordPatientVisit, logout, switchRole, getRevenue, getQueueMetrics, getNextPatient, sortQueue, transitionPatient, cancelAppointment, claimRefund, persistDraft, hrefFor, hrefForTab, getDonationsData, saveDonationsData, addHospitalDonation, addPatientDonation, getMedicalHistory, saveMedicalHistory, registerMedicalPassport, getMedicalPassport, getPrescription, getPrescriptionByRxId, savePrescription, dispensePrescription, getActiveAmbulance, bookAmbulance, cancelAmbulance, getPharmacyOrders, createPharmacyOrder, updatePharmacyOrderStatus, getCareTeam, getAppointmentSlots };
 })();

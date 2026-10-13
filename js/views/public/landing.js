@@ -5,23 +5,15 @@
         const container = document.createElement('div');
         container.className = 'app-shell';
         container.innerHTML = `
-            <header class="shell-nav" data-section="site-header">
+            <header class="shell-nav shell-nav-minimal" data-section="site-header">
                 <a class="brand-lockup" data-route="/" href="/" aria-label="SmartCare home">
                     <span class="brand-mark">${icon('heart-pulse', 21)}</span>
                     <span><span class="brand-name">SmartCare</span><span class="brand-caption">Care access, simplified</span></span>
                 </a>
-                <nav class="nav-links" aria-label="Primary navigation">
-                    <a href="#how-it-works">How it works</a>
-                    <a data-route="/ambulance" href="/ambulance" style="color:#e53e3e;font-weight:700;display:inline-flex;align-items:center;gap:.3rem">${icon('siren', 15)} Ambulance</a>
-                    <a data-route="/pharmacy" href="/pharmacy">Pharmacy</a>
-                    <a data-route="/verify-rx" href="/verify-rx">Verify Rx</a>
-                    <a data-route="/donate" href="/donate">Donation</a>
-                    <a href="#for-providers">For hospitals</a>
-                </nav>
                 <div class="nav-actions">
                     ${window.App.UI.topbarControls()}
-                    <button class="btn-ghost" id="nav-login" style="font-weight:800;font-size:.84rem;min-height:2.75rem;padding:.4rem .75rem">Sign in</button>
-                    <button class="btn-primary" id="nav-signup" style="font-weight:800;font-size:.84rem;min-height:2.75rem;padding:.4rem .95rem;border-radius:.6rem">Sign up</button>
+                    <button class="btn-ghost" id="nav-login" style="font-weight:700;font-size:.82rem;min-height:2.4rem;padding:.35rem .75rem">Sign in</button>
+                    <button class="btn-primary" id="nav-signup" style="font-weight:700;font-size:.82rem;min-height:2.4rem;padding:.35rem .85rem;border-radius:.6rem">Sign up</button>
                 </div>
             </header>
             <main id="top" class="landing-main section-landing" data-section="landing-page">

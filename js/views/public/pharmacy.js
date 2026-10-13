@@ -33,6 +33,13 @@
             const orders = getPharmacyOrders();
             const patientOrders = orders.filter(o => !state.loggedEmail || o.patientName.toLowerCase().includes(state.loggedEmail.split('@')[0].toLowerCase()) || true);
             const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const filteredItems = defaultItems.filter(item =>
+                (selectedCategory === 'all' || item.category === selectedCategory || item.type === selectedCategory) &&
+                (searchQuery === '' || item.name.toLowerCase().includes(searchQuery.toLowerCase()) || item.brand.toLowerCase().includes(searchQuery.toLowerCase()))
+            );
+            const isLogged = Boolean(state.isLogged);
+            const overviewRoute = state.loggedRole === 'staff' ? '/dashboard/admin' : (state.loggedRole === 'doctor' || state.loggedRole === 'hospital') ? '/dashboard/hospital' : '/dashboard/patient';
+            container.className = isLogged ? 'flow-shell workspace-shell' : 'flow-shell';
 
             container.innerHTML = `
                 <div class="flow-topbar">
@@ -41,12 +48,21 @@
                         <span><span class="brand-name">SmartCare</span><span class="brand-caption" style="color:#2b6cb0;font-weight:700">In-House Pharmacy</span></span>
                     </a>
                     <div class="flow-topbar-actions">
-                        ${window.App.UI.topbarControls(false)}
-                        <a class="back-link" data-route="/" href="/">${icon('arrow-left', 16)} Back to home</a>
+                        ${window.App.UI.topbarControls(isLogged)}
+                        ${isLogged ? `<a class="back-link" data-route="${overviewRoute}" href="${overviewRoute}">${icon('arrow-left', 16)} Back to dashboard</a>` : `<a class="back-link" data-route="/" href="/">${icon('arrow-left', 16)} Back to home</a>`}
                     </div>
                 </div>
 
-                <main class="pharmacy-main-shell" style="max-width:960px;margin:1.5rem auto;padding:0 1rem" role="main">
+                ${isLogged ? `
+                    <div class="provider-shell">
+                        <aside class="workspace-drawer workspace-tabs" data-section="workspace-nav" aria-label="Workspace navigation">
+                            ${window.App.UI.workspaceSidebar('/pharmacy')}
+                        </aside>
+                        <div class="workspace-content">
+                            <main class="pharmacy-main-shell" style="max-width:960px;margin:0 auto;padding:0 1rem" role="main">
+                ` : `
+                    <main class="pharmacy-main-shell" style="max-width:960px;margin:1.5rem auto;padding:0 1rem" role="main">
+                `}
                     <!-- Pharmacy Header -->
                     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
                         <div>
@@ -333,11 +349,22 @@
                             </div>
                         </section>
                     `}
-                </main>
-                ${window.App.UI.footer(false)}
+                ${isLogged ? `
+                            </main>
+                        </div>
+                    </div>
+                ` : `
+                    </main>
+                `}
+                ${window.App.UI.footer(isLogged)}
             `;
 
             window.App.UI.bindTopbarControls(container);
+            if (isLogged) {
+                window.App.UI.syncMobileBottomNav(state.loggedRole, state.route);
+            } else {
+                document.querySelectorAll('.mobile-bottom-nav').forEach(el => el.remove());
+            }
             if (window.lucide) window.lucide.createIcons();
 
             // Tab switching

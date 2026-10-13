@@ -2,6 +2,16 @@
     const icon = (name, size = 18) => `<i data-lucide="${name}" width="${size}" height="${size}"></i>`;
     const esc = (value = '') => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[c]));
 
+    const DEMO_CENTRES_MAP = [
+        { name: 'SmartCare Community Hospital Blood Bank', area: 'Banjara Hills', lat: 17.4126, lng: 78.4482, type: 'blood' },
+        { name: 'Red Cross Donation Centre', area: 'Secunderabad', lat: 17.4399, lng: 78.4983, type: 'blood' },
+        { name: 'CityCare Blood Services', area: 'Kukatpally', lat: 17.4849, lng: 78.3956, type: 'blood' },
+        { name: 'Apollo Organ Coordination', area: 'Jubilee Hills', lat: 17.4239, lng: 78.4101, type: 'organ' },
+        { name: 'NOTTO Hyderabad Node', area: 'Begumpet', lat: 17.4437, lng: 78.4637, type: 'organ' },
+    ];
+    let ddLeafletMap = null;
+    let ddLeafletMarkers = [];
+
     window.App.Views.DoctorDonations = function () {
         const { state, logout, getDonationsData, addHospitalDonation, hrefFor } = window.App.Store;
         const container = document.createElement('div');
@@ -31,6 +41,78 @@
         function navHtml() {
             if (isStaff) return `<a href="/dashboard/admin" data-route="/dashboard/admin">${icon('layout-dashboard', 16)}<span>Operations</span></a><a href="/dashboard/admin?tab=rooms" data-tab="rooms" data-tab-route="/dashboard/admin">${icon('door-open', 16)}<span>Rooms</span></a><a href="/dashboard/queue" data-route="/dashboard/queue">${icon('list-ordered', 16)}<span>Queue</span></a><a href="/dashboard/analytics" data-route="/dashboard/analytics">${icon('bar-chart-3', 16)}<span>Analytics</span></a><div class="nav-divider"></div><a href="/ambulance" data-route="/ambulance" style="color:#e53e3e">${icon('siren', 16)}<span>Ambulance Fleet</span></a><a href="/pharmacy" data-route="/pharmacy">${icon('pill', 16)}<span>Pharmacy Dispenser</span></a><a href="/verify-rx" data-route="/verify-rx">${icon('shield-check', 16)}<span>Verify Rx</span></a><a class="active" href="${donationsRoute}" data-route="${donationsRoute}">${icon('heart-handshake', 16)}<span>Donations</span></a><a href="${helpRoute}" data-route="${helpRoute}">${icon('circle-help', 16)}<span>Help</span></a><button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>`;
             return `<a href="/dashboard/hospital" data-route="/dashboard/hospital">${icon('layout-dashboard', 16)}<span>Overview</span></a><a href="/dashboard/queue" data-route="/dashboard/queue">${icon('list-ordered', 16)}<span>Queue</span></a><a href="/dashboard/analytics" data-route="/dashboard/analytics">${icon('bar-chart-3', 16)}<span>Analytics</span></a><div class="nav-divider"></div><a href="/ambulance" data-route="/ambulance" style="color:#e53e3e">${icon('siren', 16)}<span>Ambulance Fleet</span></a><a href="/pharmacy" data-route="/pharmacy">${icon('pill', 16)}<span>Pharmacy Dispenser</span></a><a href="/verify-rx" data-route="/verify-rx">${icon('shield-check', 16)}<span>Verify Rx</span></a><a class="active" href="${donationsRoute}" data-route="${donationsRoute}">${icon('heart-handshake', 16)}<span>Donations</span></a><a href="${helpRoute}" data-route="${helpRoute}">${icon('circle-help', 16)}<span>Help</span></a><button type="button" id="workspace-logout" class="signout-btn">${icon('log-out', 16)}<span>Sign out</span></button>`;
+        }
+
+        function initMap() {
+            const mapEl = container.querySelector('#dd-map-canvas');
+            if (!mapEl || !window.L) return;
+            if (ddLeafletMap) {
+                ddLeafletMap.remove();
+                ddLeafletMap = null;
+                ddLeafletMarkers = [];
+            }
+            ddLeafletMap = window.L.map(mapEl, {
+                center: [17.4399, 78.4983],
+                zoom: 12,
+                zoomControl: true,
+            });
+            window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                maxZoom: 19,
+            }).addTo(ddLeafletMap);
+
+            const markerIcon = window.L.divIcon({
+                className: '',
+                iconSize: [32, 32],
+                iconAnchor: [16, 32],
+                popupAnchor: [0, -34],
+                html: `<div class="pd-map-pin"><span></span></div>`,
+            });
+
+            DEMO_CENTRES_MAP.forEach(c => {
+                const marker = window.L.marker([c.lat, c.lng], { icon: markerIcon }).addTo(ddLeafletMap);
+                marker.bindPopup(`<div class="pd-popup"><strong>${esc(c.name)}</strong><span>${esc(c.area)}</span><small>${c.type === 'blood' ? 'Blood Bank &amp; Donor Centre' : 'Organ Coordination Node'}</small></div>`);
+                ddLeafletMarkers.push({ marker, type: c.type, centre: c });
+            });
+
+            filterMarkers(donationType);
+
+            window.requestAnimationFrame(() => {
+                window.requestAnimationFrame(() => {
+                    if (ddLeafletMap) ddLeafletMap.invalidateSize();
+                });
+            });
+        }
+
+        function filterMarkers(type) {
+            if (!ddLeafletMap) return;
+            ddLeafletMarkers.forEach(({ marker, type: mType }) => {
+                if (type === mType || type === 'all') {
+                    if (!ddLeafletMap.hasLayer(marker)) marker.addTo(ddLeafletMap);
+                } else {
+                    if (ddLeafletMap.hasLayer(marker)) ddLeafletMap.removeLayer(marker);
+                }
+            });
+        }
+
+        function loadLeaflet(cb) {
+            if (window.L) { cb(); return; }
+            if (!document.querySelector('#leaflet-css')) {
+                const lnk = document.createElement('link');
+                lnk.id = 'leaflet-css';
+                lnk.rel = 'stylesheet';
+                lnk.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+                document.head.appendChild(lnk);
+            }
+            if (!document.querySelector('#leaflet-js')) {
+                const scr = document.createElement('script');
+                scr.id = 'leaflet-js';
+                scr.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+                scr.onload = cb;
+                document.head.appendChild(scr);
+            } else {
+                setTimeout(cb, 300);
+            }
         }
 
         function render() {
@@ -138,6 +220,21 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Map of Regional Donation Centres -->
+                    <section class="provider-card" style="margin-top:1.5rem;padding:0;overflow:hidden;border-radius:1rem;border:1px solid var(--line);background:var(--surface)">
+                        <div style="padding:.85rem 1.15rem;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;background:var(--surface)">
+                            <div style="display:flex;align-items:center;gap:.5rem">
+                                <span style="color:var(--teal)">${icon('map-pin', 18)}</span>
+                                <strong style="font-size:.92rem">Regional Donation Centres &amp; Blood Bank Network</strong>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:.75rem;font-size:.74rem;color:var(--muted)">
+                                <span style="display:inline-flex;align-items:center;gap:.35rem"><span style="width:10px;height:10px;border-radius:50%;background:#e53e3e;display:inline-block"></span> Blood Banks</span>
+                                <span style="display:inline-flex;align-items:center;gap:.35rem"><span style="width:10px;height:10px;border-radius:50%;background:#0a3b69;display:inline-block"></span> Organ Nodes</span>
+                            </div>
+                        </div>
+                        <div id="dd-map-canvas" style="width:100%;height:340px;position:relative;background:#e5f1fc"></div>
+                    </section>
                 </main>
                 ${window.App.UI.footer(true)}`;
 
@@ -211,6 +308,9 @@
             }
             // RENDER LUCIDE ICONS SO LOGOS ALWAYS LOAD PROPERLY
             if (window.lucide) window.lucide.createIcons();
+
+            // Initialize Leaflet Map
+            loadLeaflet(initMap);
         }
 
         render();
