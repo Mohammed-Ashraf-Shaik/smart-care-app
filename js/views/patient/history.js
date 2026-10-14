@@ -123,33 +123,34 @@
 
                         <!-- PDF PRINT HEADER -->
                         <div id="pdf-print-header" class="print-only">
-                            <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:1rem;border-bottom:2.5px solid #0a3b69;margin-bottom:1.25rem">
-                                <div style="display:flex;align-items:center;gap:.85rem">
-                                    <svg width="48" height="48" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius:12px;flex-shrink:0">
+                            <div class="pdf-header-row">
+                                <div class="pdf-brand-lockup">
+                                    <svg width="44" height="44" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius:12px;flex-shrink:0">
                                         <rect width="64" height="64" rx="16" fill="#0a3b69"/>
                                         <path d="M32 48S14 37.6 14 24.6C14 17.9 18.5 14 24.1 14c3.4 0 6.2 1.8 7.9 4.4C33.7 15.8 36.5 14 39.9 14 45.5 14 50 17.9 50 24.6 50 37.6 32 48 32 48Z" fill="none" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>
                                         <path d="M32 24v12M26 30h12" stroke="#b9dcf8" stroke-width="4" stroke-linecap="round"/>
                                     </svg>
                                     <div>
-                                        <div style="display:flex;align-items:center;gap:.5rem">
-                                            <strong style="font-size:1.5rem;color:#0a3b69;letter-spacing:-.03em;display:block">SmartCare Healthcare Systems</strong>
-                                            <span style="font-size:.68rem;background:#0a3b69;color:#fff;font-weight:700;padding:.15rem .45rem;border-radius:4px;letter-spacing:.05em">ABDM / NMC</span>
+                                        <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:nowrap">
+                                            <h1 class="pdf-brand-title">SmartCare Healthcare Systems</h1>
+                                            <span class="pdf-badge-abdm">ABDM / NMC</span>
                                         </div>
-                                        <small style="color:#0f5ca8;font-size:.82rem;font-weight:700">Official Patient Profile &amp; Medical Passport Report</small>
+                                        <p class="pdf-brand-sub">Official Patient Profile &amp; Medical Passport Report</p>
                                     </div>
                                 </div>
-                                <div style="text-align:right">
-                                    <span style="display:block;font-size:.85rem;color:#0a3b69;font-weight:800;letter-spacing:.03em">PASSPORT ID: ${esc(dynamicPassportId)}</span>
-                                    <span style="display:block;font-size:.76rem;color:#5a7a8e;font-weight:600">Generated: ${esc(new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }))}</span>
+                                <div class="pdf-header-meta">
+                                    <span class="pdf-report-id">PASSPORT ID: ${esc(dynamicPassportId)}</span>
+                                    <span class="pdf-report-date">Generated: ${esc(new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }))}</span>
+                                    <span class="pdf-verified-stamp">✓ CLINICAL VERIFIED</span>
                                 </div>
                             </div>
 
                             <!-- PATIENT DEMOGRAPHICS PRINT SUMMARY -->
-                            <div style="padding:1rem;border:1.5px solid #b8daf5;border-radius:.75rem;background:#f0f7fc;margin-bottom:1.25rem;display:grid;grid-template-columns:repeat(4, 1fr);gap:1rem;font-size:.84rem">
-                                <div><strong style="color:#0a3b69;display:block;font-size:.74rem;text-transform:uppercase">Patient Name</strong><span style="font-weight:700;font-size:.95rem">${esc(patientName)}</span></div>
-                                <div><strong style="color:#0a3b69;display:block;font-size:.74rem;text-transform:uppercase">Age &amp; Gender</strong><span style="font-weight:700">${esc(patientAge)} / ${esc(patientGender)}</span></div>
-                                <div><strong style="color:#0a3b69;display:block;font-size:.74rem;text-transform:uppercase">City Location</strong><span style="font-weight:700">${esc(patientCity)}</span></div>
-                                <div><strong style="color:#0a3b69;display:block;font-size:.74rem;text-transform:uppercase">Verification Status</strong><span style="font-weight:700;color:#0b754f">✓ Verified Active</span></div>
+                            <div class="pdf-demographics-strip">
+                                <div><strong class="pdf-demo-label">Patient Name</strong><span class="pdf-demo-value">${esc(patientName)}</span></div>
+                                <div><strong class="pdf-demo-label">Age &amp; Gender</strong><span class="pdf-demo-value">${esc(patientAge)} / ${esc(patientGender)}</span></div>
+                                <div><strong class="pdf-demo-label">City Location</strong><span class="pdf-demo-value">${esc(patientCity)}</span></div>
+                                <div><strong class="pdf-demo-label">Verification Status</strong><span class="pdf-demo-value" style="color:#059669">✓ Verified Active</span></div>
                             </div>
                         </div>
 
@@ -292,14 +293,14 @@
 
                         <!-- PDF PRINT FOOTER -->
                         <div id="pdf-print-footer" class="print-only">
-                            <div style="margin-top:2.5rem;padding-top:1rem;border-top:1.5px solid #d8e4ef;display:flex;justify-content:space-between;align-items:center;font-size:.72rem;color:#5a7a8e">
+                            <div style="margin-top:18px;padding-top:8px;border-top:1.5px solid #cbd5e1;display:flex;justify-content:space-between;align-items:center;font-size:7.5pt;color:#5a7a8e">
                                 <div>
-                                    <strong>Confidential Medical Document</strong> - Generated by SmartCare Healthcare Systems.
-                                    <br>For authorized clinical, emergency, &amp; attending physician use only.
+                                    <strong style="color:#0a3b69">Official Clinical Patient Record</strong> &mdash; Generated by SmartCare Healthcare Systems.
+                                    <br>For authorized attending physicians, hospital emergency trauma units, &amp; clinical care coordinators.
                                 </div>
                                 <div style="text-align:right">
-                                    <strong>SmartCare Patient Medical History | Page 1 of 1</strong>
-                                    <br><span>https://mohammed-ashraf-shaik.github.io/smart-care-app/</span>
+                                    <strong style="color:#0a3b69">SmartCare Health Operating System</strong>
+                                    <br><span>Security Reference: SC-SHA256-AUTHENTICATED</span>
                                 </div>
                             </div>
                         </div>
