@@ -490,10 +490,20 @@
     }
     function tabPath(pathname, tab = '') {
         const path = stripBasePath(pathname);
-        if (tab === 'apply' && (path === '/apply' || path === '/dashboard/patient' || path.startsWith('/dashboard/patient/apply'))) return `/dashboard/patient/apply/${state.step || 1}`;
-        if (path === '/dashboard/patient' && ['visits', 'profile'].includes(tab)) return `/dashboard/patient/${tab}`;
-        if (path === '/dashboard/admin' && tab === 'rooms') return '/dashboard/admin/rooms';
-        if (path === '/donate' && ['blood', 'organ'].includes(tab)) return `/donate/${tab}`;
+        if (path === '/dashboard/patient' || path.startsWith('/dashboard/patient/') || path === '/apply') {
+            if (tab === 'apply') return `/dashboard/patient/apply/${state.step || 1}`;
+            if (tab === 'visits') return '/dashboard/patient/visits';
+            if (tab === 'profile') return '/dashboard/patient/profile';
+            if (tab === 'overview' || !tab) return '/dashboard/patient';
+        }
+        if (path === '/dashboard/admin' || path.startsWith('/dashboard/admin/')) {
+            if (tab === 'rooms') return '/dashboard/admin/rooms';
+            if (!tab) return '/dashboard/admin';
+        }
+        if (path === '/donate' || path.startsWith('/donate/')) {
+            if (['blood', 'organ'].includes(tab)) return `/donate/${tab}`;
+            if (!tab) return '/donate';
+        }
         return path;
     }
     function hrefForTab(path, tab = '') {
@@ -683,10 +693,10 @@
             return;
         }
         const url = new URL(window.location.href);
-        if (tab) url.searchParams.set('tab', tab);
+        if (tab && !targetPath.includes(`/${tab}`)) url.searchParams.set('tab', tab);
         else url.searchParams.delete('tab');
         window.history.pushState({}, '', url.toString());
-        state.activeTab = tab;
+        state.activeTab = tabForPath(stripBasePath(window.location.pathname)) || tab;
         notify();
     }
     function setView(newView) { navigate(routeForView(newView)); }

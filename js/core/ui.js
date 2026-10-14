@@ -119,8 +119,8 @@
                 <a href="/dashboard/patient" data-route="/dashboard/patient"${isActive('/dashboard/patient')}>${icon('layout-dashboard', 16)}<span>Overview</span></a>
                 <a href="/dashboard/patient/apply/1" data-route="/dashboard/patient/apply/1" data-tab="apply"${isActive('/dashboard/patient/apply/1')}>${icon('calendar-plus', 16)}<span>Book appointment</span></a>
                 <a href="/dashboard/patient/history" data-route="/dashboard/patient/history"${isActive('/dashboard/patient/history')}>${icon('file-text', 16)}<span>Medical History</span></a>
-                <a href="/dashboard/patient?tab=visits" data-tab="visits" data-tab-route="/dashboard/patient"${isActive('/dashboard/patient?tab=visits')}>${icon('clipboard-check', 16)}<span>Previous visits</span></a>
-                <a href="/dashboard/patient?tab=profile" data-tab="profile" data-tab-route="/dashboard/patient"${isActive('/dashboard/patient?tab=profile')}>${icon('user-round', 16)}<span>Profile</span></a>
+                <a href="/dashboard/patient/visits" data-route="/dashboard/patient/visits" data-tab="visits" data-tab-route="/dashboard/patient"${isActive('/dashboard/patient/visits') || isActive('/dashboard/patient?tab=visits')}>${icon('clipboard-check', 16)}<span>Previous visits</span></a>
+                <a href="/dashboard/patient/profile" data-route="/dashboard/patient/profile" data-tab="profile" data-tab-route="/dashboard/patient"${isActive('/dashboard/patient/profile') || isActive('/dashboard/patient?tab=profile')}>${icon('user-round', 16)}<span>Profile</span></a>
                 <div class="nav-divider"></div>
                 <a href="/ambulance" data-route="/ambulance"${isActive('/ambulance')} style="color:#e53e3e">${icon('siren', 16)}<span>Ambulance SOS</span></a>
                 <a href="/pharmacy" data-route="/pharmacy"${isActive('/pharmacy')}>${icon('pill', 16)}<span>Pharmacy</span></a>

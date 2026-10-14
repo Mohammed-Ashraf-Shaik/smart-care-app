@@ -277,11 +277,11 @@
         workspaceNav.className = 'workspace-tabs';
         workspaceNav.setAttribute('aria-label', 'Patient workspace navigation');
         workspaceNav.innerHTML = `
-            <a class="${activeTab === 'overview' || activeTab === '' ? 'active' : ''}" href="/dashboard/patient" data-tab="overview">${icon('layout-dashboard', 16)}<span>Overview</span></a>
-            <a class="${activeTab === 'apply' ? 'active' : ''}" href="/dashboard/patient/apply/1" data-route="/dashboard/patient/apply/1">${icon('calendar-plus', 16)}<span>Book visit</span></a>
-            <a class="${activeTab === 'visits' ? 'active' : ''}" href="/dashboard/patient?tab=visits" data-tab="visits">${icon('clipboard-check', 16)}<span>Previous visits</span></a>
-            <a href="/dashboard/patient/history" data-route="/dashboard/patient/history">${icon('file-text', 16)}<span>Medical history</span></a>
-            <a class="${activeTab === 'profile' ? 'active' : ''}" href="/dashboard/patient?tab=profile" data-tab="profile">${icon('user-round', 16)}<span>Profile</span></a>
+            <a class="${showOverview ? 'active' : ''}" href="/dashboard/patient" data-tab="overview">${icon('layout-dashboard', 16)}<span>Overview</span></a>
+            <a class="${isApplyTab ? 'active' : ''}" href="/dashboard/patient/apply/1" data-route="/dashboard/patient/apply/1">${icon('calendar-plus', 16)}<span>Book appointment</span></a>
+            <a href="/dashboard/patient/history" data-route="/dashboard/patient/history">${icon('file-text', 16)}<span>Medical History</span></a>
+            <a class="${showVisits ? 'active' : ''}" href="/dashboard/patient/visits" data-route="/dashboard/patient/visits" data-tab="visits" data-tab-route="/dashboard/patient">${icon('clipboard-check', 16)}<span>Previous visits</span></a>
+            <a class="${showProfile ? 'active' : ''}" href="/dashboard/patient/profile" data-route="/dashboard/patient/profile" data-tab="profile" data-tab-route="/dashboard/patient">${icon('user-round', 16)}<span>Profile</span></a>
             <div class="nav-divider"></div>
             <a href="/ambulance" data-route="/ambulance" style="color:#e53e3e">${icon('siren', 16)}<span>Ambulance SOS</span></a>
             <a href="/pharmacy" data-route="/pharmacy">${icon('pill', 16)}<span>Pharmacy</span></a>
