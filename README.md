@@ -1,133 +1,78 @@
-# 🏥 SmartCare — Next-Gen Hospital & Healthcare Operating System
+# 🏥 SmartCare — Digital Healthcare & Hospital Operations Platform
 
-**SmartCare** is an integrated, modular digital health platform engineered to streamline clinical workflows, eliminate patient wait queues, connect emergency ambulance dispatch, and empower healthcare professionals and patients with unified health data.
-
-![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?style=for-the-badge&logo=vite&logoColor=white)
-![JavaScript](https://img.shields.io/badge/ES_Modules-Vanilla_JS-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
-![Healthcare](https://img.shields.io/badge/Sector-Digital%20Healthcare%20IT-00C49F?style=for-the-badge)
-![ABDM](https://img.shields.io/badge/Standard-ABDM%20%2F%20ABHA%20Ready-orange?style=for-the-badge)
-![Vercel](https://img.shields.io/badge/Deploy-Vercel%20Ready-black?style=for-the-badge&logo=vercel&logoColor=white)
+**SmartCare** is an integrated, fast, and accessible digital healthcare web platform designed to eliminate crowded hospital waiting halls, streamline clinical visits, coordinate emergency services, and give patients seamless control of their health data.
 
 ---
 
-## 🚀 Key Modules & Capabilities
+## 🌟 What SmartCare Does
 
-SmartCare is architected around dedicated, role-specific workspaces and critical emergency systems:
-
-### 1. 👤 Patient Care & Portal
-- **Smart Appointment Booking**: Real-time doctor availability and intelligent time-slot selection.
-- **Live Queue Monitoring**: Live tracking of queue tokens with estimated wait times to eliminate crowded waiting rooms.
-- **Portable Medical Passport**: Unified health record storage supporting India's **ABHA** (Ayushman Bharat Health Account) guidelines for interoperable records.
-
-### 2. 🩺 Doctor Workspace & Clinical Station
-- **Queue Management**: Direct view of waiting patients with triage tags.
-- **Consultation & EHR**: Digital diagnosis recording, prescription generation, and allergy alerts.
-- **Verification Ready**: Built for verification against the **ABDM HPR** (Healthcare Professional Registry) API.
-
-### 3. 📊 Hospital Operations & Live Analytics
-- **Bed & Ward Management**: Real-time monitoring of ICU, general, and emergency bed capacities.
-- **Departmental Analytics**: Patient influx, discharge rates, pharmacy metrics, and revenue analytics.
-
-### 4. 🚑 Emergency & Ambulance Dispatch
-- **GPS Dispatch**: Real-time dispatching and routing for critical emergency response.
-- **Triage Synchronization**: Real-time transmission of patient vitals directly from the ambulance to the emergency room.
-
-### 5. 🩸 Blood Donor Network & Pharmacy Verification
-- **Donor Network**: Searchable database matching blood groups and donor locations for urgent transfusions.
-- **Pharmacy Verification**: Barcode/QR verification to prevent fraudulent prescriptions and manage stock levels.
+- 📱 **Patient Care & Live Token Queue**: Book doctor appointments from home, view estimated wait times, and track live queue progress directly on mobile.
+- 📋 **Digital Medical Passport**: Instant, secure access to medical history, active medications, allergies, and past visit summaries with one-click printable PDF reports.
+- 🩺 **Doctor & Clinical Workspace**: Real-time consultation queue, patient vitals recording, and instant digital prescription generation.
+- 🏥 **Hospital Operations & Analytics**: Real-time ward & room tracking, daily patient influx metrics, and operational performance insights.
+- 🚑 **Emergency Ambulance Dispatch**: One-touch GPS ambulance request, real-time driver tracking, and pre-alert notifications sent directly to the destination hospital.
+- 💊 **In-House Pharmacy**: Hospital formulary catalog, Jan Aushadhi generic savings, and quick counter pickup or local delivery fulfillment.
+- 🩸 **Blood & Organ Donation Network**: Searchable community donor network matching donors and recipients by blood group and geographic area.
 
 ---
 
-## 📸 Screenshots & UI Showcase
+## 🚀 Quick Start
 
-| Module | Preview |
-| :--- | :--- |
-| **Landing Page** | ![Landing Page](screenshots/landingpage.png) |
-| **Patient Dashboard** | ![Patient Dashboard](screenshots/patient_dashboard.png) |
-| **Doctor Workspace** | ![Doctor Workspace](screenshots/doctor_workspace.png) |
-| **Hospital Analytics** | ![Hospital Analytics](screenshots/hospital_analytics.png) |
-| **Ambulance Dispatch** | ![Ambulance Dispatch](screenshots/ambulance_dispatch.png) |
-| **Medical Passport** | ![Medical Passport](screenshots/medical_passport.png) |
-| **Pharmacy Verification** | ![Pharmacy Verification](screenshots/pharmacy_verification.png) |
-| **Donor Network** | ![Donor Network](screenshots/donor_network.png) |
+### Prerequisites
+- Node.js (v18+)
 
----
-
-## 🏛️ Architecture & Tech Stack
-
-- **Build Tool & Dev Server**: [Vite 5](https://vitejs.dev/) for sub-millisecond HMR and optimized production bundles.
-- **Frontend Core**: Vanilla JavaScript with native ES Modules (`js/`) for maximum performance without framework overhead.
-- **Styling**: Modular CSS design tokens (`css/`) adhering to accessible healthcare visual standards.
-- **Standards Alignment**: Architected for **ABDM** (Ayushman Bharat Digital Mission) compliance and **FHIR** standards.
-- **Deployment**: Zero-configuration deployment with [Vercel](https://vercel.com/) (`vercel.json`).
-
----
-
-## 📂 Directory Layout
-
-```text
-smart-care-app/
-├── index.html              # Main application entry point
-├── 404.html                # Custom 404 error page
-├── vite.config.js          # Vite build and server configuration
-├── vercel.json             # Vercel deployment routing rules
-├── package.json            # Project scripts and dependencies
-├── cando.md                # Comprehensive feature roadmap & specifications
-├── techstack-shift.md      # Architecture rationales & tech decisions
-├── css/                    # Modular stylesheets and design tokens
-├── js/                     # Application logic, state management & API services
-├── screenshots/            # UI screenshots and visual walkthroughs
-└── scripts/                # Utility and linting scripts
-```
-
----
-
-## 🛠️ Getting Started
-
-### 1. Prerequisites
-- **Node.js** (v18.0.0 or higher recommended)
-- **npm** or **yarn** / **pnpm**
-
-### 2. Installation
-Clone the repository and install dependencies:
+### Installation & Run
 ```bash
+# Clone the repository
 git clone https://github.com/Mohammed-Ashraf-Shaik/smart-care-app.git
 cd smart-care-app
-npm install
-```
 
-### 3. Running the Development Server
-Start the local development server:
-```bash
+# Install dependencies
+npm install
+
+# Start development server
 npm run dev
 ```
-Open your browser and navigate to `http://localhost:5173`.
 
-### 4. Building for Production
-```bash
-npm run build
-```
-To test the production build locally:
-```bash
-npm run preview
-```
+Open **`http://localhost:5173`** in your browser.
 
 ---
 
-## 🗺️ Roadmap
+## 🔑 Demo Access (One-Click Logins)
 
-- [x] Responsive Role-Based Dashboards (Patient, Doctor, Admin)
-- [x] Appointment booking & live queue tokens
-- [x] Ambulance dispatch & donor network UI
-- [ ] Integration with ABDM Sandbox (ABHA creation & HPR validation)
-- [ ] Automated SMS & WhatsApp status notifications
-- [ ] WebRTC-based telemedicine video consultations
+The application includes pre-configured demo profiles for testing all roles:
+
+| Role | Email | Password | Access Area |
+| :--- | :--- | :--- | :--- |
+| **Patient** | `patient@gmail.com` | `1234` | Patient Portal, Appointments, Queue & History |
+| **Doctor / Hospital** | `hospital@gmail.com` | `1234` | Clinical Consultation, Queue & Prescriptions |
+| **Hospital Operations** | `admin@gmail.com` | `1234` | Room Allocations, Facility Analytics & Desk |
+
+*You can also switch roles on the fly using the built-in Role Switcher in the top navigation bar without logging out.*
 
 ---
 
-## 👤 Author
+## 🛠️ Architecture & Tech Stack
 
-**Mohammad Ashraf Shaik**
-- GitHub: [@Mohammed-Ashraf-Shaik](https://github.com/Mohammed-Ashraf-Shaik)
-- LeetCode: [Shaik_mohameed_Ashraf](https://leetcode.com/u/Shaik_mohameed_Ashraf)
-- Chess.com: [ashumm](https://www.chess.com/member/ashumm)
+- **Frontend**: Vanilla ES Modules (zero-dependency, high performance)
+- **Styling**: Modern responsive CSS with full mobile optimization & Dark/Light mode
+- **Build Tool**: Vite 5 (instant Hot Module Replacement)
+- **Maps**: Interactive OpenStreetMap / Leaflet integration for hospital locations and emergency dispatch
+- **Storage**: Client-side reactive state engine with persistent offline-first storage
+
+---
+
+## 📱 Mobile Optimized
+
+Fully responsive and mobile-first, designed to work smoothly on devices from 320px screens up to 4K displays with accessible touch targets ($\ge 48\text{px}$) and zero layout clipping.
+
+---
+
+## 📜 Commands
+
+```bash
+npm run dev      # Start local dev server (http://localhost:5173)
+npm run lint     # Run code syntax & health checks
+npm run build    # Build optimized production bundle
+npm run preview  # Test production build locally
+```

@@ -3367,22 +3367,45 @@ html { scroll-behavior: smooth; }
     }
 
     .patient-application-shell .flow-actions {
-        align-items: stretch;
-        flex-direction: row;
-        gap: .5rem;
-        padding: .65rem .75rem;
+        display: flex !important;
+        flex-direction: column-reverse !important;
+        align-items: stretch !important;
+        gap: 0.65rem !important;
+        padding: 0.75rem 0.85rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
     }
 
     .patient-application-shell .flow-actions > * {
-        width: auto;
-    }
-
-    .patient-application-shell .flow-actions .btn-secondary {
-        flex: 0 0 auto;
+        width: 100% !important;
+        min-height: 48px !important;
+        justify-content: center !important;
+        text-align: center !important;
+        white-space: normal !important;
+        box-sizing: border-box !important;
+        flex: 0 0 auto !important;
     }
 
     .patient-application-shell .flow-actions .btn-primary {
-        flex: 1 1 auto;
+        order: 1 !important;
+        width: 100% !important;
+        padding: 0.75rem 1rem !important;
+        font-size: 0.92rem !important;
+        font-weight: 800 !important;
+    }
+
+    .patient-application-shell .flow-actions .btn-secondary {
+        order: 2 !important;
+        width: 100% !important;
+        padding: 0.65rem 1rem !important;
+        font-size: 0.88rem !important;
+    }
+
+    .patient-application-shell .flow-actions .status-note {
+        order: 3 !important;
+        text-align: center !important;
+        width: 100% !important;
+        margin-top: 0.15rem !important;
     }
 
     .summary-row {
@@ -6183,6 +6206,39 @@ html { scroll-behavior: smooth; }
         -webkit-backdrop-filter: blur(12px);
         border-top: 1px solid var(--line);
         box-shadow: 0 -8px 24px rgba(10, 59, 105, 0.1);
+        display: flex !important;
+        flex-direction: column-reverse !important;
+        align-items: stretch !important;
+        gap: 0.65rem !important;
+    }
+
+    body:not(:has(.mobile-bottom-nav)) .compact-flow-actions {
+        bottom: env(safe-area-inset-bottom, 0px);
+    }
+
+    .compact-flow-actions > * {
+        width: 100% !important;
+        min-height: 48px !important;
+        justify-content: center !important;
+        text-align: center !important;
+        white-space: normal !important;
+        box-sizing: border-box !important;
+    }
+
+    .compact-flow-actions .btn-primary {
+        order: 1 !important;
+        width: 100% !important;
+    }
+
+    .compact-flow-actions .btn-secondary {
+        order: 2 !important;
+        width: 100% !important;
+    }
+
+    .compact-flow-actions .status-note {
+        order: 3 !important;
+        text-align: center !important;
+        width: 100% !important;
     }
 }
 
@@ -6925,20 +6981,75 @@ html { scroll-behavior: smooth; }
         border-radius: 12px !important;
     }
 
-    /* Flow topbar actions wrap smoothly on narrow devices */
+    /* Flow topbar actions: prevent overlapping, enforce clean single-row compact layout */
     .flow-topbar-actions {
-        gap: 0.4rem !important;
-        flex-wrap: wrap !important;
+        gap: 0.35rem !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        margin-left: auto !important;
+        flex-shrink: 0 !important;
     }
 
     .topbar-control-group {
-        gap: 0.35rem !important;
+        gap: 0.3rem !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        flex-shrink: 0 !important;
     }
 
-    .topbar-sos-btn,
-    .theme-toggle-btn {
-        min-height: 38px !important;
-        padding: 0.35rem 0.65rem !important;
+    .topbar-sos-btn {
+        min-height: 32px !important;
+        height: 32px !important;
+        padding: 0.25rem 0.55rem !important;
+        border-radius: 999px !important;
+        font-size: 0.72rem !important;
+        gap: 0.3rem !important;
+        flex-shrink: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+    }
+    .topbar-sos-btn .sos-label {
+        display: none !important;
+    }
+    .topbar-sos-btn .sos-label-mobile {
+        display: inline !important;
+        font-weight: 800 !important;
+        font-size: 0.74rem !important;
+    }
+
+    .theme-toggle-btn,
+    #theme-toggle-btn {
+        min-height: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        width: 32px !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 0.55rem !important;
+        flex-shrink: 0 !important;
+    }
+    .theme-toggle-btn .theme-btn-label,
+    #theme-toggle-btn span:not(.sr-only) {
+        display: none !important;
+    }
+
+    .flow-topbar-actions .back-link,
+    .flow-topbar .back-link {
+        min-height: 32px !important;
+        height: 32px !important;
+        padding: 0.25rem 0.55rem !important;
+        font-size: 0.74rem !important;
+        border-radius: 0.55rem !important;
+        border: 1px solid var(--line) !important;
+        background: var(--surface) !important;
+        color: var(--teal-dark) !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.3rem !important;
     }
 
     /* Patient Hero & Doctor Hero action buttons full width on small mobile */
@@ -7179,7 +7290,15 @@ html { scroll-behavior: smooth; }
         visibility: hidden !important;
     }
     .appointment-pass-card,
-    .appointment-pass-card * {
+    .appointment-pass-card *,
+    #printable-medical-report,
+    #printable-medical-report *,
+    .rx-modal-card,
+    .rx-modal-card *,
+    .prescription-paper-card,
+    .prescription-paper-card *,
+    .prescription-printable-area,
+    .prescription-printable-area * {
         visibility: visible !important;
     }
     .appointment-pass-card {
@@ -7187,20 +7306,26 @@ html { scroll-behavior: smooth; }
         left: 0 !important;
         top: 0 !important;
         width: 100% !important;
-        max-width: 480px !important;
+        max-width: 520px !important;
         margin: 0 auto !important;
-        border: 2px solid #000 !important;
+        border: 2px solid #0a3b69 !important;
         box-shadow: none !important;
         page-break-inside: avoid !important;
         background: #fff !important;
         color: #000 !important;
+        border-radius: 12px !important;
+    }
+    .appointment-pass-card .pass-body {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 0.75rem !important;
     }
     .flow-topbar,
     .flow-header,
     .confirmation-hero-bar,
     .confirmation-next-section,
     .confirmation-action-buttons,
-    .modal-backdrop,
+    .modal-backdrop:not(:has(.rx-modal-card)),
     .mobile-bottom-nav {
         display: none !important;
     }
@@ -7253,8 +7378,179 @@ html { scroll-behavior: smooth; }
 
 .pharmacy-grid-layout {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
-    gap: 1.25rem;
+    grid-template-columns: 1fr 340px;
+    gap: 1.5rem;
+    align-items: start;
+}
+
+@media (max-width: 960px) {
+    .pharmacy-grid-layout {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+.pharmacy-catalog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
+    gap: 0.9rem;
+}
+
+.pharm-product-card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.pharm-product-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(10, 59, 105, 0.08);
+    border-color: #bee3f8;
+}
+
+.pharm-card-top-tags {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.5rem;
+}
+
+.pharm-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 0.18rem 0.5rem;
+    border-radius: 6px;
+    letter-spacing: 0.02em;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.pharm-badge-rx {
+    background: #fff5f5;
+    color: #c53030;
+    border: 1px solid #feb2b2;
+}
+
+.pharm-badge-otc {
+    background: #f0fff4;
+    color: #276749;
+    border: 1px solid #9ae6b4;
+}
+
+.pharm-badge-subsidy {
+    background: #ebf8ff;
+    color: #2b6cb0;
+    border: 1px solid #bee3f8;
+}
+
+.pharm-card-name {
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 0 0 0.2rem;
+    line-height: 1.3;
+}
+
+.pharm-card-sub {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-bottom: 0.6rem;
+    display: block;
+}
+
+.pharm-card-stock {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #2f855a;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 0.75rem;
+}
+
+.pharm-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: auto;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--line);
+}
+
+.pharm-price-lockup {
+    display: flex;
+    flex-direction: column;
+}
+
+.pharm-price-main {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--teal);
+    line-height: 1.1;
+}
+
+.pharm-price-mrp-row {
+    font-size: 0.72rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.pharm-mrp-del {
+    color: var(--muted);
+    text-decoration: line-through;
+}
+
+.pharm-save-pill {
+    color: #2f855a;
+    font-weight: 700;
+    font-size: 0.7rem;
+}
+
+.pharm-stepper-ctrl {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: var(--canvas);
+    border: 1.5px solid var(--teal);
+    border-radius: 8px;
+    padding: 0.2rem 0.35rem;
+}
+
+.pharm-stepper-btn {
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: var(--surface);
+    color: var(--ink);
+    border-radius: 5px;
+    font-weight: 700;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.pharm-stepper-btn:hover {
+    background: var(--mint);
+    color: var(--teal-dark);
+}
+
+.pharm-stepper-num {
+    font-weight: 800;
+    font-size: 0.88rem;
+    min-width: 22px;
+    text-align: center;
+    color: var(--teal);
 }
 
 #btn-sync-passport {
@@ -7529,11 +7825,50 @@ body:not(:has(.mobile-bottom-nav)) .landing-main {
     }
 }
 
+/* ─────────────────────────────────────────────────────────────
+   SmartCare Authenticated Background Watermark (Screen & Print)
+   ───────────────────────────────────────────────────────────── */
+#printable-medical-report,
+.prescription-paper,
+.appointment-pass-card {
+    position: relative;
+}
+
+#printable-medical-report > *:not(.smartcare-watermark),
+.prescription-paper > *:not(.smartcare-watermark),
+.appointment-pass-card > *:not(.smartcare-watermark) {
+    position: relative;
+    z-index: 1;
+}
+
+.smartcare-watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-25deg);
+    width: 480px;
+    height: 480px;
+    max-width: 85%;
+    max-height: 85%;
+    pointer-events: none;
+    z-index: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+}
+
+.smartcare-watermark svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
 /* 5. Color-coded Downloadable PDF & Print Optimization */
 @media print {
     @page {
-        size: A4;
-        margin: 12mm 14mm 14mm 14mm;
+        size: A4 portrait;
+        margin: 10mm 12mm 12mm 12mm;
     }
 
     body {
@@ -7544,81 +7879,200 @@ body:not(:has(.mobile-bottom-nav)) .landing-main {
         print-color-adjust: exact !important;
     }
 
+    /* Unconstrain viewport shells to allow multi-page print and full rendering */
+    .workspace-shell,
+    .app-shell,
+    .flow-shell,
+    .workspace-layout,
+    .workspace-content,
+    .patient-application-shell,
+    #main-content,
+    #app {
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+        overflow: visible !important;
+        display: block !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    /* Hide on-screen chrome from PDF */
+    .print-hide,
+    .flow-topbar,
+    .workspace-sidebar,
+    .workspace-drawer,
+    .mobile-bottom-nav,
+    .site-footer,
+    .btn-delete-item,
+    #edit-passport-modal,
+    #qr-modal-overlay {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    #printable-medical-report {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: visible !important;
+        position: relative !important;
+    }
+
+    /* Print Background Watermark - Centered on every printed page */
+    .smartcare-watermark {
+        position: fixed !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) rotate(-25deg) !important;
+        width: 520px !important;
+        height: 520px !important;
+        max-width: 85vw !important;
+        max-height: 85vh !important;
+        display: flex !important;
+        visibility: visible !important;
+        z-index: 0 !important;
+        pointer-events: none !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    #printable-medical-report::before {
+        content: "" !important;
+        position: fixed !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) rotate(-25deg) !important;
+        width: 520px !important;
+        height: 520px !important;
+        max-width: 85vw !important;
+        max-height: 85vh !important;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 500'%3E%3Cg opacity='0.045' fill='%230a3b69'%3E%3Crect x='150' y='80' width='200' height='200' rx='45' fill='%230a3b69'/%3E%3Cpath d='M250 230S195 198 195 158c0-21 14-33 31.5-33 10.5 0 19.5 5.5 24.5 13.5 5-8 14-13.5 24.5-13.5 17.5 0 31.5 12 31.5 33 0 40-57 72-57 72Z' fill='none' stroke='%23ffffff' stroke-width='14' stroke-linejoin='round'/%3E%3Cpath d='M250 155v38M231 174h38' stroke='%23ffffff' stroke-width='14' stroke-linecap='round'/%3E%3Ctext x='250' y='335' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif' font-size='32' font-weight='900' text-anchor='middle' fill='%230a3b69' letter-spacing='8'%3ESMARTCARE%3C/text%3E%3Ctext x='250' y='368' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif' font-size='14' font-weight='800' text-anchor='middle' fill='%230f5ca8' letter-spacing='4'%3EOFFICIAL CLINICAL RECORD%3C/text%3E%3Ctext x='250' y='392' font-family='-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif' font-size='11' font-weight='700' text-anchor='middle' fill='%235a7a8e' letter-spacing='2'%3EHEALTHCARE OPERATING SYSTEM%3C/text%3E%3C/g%3E%3C/svg%3E") !important;
+        background-repeat: no-repeat !important;
+        background-position: center !important;
+        background-size: contain !important;
+        pointer-events: none !important;
+        z-index: 0 !important;
+    }
+
     #pdf-print-header {
         display: block !important;
-        padding-bottom: 1rem !important;
+        padding-bottom: 0.85rem !important;
         border-bottom: 2.5px solid #0a3b69 !important;
-        margin-bottom: 1.25rem !important;
+        margin-bottom: 1.15rem !important;
     }
 
-    /* Color-coded Pillar Cards for Downloadable PDF */
-    .pillar-card-medications {
-        border: 1.5px solid #0f5ca8 !important;
-        border-left: 6px solid #0f5ca8 !important;
-        background: #f7fafc !important;
-        page-break-inside: avoid;
-        break-inside: avoid;
-    }
-    .pillar-card-medications .pillar-head h3 {
-        color: #0a3b69 !important;
-    }
-
-    .pillar-card-allergies {
-        border: 1.5px solid #e53e3e !important;
-        border-left: 6px solid #e53e3e !important;
-        background: #fff5f5 !important;
-        page-break-inside: avoid;
-        break-inside: avoid;
-    }
-    .pillar-card-allergies .pillar-head h3 {
-        color: #9b2c2c !important;
-    }
-    .pillar-card-allergies .history-item-row {
-        background: #fffafa !important;
-        border: 1px solid #fed7d7 !important;
-    }
-
-    .pillar-card-conditions {
-        border: 1.5px solid #dd6b20 !important;
-        border-left: 6px solid #dd6b20 !important;
-        background: #fffaf0 !important;
-        page-break-inside: avoid;
-        break-inside: avoid;
-    }
-    .pillar-card-conditions .pillar-head h3 {
-        color: #9c4221 !important;
-    }
-
-    .pillar-card-protocols {
-        border: 1.5px solid #6b46c1 !important;
-        border-left: 6px solid #6b46c1 !important;
-        background: #faf5ff !important;
-        page-break-inside: avoid;
-        break-inside: avoid;
-    }
-    .pillar-card-protocols .pillar-head h3 {
-        color: #553c9a !important;
+    /* Force 2-Column Clinical Grid on PDF Print */
+    .history-grid {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 14px !important;
+        width: 100% !important;
+        page-break-inside: auto;
     }
 
     .patient-history-overview-card {
         border: 1.5px solid #b8daf5 !important;
+        border-radius: 8px !important;
         background: #f0f7fc !important;
-        page-break-inside: avoid;
+        padding: 0.85rem 1rem !important;
+        margin-bottom: 1.15rem !important;
         break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    .patient-history-overview-card > div {
+        display: grid !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 10px !important;
+    }
+
+    /* Color-coded Pillar Cards for Downloadable PDF */
+    .history-pillar-card {
+        border-radius: 8px !important;
+        padding: 1rem !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        margin-bottom: 0 !important;
+        background: #ffffff !important;
+    }
+
+    .pillar-card-medications {
+        border: 1.5px solid #0f5ca8 !important;
+        border-left: 5px solid #0f5ca8 !important;
+        background: #f7fafc !important;
+    }
+    .pillar-card-medications .pillar-head h3 {
+        color: #0a3b69 !important;
+        font-weight: 800 !important;
+    }
+
+    .pillar-card-allergies {
+        border: 1.5px solid #e53e3e !important;
+        border-left: 5px solid #e53e3e !important;
+        background: #fffafa !important;
+    }
+    .pillar-card-allergies .pillar-head h3 {
+        color: #9b2c2c !important;
+        font-weight: 800 !important;
+    }
+    .pillar-card-allergies .history-item-row {
+        background: #fff5f5 !important;
+        border: 1px solid #fed7d7 !important;
+    }
+
+    .pillar-card-conditions {
+        border: 1.5px solid #ea580c !important;
+        border-left: 5px solid #ea580c !important;
+        background: #fffdf5 !important;
+    }
+    .pillar-card-conditions .pillar-head h3 {
+        color: #c2410c !important;
+        font-weight: 800 !important;
+    }
+    .pillar-card-conditions .history-item-row {
+        background: #fffaf0 !important;
+        border: 1px solid #fef3c7 !important;
+    }
+
+    .pillar-card-protocols {
+        border: 1.5px solid #7c3aed !important;
+        border-left: 5px solid #7c3aed !important;
+        background: #faf5ff !important;
+    }
+    .pillar-card-protocols .pillar-head h3 {
+        color: #6d28d9 !important;
+        font-weight: 800 !important;
+    }
+    .pillar-card-protocols .history-item-row {
+        background: #f5f3ff !important;
+        border: 1px solid #ede9fe !important;
     }
 
     .history-item-row {
         break-inside: avoid;
         page-break-inside: avoid;
+        border-radius: 6px !important;
+        padding: 0.65rem !important;
+        margin-bottom: 0.45rem !important;
+    }
+
+    .badge {
+        border: 1px solid #cbd5e1 !important;
+        background: #ffffff !important;
+        color: #0f172a !important;
+        font-weight: 700 !important;
     }
 
     #pdf-print-footer {
         display: block !important;
-        margin-top: 1.5rem !important;
-        padding-top: 0.75rem !important;
+        margin-top: 1.25rem !important;
+        padding-top: 0.65rem !important;
         border-top: 1.5px solid #cbd5e1 !important;
-        page-break-inside: avoid;
         break-inside: avoid;
+        page-break-inside: avoid;
     }
 }
 
@@ -8065,6 +8519,169 @@ body:not(:has(.mobile-bottom-nav)) .landing-main {
     gap: 1rem;
     padding-top: 0.85rem;
     border-top: 1px solid var(--line);
+}
+
+/* ==========================================================================
+   MOBILE TOPBAR OVERLAP PREVENTION & RESPONSIVE LAYOUT
+   Guarantees [SOS Ambulance], [Language], [Light/Dark], [Back link]
+   never wrap into overlapping rows on mobile viewports (< 768px).
+   ========================================================================== */
+@media (max-width: 767px) {
+    .flow-topbar,
+    .workspace-shell .flow-topbar {
+        height: auto !important;
+        min-height: 3.25rem !important;
+        max-height: none !important;
+        padding: 0.35rem 0.65rem !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        flex-wrap: nowrap !important;
+        gap: 0.35rem !important;
+    }
+
+    .flow-topbar .brand-lockup,
+    .workspace-shell .flow-topbar .brand-lockup {
+        flex-shrink: 1 !important;
+        min-width: 0 !important;
+        margin-right: auto !important;
+        gap: 0.45rem !important;
+    }
+
+    .flow-topbar .brand-caption,
+    .workspace-shell .flow-topbar .brand-caption {
+        display: none !important;
+    }
+
+    .flow-topbar .brand-mark,
+    .workspace-shell .flow-topbar .brand-mark {
+        width: 2.1rem !important;
+        height: 2.1rem !important;
+        min-width: 2.1rem !important;
+        border-radius: 0.55rem !important;
+    }
+
+    .flow-topbar .brand-name,
+    .workspace-shell .flow-topbar .brand-name {
+        font-size: 0.95rem !important;
+        white-space: nowrap !important;
+    }
+
+    .flow-topbar-actions,
+    .workspace-shell .flow-topbar-actions {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.3rem !important;
+        flex-wrap: nowrap !important;
+        flex-shrink: 0 !important;
+        margin-left: auto !important;
+    }
+
+    .topbar-control-group {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.25rem !important;
+        flex-wrap: nowrap !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* SOS Ambulance button: compact pill on mobile */
+    .topbar-sos-btn {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 0.25rem !important;
+        min-height: 32px !important;
+        height: 32px !important;
+        padding: 0.25rem 0.55rem !important;
+        border-radius: 999px !important;
+        font-size: 0.72rem !important;
+        flex-shrink: 0 !important;
+        white-space: nowrap !important;
+    }
+    .topbar-sos-btn .sos-label {
+        display: none !important;
+    }
+    .topbar-sos-btn .sos-label-mobile {
+        display: inline !important;
+        font-weight: 800 !important;
+        font-size: 0.75rem !important;
+    }
+
+    /* Language dropdown: compact */
+    .lang-dropdown-wrapper {
+        min-height: 32px !important;
+        height: 32px !important;
+        padding: 0 0.2rem 0 0.35rem !important;
+        border-radius: 0.55rem !important;
+        flex-shrink: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+    }
+    .lang-select-native {
+        max-width: 3.2rem !important;
+        font-size: 0.72rem !important;
+        padding: 0 0.85rem 0 0.1rem !important;
+        height: 32px !important;
+        line-height: 32px !important;
+    }
+    .lang-dropdown-icon {
+        right: 0.2rem !important;
+    }
+
+    /* Theme Toggle button: icon-only on mobile */
+    .theme-toggle-btn,
+    #theme-toggle-btn {
+        min-height: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+        width: 32px !important;
+        padding: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        border-radius: 0.55rem !important;
+        flex-shrink: 0 !important;
+    }
+    .theme-toggle-btn .theme-btn-label,
+    #theme-toggle-btn span:not(.sr-only) {
+        display: none !important;
+    }
+
+    /* Back Link: compact and clean */
+    .flow-topbar-actions .back-link,
+    .flow-topbar .back-link {
+        min-height: 32px !important;
+        height: 32px !important;
+        padding: 0.25rem 0.55rem !important;
+        font-size: 0.74rem !important;
+        border-radius: 0.55rem !important;
+        border: 1px solid var(--line) !important;
+        background: var(--surface) !important;
+        color: var(--teal-dark) !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 0.25rem !important;
+        text-decoration: none !important;
+    }
+}
+
+@media (max-width: 380px) {
+    .flow-topbar .brand-name {
+        display: none !important;
+    }
+    .lang-dropdown-wrapper {
+        padding: 0 0.15rem 0 0.25rem !important;
+    }
+    .lang-select-native {
+        max-width: 2.8rem !important;
+    }
+    .flow-topbar-actions .back-link,
+    .flow-topbar .back-link {
+        padding: 0.25rem 0.4rem !important;
+    }
 }
 
 

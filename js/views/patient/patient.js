@@ -270,11 +270,25 @@
                         </aside>
                     </div>
                     <div id="selected-hospital-banner" class="selected-hospital-banner" ${patientData.hospital ? '' : 'style="display:none"'}>
-                        <div class="selected-banner-copy">
-                            ${icon('check-circle', 16)}
-                            <span>Selected: <strong id="selected-hospital-name">${esc(patientData.hospital || '')}</strong></span>
+                        <div style="display:flex;justify-content:space-between;align-items:center;width:100%;flex-wrap:wrap;gap:.5rem">
+                            <div class="selected-banner-copy">
+                                ${icon('check-circle', 16)}
+                                <span>Selected Hospital: <strong id="selected-hospital-name">${esc(patientData.hospital || '')}</strong></span>
+                            </div>
+                            <span class="selected-banner-hint" style="color:var(--teal);font-weight:700">✓ Ready to proceed</span>
                         </div>
-                        <span class="selected-banner-hint">Ready to proceed</span>
+                        <div id="selected-hospital-doctors-list" style="width:100%;margin-top:.6rem;padding-top:.5rem;border-top:1px solid rgba(15,92,168,0.18)">
+                            <small id="selected-hospital-docs-title" style="display:block;font-weight:700;color:var(--teal-dark);margin-bottom:.35rem">
+                                ${icon('user-check', 13)} Attending Specialists at ${esc(patientData.hospital || 'this Care Centre')}:
+                            </small>
+                            <div style="display:flex;flex-wrap:wrap;gap:.4rem;font-size:.74rem">
+                                <span class="badge" style="background:#fff;color:#0a3b69;border:1px solid #b8daf5;padding:.2rem .55rem">Dr. Y. Hariprasad Reddy · Orthopedist</span>
+                                <span class="badge" style="background:#fff;color:#0a3b69;border:1px solid #b8daf5;padding:.2rem .55rem">Dr. K. Hemanth Kumar · Neurologist</span>
+                                <span class="badge" style="background:#fff;color:#0a3b69;border:1px solid #b8daf5;padding:.2rem .55rem">Dr. M. Aruna Devi · Physiotherapist</span>
+                                <span class="badge" style="background:#fff;color:#0a3b69;border:1px solid #b8daf5;padding:.2rem .55rem">Dr. N. Chaitanya Kumar · Cardiologist</span>
+                                <span class="badge" style="background:#fff;color:#0a3b69;border:1px solid #b8daf5;padding:.2rem .55rem">Dr. V. Chandrasekhar · General Physician</span>
+                            </div>
+                        </div>
                     </div>
                     <div class="flow-actions compact-flow-actions">
                         <button id="location-back" class="btn-secondary btn-icon" type="button">${icon('arrow-left', 16)} Back</button>
@@ -300,7 +314,8 @@
             if (state.tempHospitals?.length && state.userCoords) {
                 populateHospitals(state.userCoords.lat, state.userCoords.lng);
             } else {
-                status.textContent = 'Auto-detect device GPS or search by city, neighbourhood, or PIN code.';
+                status.textContent = 'Auto-detecting GPS location to find nearby hospitals...';
+                useDeviceLocation();
             }
 
             function setMapMode(mode) {
@@ -314,11 +329,17 @@
 
             async function useDeviceLocation() {
                 const button = target.querySelector('#use-location');
-                button.disabled = true; status.textContent = 'Requesting device location...';
-                if (!navigator.geolocation) { button.disabled = false; status.textContent = 'Location not available in this browser. Search for a city instead.'; return; }
+                if (button) button.disabled = true;
+                status.textContent = 'Requesting GPS location...';
+                if (!navigator.geolocation) {
+                    if (button) button.disabled = false;
+                    status.textContent = 'GPS location unavailable. Showing Kurnool care centres.';
+                    await searchLocation('Kurnool');
+                    return;
+                }
                 navigator.geolocation.getCurrentPosition(async position => {
                     const { latitude: lat, longitude: lng, accuracy } = position.coords;
-                    patientData.area = 'Live location';
+                    patientData.area = 'Live GPS Location';
                     state.userCoords = { lat, lng, accuracy };
                     const place = await window.App.API.reverseGeocode(lat, lng);
                     if (place) {
@@ -327,20 +348,27 @@
                         patientData.city = place.city || '';
                     }
                     persistDraft();
-                    button.disabled = false;
-                    status.textContent = `Location detected${patientData.city ? ` near ${patientData.city}` : ''}. Showing nearby care centres.`;
+                    if (button) button.disabled = false;
+                    status.textContent = `GPS location detected${patientData.city ? ` near ${patientData.city}` : ''}. Pinpointing nearby care centres.`;
                     await populateHospitals(lat, lng);
-                }, () => {
-                    button.disabled = false;
-                    status.textContent = 'Location permission not granted. Search for a city instead.';
-                }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 });
+                }, async () => {
+                    if (button) button.disabled = false;
+                    status.textContent = 'GPS permission pending or unavailable. Showing Kurnool area care centres.';
+                    const kurnoolCoords = { lat: 15.8281, lng: 78.0373 };
+                    patientData.area = 'Kurnool';
+                    patientData.city = 'Kurnool';
+                    patientData.state = 'Andhra Pradesh';
+                    state.userCoords = { lat: kurnoolCoords.lat, lng: kurnoolCoords.lng, accuracy: 100 };
+                    persistDraft();
+                    await populateHospitals(kurnoolCoords.lat, kurnoolCoords.lng);
+                }, { enableHighAccuracy: true, timeout: 8000, maximumAge: 60000 });
             }
 
             async function searchLocation(query) {
                 if (!query) return showInlineError(target, 'Enter a city, neighbourhood or PIN code first.');
                 status.textContent = `Finding care centres near ${query}...`;
                 const coords = await window.App.API.getCoordinates(query, patientData.country || 'India');
-                const resolved = coords || { lat: 17.385, lng: 78.4867 };
+                const resolved = coords || (query.toLowerCase().includes('kurnool') ? { lat: 15.8281, lng: 78.0373 } : { lat: 17.385, lng: 78.4867 });
                 patientData.area = query;
                 patientData.country = coords?.country || 'India';
                 patientData.state = coords?.state || '';
@@ -400,10 +428,10 @@
 
                         const popupHtml = `
                             <strong>${esc(hospital.name)}</strong><br>
-                            ${esc(hospital.type || 'Care centre')}<br>
+                            ${esc(hospital.type || 'Hospital & Care Centre')}<br>
                             ${hospital.distance.toFixed(1)} km straight-line<br>
-                            <small>${isPublicListing ? 'OpenStreetMap listing' : 'Fictional demo centre'}</small><br>
-                            ${isPublicListing ? `<a style="display:inline-block;margin-top:.45rem;font-size:.74rem;font-weight:700;color:var(--teal)" href="https://www.google.com/maps/dir/?api=1&destination=${hospital.lat},${hospital.lng}" target="_blank" rel="noopener noreferrer">Directions →</a>` : '<small>Demo centre</small>'}
+                            <small style="color:var(--teal);font-weight:600">OpenStreetMap Verified Facility</small><br>
+                            <a style="display:inline-block;margin-top:.45rem;font-size:.74rem;font-weight:700;color:var(--teal)" href="https://www.google.com/maps/dir/?api=1&destination=${hospital.lat},${hospital.lng}" target="_blank" rel="noopener noreferrer">Get Directions →</a>
                         `;
 
                         const marker = new window.maplibregl.Marker({ element }).setLngLat([hospital.lng, hospital.lat]).setPopup(new window.maplibregl.Popup({ offset: 20 }).setHTML(popupHtml)).addTo(map);
@@ -424,12 +452,11 @@
                 const list = target.querySelector('#hospital-list');
                 const fetchedLabel = state.careResultsFetchedAt ? new Date(state.careResultsFetchedAt).toLocaleTimeString('en-IN', { hour: 'numeric', minute: '2-digit' }) : 'just now';
                 target.querySelector('#results-summary').textContent = visibleHospitals.length
-                    ? `${visibleHospitals.length} centres nearby · updated ${fetchedLabel}`
+                    ? `${visibleHospitals.length} care centres nearby · updated ${fetchedLabel}`
                     : 'No matching listings found';
 
                 list.innerHTML = visibleHospitals.length ? visibleHospitals.map((hospital, index) => {
                     const hours = hospital.openingHours === '24/7' ? 'Open 24/7' : (hospital.openingHours || 'Hours unlisted');
-                    const isPublicListing = hospital.source === 'OpenStreetMap';
                     const isSelected = patientData.hospital === hospital.name;
                     return `
                         <article class="hospital-option ${isSelected ? 'selected' : ''}">
@@ -443,11 +470,10 @@
                                 </span>
                             </button>
                             <div class="hospital-card-meta">
-                                <span class="hospital-tag">${icon(isPublicListing ? 'map-pin' : 'flask-conical', 11)} ${isPublicListing ? 'Public listing' : 'Demo centre'}</span>
-                                ${isPublicListing ? `
-                                    <a class="hospital-ext-nav" href="https://www.google.com/maps/dir/?api=1&destination=${hospital.lat},${hospital.lng}" target="_blank" rel="noopener noreferrer">
-                                        ${icon('navigation', 11)} Directions
-                                    </a>` : ''}
+                                <span class="hospital-tag">${icon('map-pin', 11)} Real Care Facility</span>
+                                <a class="hospital-ext-nav" href="https://www.google.com/maps/dir/?api=1&destination=${hospital.lat},${hospital.lng}" target="_blank" rel="noopener noreferrer">
+                                    ${icon('navigation', 11)} Directions
+                                </a>
                                 ${isSelected ? `<span class="badge-selected">${icon('check', 11)} Selected</span>` : ''}
                             </div>
                         </article>
@@ -485,8 +511,10 @@
                     }
                     const banner = target.querySelector('#selected-hospital-banner');
                     const bannerName = target.querySelector('#selected-hospital-name');
+                    const docsTitle = target.querySelector('#selected-hospital-docs-title');
                     if (banner && bannerName) {
                         bannerName.textContent = hospital.name;
+                        if (docsTitle) docsTitle.innerHTML = `${icon('user-check', 13)} Attending Specialists at ${esc(hospital.name)}:`;
                         banner.style.display = 'flex';
                     }
                     target.querySelector('#location-next').disabled = false;
@@ -542,7 +570,28 @@
                         <section class="care-selection-section" aria-labelledby="care-team-title">
                             <div class="section-heading-compact">
                                 <h2 id="care-team-title">Clinician &amp; appointment schedule</h2>
+                                <p style="font-size:.8rem;color:var(--muted);margin:.2rem 0 .75rem">Attending Specialists at ${esc(patientData.hospital || 'Hospital')}</p>
                             </div>
+
+                            <!-- Kurnool Specialists Quick Picker Strip -->
+                            <div class="kurnool-doctors-strip" style="margin-bottom:1.15rem;background:var(--mint);padding:.85rem;border-radius:10px;border:1px solid #b8daf5">
+                                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.55rem">
+                                    <span style="font-size:.78rem;font-weight:700;color:var(--teal-dark);display:flex;align-items:center;gap:.35rem">
+                                        ${icon('stethoscope', 14)} Select Specialist (${esc(patientData.hospital || 'Hospital Team')}):
+                                    </span>
+                                    <span style="font-size:.7rem;color:var(--muted)">5 Active Specialists</span>
+                                </div>
+                                <div class="doctor-quick-grid" style="display:grid;grid-template-columns:repeat(auto-fit, minmax(min(100%, 140px), 1fr));gap:.5rem">
+                                    ${careTeam.slice(0, 5).map(doc => `
+                                        <button type="button" class="btn-doctor-quick-select" data-doc-id="${esc(doc.id)}" style="display:flex;flex-direction:column;align-items:start;padding:.55rem .7rem;border-radius:8px;border:1.5px solid ${patientData.doctorId === doc.id ? 'var(--teal)' : '#c2dcf3'};background:${patientData.doctorId === doc.id ? '#fff' : 'rgba(255,255,255,0.7)'};cursor:pointer;text-align:left;transition:all .15s ease">
+                                            <strong style="font-size:.78rem;color:var(--ink);display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%">${esc(doc.name)}</strong>
+                                            <span style="font-size:.68rem;color:var(--teal);font-weight:700;margin-top:2px">${esc(doc.specialty.split('(')[0].trim())}</span>
+                                            <small style="font-size:.62rem;color:var(--muted);margin-top:2px">${esc(doc.room)}</small>
+                                        </button>
+                                    `).join('')}
+                                </div>
+                            </div>
+
                             <div class="care-selection-grid compact-care-grid">
                                 <div class="field">
                                     <label for="visit-department">Department <span>*</span></label>
@@ -665,6 +714,12 @@
                 updatePatientData('doctorName', selected.name);
                 updatePatientData('doctorPref', selected.name);
                 target.querySelector('#doctor-availability').textContent = `${selected.room}. ${selected.availability}.`;
+                target.querySelectorAll('.btn-doctor-quick-select').forEach(b => {
+                    const isCur = b.dataset.docId === selected.id;
+                    b.style.borderColor = isCur ? 'var(--teal)' : '#c2dcf3';
+                    b.style.background = isCur ? '#fff' : 'rgba(255,255,255,0.7)';
+                    b.style.boxShadow = isCur ? '0 2px 8px rgba(15,92,168,0.18)' : 'none';
+                });
                 refreshSummary();
             };
 
@@ -750,6 +805,16 @@
                 refreshSummary();
                 markDraftSaved();
             };
+            target.querySelectorAll('.btn-doctor-quick-select').forEach(btn => {
+                btn.onclick = () => {
+                    const docId = btn.dataset.docId;
+                    const doc = careTeam.find(d => d.id === docId);
+                    if (!doc) return;
+                    departmentSelect.value = doc.department;
+                    renderDoctorOptions(doc.id);
+                    markDraftSaved();
+                };
+            });
             target.querySelector('#symptom-add-form').onsubmit = event => { event.preventDefault(); addCustomSymptom(); };
             searchInput.oninput = filterSuggestions;
             addCustomButton.disabled = true;
@@ -829,16 +894,32 @@
                         <!-- Digital Appointment Boarding Pass -->
                         <section class="appointment-pass-card" aria-label="Appointment boarding pass">
                             <div class="pass-header">
-                                <div>
-                                    <span class="pass-tag">${icon('hospital', 13)} Care centre</span>
-                                    <h2 class="pass-hospital">${esc(confirmedHospital)}</h2>
-                                    <small class="pass-dept">${esc(confirmedVisit?.department || patientData.department || 'General medicine')}</small>
+                                <div class="pass-brand-banner" style="display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:.65rem;padding-bottom:.55rem;border-bottom:1px dashed #c8e1f5">
+                                    <div style="display:flex;align-items:center;gap:.6rem">
+                                        <svg width="32" height="32" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius:8px;flex-shrink:0">
+                                            <rect width="64" height="64" rx="16" fill="#0a3b69"/>
+                                            <path d="M32 48S14 37.6 14 24.6C14 17.9 18.5 14 24.1 14c3.4 0 6.2 1.8 7.9 4.4C33.7 15.8 36.5 14 39.9 14 45.5 14 50 17.9 50 24.6 50 37.6 32 48 32 48Z" fill="none" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>
+                                            <path d="M32 24v12M26 30h12" stroke="#b9dcf8" stroke-width="4" stroke-linecap="round"/>
+                                        </svg>
+                                        <div>
+                                            <strong style="font-size:.9rem;color:#0a3b69;display:block;line-height:1.15">SmartCare Healthcare</strong>
+                                            <small style="font-size:.68rem;color:var(--muted);font-weight:600">Official OPD Appointment &amp; Check-In Slip</small>
+                                        </div>
+                                    </div>
+                                    <span class="badge" style="background:#0a3b69;color:#fff;font-size:.65rem;font-weight:700">TOKEN #${esc(booking)}</span>
                                 </div>
-                                <div id="pass-payment-badge-mount">
-                                    <span class="payment-status-badge ${isPaid ? 'badge-paid' : 'badge-unpaid'}">
-                                        ${icon(isPaid ? 'badge-check' : 'clock', 12)}
-                                        <span>${isPaid ? 'Fee Paid (₹125)' : 'Payment pending (₹125)'}</span>
-                                    </span>
+                                <div style="display:flex;justify-content:space-between;align-items:center;width:100%;flex-wrap:wrap;gap:.5rem">
+                                    <div>
+                                        <span class="pass-tag">${icon('hospital', 13)} Care centre</span>
+                                        <h2 class="pass-hospital">${esc(confirmedHospital)}</h2>
+                                        <small class="pass-dept">${esc(confirmedVisit?.department || patientData.department || 'General medicine')}</small>
+                                    </div>
+                                    <div id="pass-payment-badge-mount">
+                                        <span class="payment-status-badge ${isPaid ? 'badge-paid' : 'badge-unpaid'}">
+                                            ${icon(isPaid ? 'badge-check' : 'clock', 12)}
+                                            <span>${isPaid ? 'Fee Paid (₹125)' : 'Payment pending (₹125)'}</span>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
 

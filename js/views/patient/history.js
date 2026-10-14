@@ -107,14 +107,34 @@
 
                     <!-- DEDICATED PRINTABLE MEDICAL REPORT CONTAINER -->
                     <div id="printable-medical-report">
-                        
+                        <!-- SMARTCARE AUTHENTICATED WATERMARK (VISIBLE ON SCREEN & IN PRINTED PDF) -->
+                        <div class="smartcare-watermark" aria-hidden="true">
+                            <svg viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <g opacity="0.04" fill="#0a3b69">
+                                    <rect x="150" y="80" width="200" height="200" rx="45" fill="#0a3b69"/>
+                                    <path d="M250 230S195 198 195 158c0-21 14-33 31.5-33 10.5 0 19.5 5.5 24.5 13.5 5-8 14-13.5 24.5-13.5 17.5 0 31.5 12 31.5 33 0 40-57 72-57 72Z" fill="none" stroke="#ffffff" stroke-width="14" stroke-linejoin="round"/>
+                                    <path d="M250 155v38M231 174h38" stroke="#ffffff" stroke-width="14" stroke-linecap="round"/>
+                                    <text x="250" y="335" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif" font-size="32" font-weight="900" text-anchor="middle" fill="#0a3b69" letter-spacing="8">SMARTCARE</text>
+                                    <text x="250" y="368" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif" font-size="14" font-weight="800" text-anchor="middle" fill="#0f5ca8" letter-spacing="4">OFFICIAL CLINICAL RECORD</text>
+                                    <text x="250" y="392" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif" font-size="11" font-weight="700" text-anchor="middle" fill="#5a7a8e" letter-spacing="2">AUTHENTICATED HEALTHCARE DATA</text>
+                                </g>
+                            </svg>
+                        </div>
+
                         <!-- PDF PRINT HEADER -->
                         <div id="pdf-print-header" class="print-only">
                             <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:1rem;border-bottom:2.5px solid #0a3b69;margin-bottom:1.25rem">
-                                <div style="display:flex;align-items:center;gap:.75rem">
-                                    <span style="width:2.6rem;height:2.6rem;display:grid;place-items:center;background:#0a3b69;color:#fff;border-radius:.6rem;font-weight:bold">${icon('heart-pulse', 24)}</span>
+                                <div style="display:flex;align-items:center;gap:.85rem">
+                                    <svg width="48" height="48" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius:12px;flex-shrink:0">
+                                        <rect width="64" height="64" rx="16" fill="#0a3b69"/>
+                                        <path d="M32 48S14 37.6 14 24.6C14 17.9 18.5 14 24.1 14c3.4 0 6.2 1.8 7.9 4.4C33.7 15.8 36.5 14 39.9 14 45.5 14 50 17.9 50 24.6 50 37.6 32 48 32 48Z" fill="none" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>
+                                        <path d="M32 24v12M26 30h12" stroke="#b9dcf8" stroke-width="4" stroke-linecap="round"/>
+                                    </svg>
                                     <div>
-                                        <strong style="font-size:1.45rem;color:#0a3b69;letter-spacing:-.03em;display:block">SmartCare Healthcare Systems</strong>
+                                        <div style="display:flex;align-items:center;gap:.5rem">
+                                            <strong style="font-size:1.5rem;color:#0a3b69;letter-spacing:-.03em;display:block">SmartCare Healthcare Systems</strong>
+                                            <span style="font-size:.68rem;background:#0a3b69;color:#fff;font-weight:700;padding:.15rem .45rem;border-radius:4px;letter-spacing:.05em">ABDM / NMC</span>
+                                        </div>
                                         <small style="color:#0f5ca8;font-size:.82rem;font-weight:700">Official Patient Profile &amp; Medical Passport Report</small>
                                     </div>
                                 </div>

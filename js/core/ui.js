@@ -77,8 +77,8 @@
         return `
             <div class="topbar-control-group">
                 ${!isAmbulancePage ? `
-                    <a href="/ambulance" data-route="/ambulance" class="topbar-sos-btn" style="background:#e53e3e;color:#fff;padding:.35rem .75rem;border-radius:20px;font-weight:700;font-size:.78rem;display:inline-flex;align-items:center;gap:.35rem;text-decoration:none;box-shadow:0 2px 8px rgba(229,62,62,0.3)">
-                        ${icon('siren', 14)} <span class="sos-label">SOS Ambulance</span>
+                    <a href="/ambulance" data-route="/ambulance" class="topbar-sos-btn" aria-label="Emergency Ambulance SOS" title="24/7 Emergency Ambulance">
+                        ${icon('siren', 14)} <span class="sos-label">SOS Ambulance</span><span class="sos-label-mobile">SOS</span>
                     </a>
                 ` : ''}
                 ${isWorkspace ? `
@@ -99,8 +99,8 @@
                     </select>
                     <span class="lang-dropdown-icon">${icon('chevron-down', 12)}</span>
                 </div>
-                <button type="button" class="topbar-control-btn" id="theme-toggle-btn" aria-label="Switch to ${theme === 'dark' ? 'light' : 'dark'} theme" title="Theme: ${themeLabel} (Click to toggle)">
-                    ${icon(themeIcon, 15)} <span>${themeLabel}</span>
+                <button type="button" class="topbar-control-btn theme-toggle-btn" id="theme-toggle-btn" aria-label="Switch to ${theme === 'dark' ? 'light' : 'dark'} theme" title="Theme: ${themeLabel} (Click to toggle)">
+                    ${icon(themeIcon, 15)} <span class="theme-btn-label">${themeLabel}</span>
                 </button>
             </div>
         `;
@@ -917,13 +917,31 @@
                 </div>
                 <div class="prescription-modal-body">
                     <div class="prescription-paper">
+                        <div class="smartcare-watermark" aria-hidden="true">
+                            <svg viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <g opacity="0.04" fill="#0a3b69">
+                                    <rect x="150" y="80" width="200" height="200" rx="45" fill="#0a3b69"/>
+                                    <path d="M250 230S195 198 195 158c0-21 14-33 31.5-33 10.5 0 19.5 5.5 24.5 13.5 5-8 14-13.5 24.5-13.5 17.5 0 31.5 12 31.5 33 0 40-57 72-57 72Z" fill="none" stroke="#ffffff" stroke-width="14" stroke-linejoin="round"/>
+                                    <path d="M250 155v38M231 174h38" stroke="#ffffff" stroke-width="14" stroke-linecap="round"/>
+                                    <text x="250" y="335" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif" font-size="32" font-weight="900" text-anchor="middle" fill="#0a3b69" letter-spacing="8">SMARTCARE</text>
+                                    <text x="250" y="368" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif" font-size="14" font-weight="800" text-anchor="middle" fill="#0f5ca8" letter-spacing="4">VERIFIED E-PRESCRIPTION</text>
+                                </g>
+                            </svg>
+                        </div>
                         <div class="rx-header">
-                            <div class="rx-brand">
-                                <h2>${esc(hospital)}</h2>
-                                <p>SmartCare Certified Clinical Record · ${esc(city)}</p>
-                                <p style="color:${isDispensed ? '#c53030' : '#2c7a7b'};font-weight:700">
-                                    ${isDispensed ? '● REDEEMED / DISPENSED (Locked against reuse)' : '● ACTIVE / VALID PRESCRIPTION · NMC ACCREDITED'}
-                                </p>
+                            <div class="rx-brand" style="display:flex;align-items:flex-start;gap:.85rem">
+                                <svg width="42" height="42" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="border-radius:10px;flex-shrink:0;margin-top:2px">
+                                    <rect width="64" height="64" rx="16" fill="#0a3b69"/>
+                                    <path d="M32 48S14 37.6 14 24.6C14 17.9 18.5 14 24.1 14c3.4 0 6.2 1.8 7.9 4.4C33.7 15.8 36.5 14 39.9 14 45.5 14 50 17.9 50 24.6 50 37.6 32 48 32 48Z" fill="none" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>
+                                    <path d="M32 24v12M26 30h12" stroke="#b9dcf8" stroke-width="4" stroke-linecap="round"/>
+                                </svg>
+                                <div>
+                                    <h2>${esc(hospital)}</h2>
+                                    <p>SmartCare Certified Clinical Record · ${esc(city)}</p>
+                                    <p style="color:${isDispensed ? '#c53030' : '#2c7a7b'};font-weight:700">
+                                        ${isDispensed ? '● REDEEMED / DISPENSED (Locked against reuse)' : '● ACTIVE / VALID PRESCRIPTION · NMC ACCREDITED'}
+                                    </p>
+                                </div>
                             </div>
                             <div class="rx-meta">
                                 <strong>Slip Ref: ${esc(rxId)}</strong><br>

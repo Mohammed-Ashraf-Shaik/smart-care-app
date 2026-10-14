@@ -106,11 +106,14 @@
         return { passportId, profile, history: getMedicalHistory(owner) };
     }
     const careTeam = [
-        { id: 'meera-shah', name: 'Dr Meera Shah', department: 'General medicine', specialty: 'Internal medicine', room: 'Consultation 01', availability: 'Available' },
-        { id: 'arjun-rao', name: 'Dr Arjun Rao', department: 'General medicine', specialty: 'Family care', room: 'Consultation 02', availability: 'Available' },
+        { id: 'hariprasad-reddy', name: 'Dr. Y. Hariprasad Reddy', department: 'Orthopaedics', specialty: 'Orthopedist & Joint Replacement (M.S. Ortho)', room: 'Ortho OPD Rm 102', availability: 'Available today' },
+        { id: 'hemanth-kumar', name: 'Dr. K. Hemanth Kumar', department: 'Neurology', specialty: 'Neurologist (DM Neurology, Gold Medalist)', room: 'Neuro Suite 204', availability: 'Available today' },
+        { id: 'aruna-devi', name: 'Dr. M. Aruna Devi', department: 'Physiotherapy', specialty: 'Physiotherapist & Rehab Specialist (MPT)', room: 'Physio Rehab Bay 03', availability: 'Available today' },
+        { id: 'chaitanya-kumar', name: 'Dr. N. Chaitanya Kumar', department: 'Cardiology', specialty: 'Interventional Cardiologist (DM Cardio)', room: 'Cardiac Care Rm 301', availability: 'Available today' },
+        { id: 'chandrasekhar-v', name: 'Dr. V. Chandrasekhar', department: 'General medicine', specialty: 'General Physician & Diabetologist (MD)', room: 'Consultation Bay 01', availability: 'Available today' },
+        { id: 'manjunath-c', name: 'Dr. Manjunath C', department: 'Orthopaedics', specialty: 'Senior Orthopedic Trauma Surgeon', room: 'Ortho OPD Rm 106', availability: 'Available today' },
         { id: 'nisha-verma', name: 'Dr Nisha Verma', department: 'Paediatrics', specialty: 'Child health', room: 'Consultation 03', availability: 'Available from 11:30' },
-        { id: 'kavya-iyer', name: 'Dr Kavya Iyer', department: 'Women\'s health', specialty: 'Gynaecology', room: 'Consultation 04', availability: 'Available from 14:00' },
-        { id: 'vikram-desai', name: 'Dr Vikram Desai', department: 'Orthopaedics', specialty: 'Bone and joint care', room: 'Consultation 05', availability: 'Available tomorrow' }
+        { id: 'kavya-iyer', name: 'Dr Kavya Iyer', department: 'Women\'s health', specialty: 'Gynaecology', room: 'Consultation 04', availability: 'Available from 14:00' }
     ];
     const getCareTeam = () => cloneData(careTeam);
     function getAppointmentSlots() {
@@ -444,8 +447,12 @@
         }
         state.step = Math.max(1, Math.min(4, Number(draft?.step) || 1));
         state.patientData = { ...emptyPatientData(), ...(draft?.patientData || {}) };
-        state.userCoords = draft?.userCoords || null;
-        state.tempHospitals = Array.isArray(draft?.tempHospitals) ? draft.tempHospitals : [];
+        state.tempHospitals = Array.isArray(draft?.tempHospitals)
+            ? draft.tempHospitals.filter(h => h && !h.name.includes('SmartCare Community Hospital') && !String(h.id).startsWith('sc-local'))
+            : [];
+        if (state.patientData?.hospital?.includes('SmartCare Community Hospital')) {
+            state.patientData.hospital = '';
+        }
         state.searchRadius = Number(draft?.searchRadius) || 0;
         state.careResultsFetchedAt = draft?.careResultsFetchedAt || '';
 

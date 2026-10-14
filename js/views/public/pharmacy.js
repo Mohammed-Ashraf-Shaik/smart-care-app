@@ -17,11 +17,15 @@
             { id: 'm-1', name: 'Paracetamol 650 mg', brand: 'Generic Jan Aushadhi', price: 20, mrp: 35, type: 'prescription', category: 'prescription', qty: 1 },
             { id: 'm-2', name: 'Salbutamol Inhaler 100 mcg', brand: 'Asthalin (Cipla)', price: 145, mrp: 175, type: 'prescription', category: 'prescription', qty: 1 },
             { id: 'm-3', name: 'Pantoprazole 40 mg', brand: 'Pan-40 (Alkem)', price: 65, mrp: 95, type: 'prescription', category: 'prescription', qty: 1 },
-            { id: 'm-4', name: 'ORS Electrolyte Sachet', brand: 'Electral', price: 22, mrp: 25, type: 'otc', category: 'otc', qty: 2 },
+            { id: 'm-4', name: 'ORS Electrolyte Sachet (Pack of 4)', brand: 'Electral WHO Formula', price: 22, mrp: 28, type: 'otc', category: 'otc', qty: 2 },
             { id: 'm-5', name: 'Digital Clinical Thermometer', brand: 'SmartCare CareGear', price: 180, mrp: 250, type: 'otc', category: 'equipment', qty: 1 },
             { id: 'm-6', name: 'Cetirizine 10 mg (Allergy Relief)', brand: 'Cetcip (Cipla)', price: 25, mrp: 40, type: 'otc', category: 'otc', qty: 1 },
             { id: 'm-7', name: 'Azithromycin 500 mg Tablets', brand: 'Azee-500 (Generic)', price: 85, mrp: 120, type: 'prescription', category: 'prescription', qty: 1 },
-            { id: 'm-8', name: 'Sterile Gauze & Antiseptic Bandage Kit', brand: 'SmartCare FirstAid', price: 45, mrp: 60, type: 'otc', category: 'equipment', qty: 1 }
+            { id: 'm-8', name: 'Sterile Gauze & Antiseptic Bandage Kit', brand: 'SmartCare FirstAid', price: 45, mrp: 60, type: 'otc', category: 'equipment', qty: 1 },
+            { id: 'm-9', name: 'Metformin 500 mg PR (Diabetes)', brand: 'Jan Aushadhi Glyciphage', price: 18, mrp: 45, type: 'prescription', category: 'prescription', qty: 1 },
+            { id: 'm-10', name: 'Amoxicillin & Clavulanate 625 mg', brand: 'Moxikind-CV (Generic)', price: 110, mrp: 195, type: 'prescription', category: 'prescription', qty: 1 },
+            { id: 'm-11', name: 'Vitamin D3 60k IU Capsules (4s)', brand: 'Calcirol Generic', price: 40, mrp: 90, type: 'otc', category: 'otc', qty: 1 },
+            { id: 'm-12', name: 'Antiseptic Solution 500ml', brand: 'SmartCare SteriClean', price: 75, mrp: 120, type: 'otc', category: 'equipment', qty: 1 }
         ];
 
         let cart = [
@@ -33,6 +37,10 @@
             const orders = getPharmacyOrders();
             const patientOrders = orders.filter(o => !state.loggedEmail || o.patientName.toLowerCase().includes(state.loggedEmail.split('@')[0].toLowerCase()) || true);
             const cartTotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
+            const totalSavings = cart.reduce((sum, item) => {
+                const def = defaultItems.find(d => d.id === item.id);
+                return sum + ((def ? (def.mrp - def.price) : 15) * item.qty);
+            }, 0);
             const filteredItems = defaultItems.filter(item =>
                 (selectedCategory === 'all' || item.category === selectedCategory || item.type === selectedCategory) &&
                 (searchQuery === '' || item.name.toLowerCase().includes(searchQuery.toLowerCase()) || item.brand.toLowerCase().includes(searchQuery.toLowerCase()))
@@ -89,22 +97,24 @@
                     </div>
 
                     ${activeTab === 'patient' ? `
-                        <!-- PATIENT ORDER VIEW -->
                         <div style="display:grid;grid-template-columns:1fr;gap:1.5rem">
                             
                             <!-- Prescription Prescribed Meds Auto-import Banner -->
                             <div style="background:#ebf8ff;border:1px solid #bee3f8;border-radius:12px;padding:1.1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem">
                                 <div style="display:flex;align-items:center;gap:.75rem">
-                                    <span style="display:flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:10px;background:#2b6cb0;color:#fff">
-                                        ${icon('file-text', 20)}
+                                    <span style="display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:10px;background:#2b6cb0;color:#fff;flex-shrink:0">
+                                        ${icon('file-text', 22)}
                                     </span>
                                     <div>
-                                        <strong style="color:#2c5282;font-size:.95rem;display:block">Imported from Verified Prescription (RX-2026-DEMO01)</strong>
-                                        <span style="font-size:.82rem;color:#4a5568">Dr Meera Shah · 2 items pre-filled with generic subsidy discount</span>
+                                        <div style="display:flex;align-items:center;gap:.45rem;flex-wrap:wrap">
+                                            <strong style="color:#2c5282;font-size:.95rem">Imported from Verified Prescription (RX-2026-DEMO01)</strong>
+                                            <span class="badge" style="background:#2b6cb0;color:#fff;font-size:.68rem">ABDM Linked</span>
+                                        </div>
+                                        <span style="font-size:.82rem;color:#4a5568">Dr Meera Shah · Attending Clinician · Generic Jan Aushadhi pricing active</span>
                                     </div>
                                 </div>
-                                <a href="/verify-rx?id=RX-2026-DEMO01" data-route="/verify-rx?id=RX-2026-DEMO01" class="btn-secondary btn-icon" style="font-size:.8rem;padding:.35rem .75rem">
-                                    ${icon('shield-check', 14)} View Digital Rx
+                                <a href="/verify-rx?id=RX-2026-DEMO01" data-route="/verify-rx?id=RX-2026-DEMO01" class="btn-secondary btn-icon" style="font-size:.8rem;padding:.4rem .85rem">
+                                    ${icon('shield-check', 15)} View Digital Rx
                                 </a>
                             </div>
 
@@ -112,128 +122,177 @@
                                 
                                 <!-- Left Column: Medicines Catalog -->
                                 <div>
-                                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem">
-                                        <h2 style="font-size:1.15rem;margin:0;display:flex;align-items:center;gap:.4rem">
-                                            ${icon('shopping-bag', 18)} Available Hospital Inventory
-                                        </h2>
-                                        <span style="font-size:.8rem;color:var(--muted)">${filteredItems.length} items</span>
+                                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:.5rem;margin-bottom:.85rem">
+                                        <div>
+                                            <h2 style="font-size:1.2rem;margin:0;display:flex;align-items:center;gap:.45rem">
+                                                ${icon('shopping-bag', 18)} Hospital Formulary &amp; Inventory
+                                            </h2>
+                                            <p style="font-size:.8rem;color:var(--muted);margin:.15rem 0 0">Verified drugs dispensed directly from hospital central storage</p>
+                                        </div>
+                                        <span class="badge" style="background:var(--mint);color:var(--teal);font-weight:700">${filteredItems.length} products listed</span>
                                     </div>
 
                                     <!-- Search & Category Filters -->
-                                    <div style="display:flex;gap:.5rem;margin-bottom:.85rem;flex-wrap:wrap">
-                                        <input id="pharm-search-input" type="text" placeholder="Search medicines or salts..." value="${esc(searchQuery)}" style="flex:1;min-width:160px;padding:.45rem .8rem;font-size:.85rem;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)">
-                                        <div style="display:inline-flex;gap:.25rem;flex-wrap:wrap">
-                                            <button type="button" class="btn-category-filter ${selectedCategory === 'all' ? 'active' : ''}" data-cat="all" style="padding:.3rem .55rem;font-size:.75rem;border-radius:6px;border:1px solid var(--line);background:${selectedCategory === 'all' ? 'var(--teal)' : 'var(--surface)'};color:${selectedCategory === 'all' ? '#fff' : 'var(--muted)'};cursor:pointer">All</button>
-                                            <button type="button" class="btn-category-filter ${selectedCategory === 'prescription' ? 'active' : ''}" data-cat="prescription" style="padding:.3rem .55rem;font-size:.75rem;border-radius:6px;border:1px solid var(--line);background:${selectedCategory === 'prescription' ? 'var(--teal)' : 'var(--surface)'};color:${selectedCategory === 'prescription' ? '#fff' : 'var(--muted)'};cursor:pointer">Rx</button>
-                                            <button type="button" class="btn-category-filter ${selectedCategory === 'otc' ? 'active' : ''}" data-cat="otc" style="padding:.3rem .55rem;font-size:.75rem;border-radius:6px;border:1px solid var(--line);background:${selectedCategory === 'otc' ? 'var(--teal)' : 'var(--surface)'};color:${selectedCategory === 'otc' ? '#fff' : 'var(--muted)'};cursor:pointer">OTC</button>
+                                    <div style="display:flex;gap:.6rem;margin-bottom:1.15rem;flex-wrap:wrap">
+                                        <div style="position:relative;flex:1;min-width:180px">
+                                            <input id="pharm-search-input" type="text" placeholder="Search medicines, salts, or brands..." value="${esc(searchQuery)}" style="width:100%;padding:.55rem .85rem .55rem 2.2rem;font-size:.85rem;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink)">
+                                            <span style="position:absolute;left:.75rem;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none">
+                                                ${icon('search', 14)}
+                                            </span>
+                                        </div>
+                                        <div class="pharm-category-pills" style="display:inline-flex;gap:.3rem;flex-wrap:wrap">
+                                            <button type="button" class="btn-category-filter ${selectedCategory === 'all' ? 'active' : ''}" data-cat="all" style="padding:.4rem .7rem;font-size:.78rem;font-weight:600;border-radius:8px;border:1px solid ${selectedCategory === 'all' ? 'var(--teal)' : 'var(--line)'};background:${selectedCategory === 'all' ? 'var(--teal)' : 'var(--surface)'};color:${selectedCategory === 'all' ? '#fff' : 'var(--muted)'};cursor:pointer">All (${defaultItems.length})</button>
+                                            <button type="button" class="btn-category-filter ${selectedCategory === 'prescription' ? 'active' : ''}" data-cat="prescription" style="padding:.4rem .7rem;font-size:.78rem;font-weight:600;border-radius:8px;border:1px solid ${selectedCategory === 'prescription' ? 'var(--teal)' : 'var(--line)'};background:${selectedCategory === 'prescription' ? 'var(--teal)' : 'var(--surface)'};color:${selectedCategory === 'prescription' ? '#fff' : 'var(--muted)'};cursor:pointer">Rx Meds (${defaultItems.filter(i => i.category === 'prescription').length})</button>
+                                            <button type="button" class="btn-category-filter ${selectedCategory === 'otc' ? 'active' : ''}" data-cat="otc" style="padding:.4rem .7rem;font-size:.78rem;font-weight:600;border-radius:8px;border:1px solid ${selectedCategory === 'otc' ? 'var(--teal)' : 'var(--line)'};background:${selectedCategory === 'otc' ? 'var(--teal)' : 'var(--surface)'};color:${selectedCategory === 'otc' ? '#fff' : 'var(--muted)'};cursor:pointer">OTC Care (${defaultItems.filter(i => i.category === 'otc').length})</button>
+                                            <button type="button" class="btn-category-filter ${selectedCategory === 'equipment' ? 'active' : ''}" data-cat="equipment" style="padding:.4rem .7rem;font-size:.78rem;font-weight:600;border-radius:8px;border:1px solid ${selectedCategory === 'equipment' ? 'var(--teal)' : 'var(--line)'};background:${selectedCategory === 'equipment' ? 'var(--teal)' : 'var(--surface)'};color:${selectedCategory === 'equipment' ? '#fff' : 'var(--muted)'};cursor:pointer">Supplies (${defaultItems.filter(i => i.category === 'equipment').length})</button>
                                         </div>
                                     </div>
 
-                                    <div class="medicine-item-list" style="display:flex;flex-direction:column;gap:.75rem">
+                                    <div class="pharmacy-catalog-grid">
                                         ${filteredItems.length ? filteredItems.map(item => {
                                             const inCart = cart.find(c => c.id === item.id);
+                                            const discountPct = Math.round(((item.mrp - item.price) / item.mrp) * 100);
                                             return `
-                                                <div class="provider-card" style="padding:.9rem 1.1rem;display:flex;justify-content:space-between;align-items:center;margin:0">
+                                                <div class="pharm-product-card">
                                                     <div>
-                                                        <div style="display:flex;align-items:center;gap:.4rem">
-                                                            <strong style="font-size:.95rem;color:var(--ink)">${esc(item.name)}</strong>
-                                                            ${item.type === 'prescription' ? `<span class="badge" style="background:#fed7d7;color:#9b2c2c;font-size:.7rem">Rx Req</span>` : ''}
+                                                        <div class="pharm-card-top-tags">
+                                                            ${item.category === 'prescription' ? `
+                                                                <span class="pharm-badge pharm-badge-rx">${icon('file-text', 11)} Rx Req</span>
+                                                            ` : `
+                                                                <span class="pharm-badge pharm-badge-otc">${icon('check', 11)} OTC</span>
+                                                            `}
+                                                            <span class="pharm-badge pharm-badge-subsidy">${icon('sparkles', 11)} Jan Aushadhi</span>
                                                         </div>
-                                                        <small style="color:var(--muted);display:block">${esc(item.brand)}</small>
-                                                        <div style="margin-top:.25rem;font-size:.85rem">
-                                                            <strong style="color:var(--teal)">₹${item.price}</strong>
-                                                            <del style="color:var(--muted);font-size:.75rem;margin-left:.35rem">₹${item.mrp}</del>
-                                                            <span style="color:#38a169;font-weight:600;font-size:.75rem;margin-left:.35rem">Save ₹${item.mrp - item.price}</span>
+                                                        <h3 class="pharm-card-name">${esc(item.name)}</h3>
+                                                        <span class="pharm-card-sub">${esc(item.brand)} · Quality Certified</span>
+                                                        <div class="pharm-card-stock">
+                                                            <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#38a169"></span>
+                                                            In Stock · Central Counter #02
                                                         </div>
                                                     </div>
-                                                    <div>
-                                                        ${inCart ? `
-                                                            <div style="display:flex;align-items:center;gap:.35rem;background:var(--canvas);padding:.2rem .4rem;border-radius:6px;border:1px solid var(--line)">
-                                                                <button type="button" class="btn-cart-dec" data-item-id="${item.id}" style="border:none;background:transparent;color:var(--ink);cursor:pointer;font-weight:700;font-size:.9rem;padding:0 .3rem">-</button>
-                                                                <span style="font-weight:700;font-size:.82rem;min-width:18px;text-align:center;color:var(--teal)">${inCart.qty}</span>
-                                                                <button type="button" class="btn-cart-inc" data-item-id="${item.id}" style="border:none;background:transparent;color:var(--ink);cursor:pointer;font-weight:700;font-size:.9rem;padding:0 .3rem">+</button>
+
+                                                    <div class="pharm-card-footer">
+                                                        <div class="pharm-price-lockup">
+                                                            <div class="pharm-price-main">₹${item.price}</div>
+                                                            <div class="pharm-price-mrp-row">
+                                                                <del class="pharm-mrp-del">₹${item.mrp}</del>
+                                                                <span class="pharm-save-pill">Save ₹${item.mrp - item.price} (${discountPct}%)</span>
                                                             </div>
-                                                        ` : `
-                                                            <button type="button" class="btn-secondary btn-icon btn-add-cart" data-item-id="${item.id}" style="font-size:.8rem;padding:.35rem .75rem">
-                                                                ${icon('plus', 14)} Add
-                                                            </button>
-                                                        `}
+                                                        </div>
+                                                        <div>
+                                                            ${inCart ? `
+                                                                <div class="pharm-stepper-ctrl">
+                                                                    <button type="button" class="pharm-stepper-btn btn-cart-dec" data-item-id="${item.id}" aria-label="Decrease quantity">−</button>
+                                                                    <span class="pharm-stepper-num">${inCart.qty}</span>
+                                                                    <button type="button" class="pharm-stepper-btn btn-cart-inc" data-item-id="${item.id}" aria-label="Increase quantity">+</button>
+                                                                </div>
+                                                            ` : `
+                                                                <button type="button" class="btn-secondary btn-icon btn-add-cart" data-item-id="${item.id}" style="font-size:.82rem;padding:.4rem .85rem;border-radius:8px">
+                                                                    ${icon('plus', 14)} Add
+                                                                </button>
+                                                            `}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             `;
-                                        }).join('') : `<div class="provider-empty" style="padding:1.5rem"><p>No medications matching your filter.</p></div>`}
+                                        }).join('') : `<div class="provider-empty" style="padding:2rem;grid-column:1/-1;text-align:center"><p style="color:var(--muted)">No medications found matching "${esc(searchQuery)}".</p></div>`}
                                     </div>
                                 </div>
 
                                 <!-- Right Column: Order Checkout & Fulfillment -->
                                 <div>
-                                    <div class="provider-card" style="padding:1.25rem;position:sticky;top:1rem">
-                                        <h2 style="font-size:1.15rem;margin-bottom:1rem;display:flex;align-items:center;gap:.4rem">
-                                            ${icon('receipt', 18)} Order Summary
-                                        </h2>
+                                    <div class="provider-card" style="padding:1.25rem;position:sticky;top:1rem;border-radius:14px">
+                                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;padding-bottom:.65rem;border-bottom:1px solid var(--line)">
+                                            <h2 style="font-size:1.15rem;margin:0;display:flex;align-items:center;gap:.4rem">
+                                                ${icon('receipt', 18)} Order Summary
+                                            </h2>
+                                            ${cart.length ? `
+                                                <button type="button" id="btn-clear-cart" class="btn-ghost btn-compact" style="font-size:.76rem;color:var(--muted);padding:.2rem .4rem">Clear</button>
+                                            ` : ''}
+                                        </div>
 
                                         <!-- Cart Items List -->
-                                        <div style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:1.25rem;border-bottom:1px solid var(--line);padding-bottom:1rem">
+                                        <div style="display:flex;flex-direction:column;gap:.6rem;margin-bottom:1.15rem;border-bottom:1px solid var(--line);padding-bottom:1rem;max-height:220px;overflow-y:auto">
                                             ${cart.length ? cart.map(item => `
                                                 <div style="display:flex;justify-content:space-between;align-items:center;gap:.5rem;font-size:.88rem">
                                                     <div style="flex:1;min-width:0">
-                                                        <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(item.name)}</div>
+                                                        <div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600;font-size:.84rem">${esc(item.name)}</div>
                                                         <small style="color:var(--muted)">₹${item.price} each</small>
                                                     </div>
-                                                    <div style="display:flex;align-items:center;gap:.25rem">
-                                                        <button type="button" class="btn-cart-dec" data-item-id="${item.id}" style="border:1px solid var(--line);background:var(--surface);border-radius:4px;color:var(--ink);cursor:pointer;padding:.1rem .35rem;font-size:.75rem">-</button>
-                                                        <span style="font-weight:700;font-size:.82rem;min-width:16px;text-align:center">${item.qty}</span>
-                                                        <button type="button" class="btn-cart-inc" data-item-id="${item.id}" style="border:1px solid var(--line);background:var(--surface);border-radius:4px;color:var(--ink);cursor:pointer;padding:.1rem .35rem;font-size:.75rem">+</button>
+                                                    <div class="pharm-stepper-ctrl" style="padding:.1rem .25rem">
+                                                        <button type="button" class="pharm-stepper-btn btn-cart-dec" data-item-id="${item.id}" style="width:22px;height:22px;font-size:.85rem">−</button>
+                                                        <span class="pharm-stepper-num" style="min-width:18px;font-size:.8rem">${item.qty}</span>
+                                                        <button type="button" class="pharm-stepper-btn btn-cart-inc" data-item-id="${item.id}" style="width:22px;height:22px;font-size:.85rem">+</button>
                                                     </div>
-                                                    <strong style="min-width:44px;text-align:right">₹${item.price * item.qty}</strong>
+                                                    <strong style="min-width:48px;text-align:right;font-size:.88rem;color:var(--ink)">₹${item.price * item.qty}</strong>
                                                 </div>
-                                            `).join('') : `<p style="color:var(--muted);font-size:.85rem;margin:0">Cart is empty.</p>`}
+                                            `).join('') : `
+                                                <div style="text-align:center;padding:1.25rem 0;color:var(--muted)">
+                                                    <div style="margin-bottom:.35rem">${icon('shopping-cart', 24)}</div>
+                                                    <p style="font-size:.85rem;margin:0">Your order cart is currently empty.</p>
+                                                    <small style="font-size:.75rem">Add prescribed or OTC items from the list.</small>
+                                                </div>
+                                            `}
                                         </div>
 
                                         <!-- Fulfillment Type Selector -->
-                                        <div style="margin-bottom:1.25rem">
-                                            <label style="font-weight:600;font-size:.85rem;display:block;margin-bottom:.5rem">Choose Fulfillment Method</label>
+                                        <div style="margin-bottom:1.15rem">
+                                            <label style="font-weight:700;font-size:.82rem;display:block;margin-bottom:.45rem;color:var(--ink)">Select Pickup or Delivery</label>
                                             <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
-                                                <div id="select-counter" style="border:2px solid ${fulfillmentType === 'counter' ? 'var(--teal)' : 'var(--line)'};padding:.75rem;border-radius:8px;cursor:pointer;background:${fulfillmentType === 'counter' ? 'var(--mint)' : 'var(--surface)'}">
-                                                    <strong style="font-size:.85rem;display:block">${icon('store', 14)} Counter Pickup</strong>
-                                                    <small style="color:var(--muted)">Ready in ~10 mins</small>
-                                                    <div style="color:#38a169;font-weight:700;font-size:.78rem;margin-top:.25rem">FREE</div>
+                                                <div id="select-counter" style="border:2px solid ${fulfillmentType === 'counter' ? 'var(--teal)' : 'var(--line)'};padding:.75rem;border-radius:10px;cursor:pointer;background:${fulfillmentType === 'counter' ? 'var(--mint)' : 'var(--surface)'};transition:all .15s ease">
+                                                    <div style="display:flex;align-items:center;justify-content:space-between">
+                                                        <strong style="font-size:.82rem;display:flex;align-items:center;gap:.3rem">${icon('store', 13)} Counter Pickup</strong>
+                                                        ${fulfillmentType === 'counter' ? `<span style="color:var(--teal)">${icon('check', 13)}</span>` : ''}
+                                                    </div>
+                                                    <small style="color:var(--muted);display:block;margin-top:2px">Ready in ~10 mins</small>
+                                                    <div style="color:#2f855a;font-weight:800;font-size:.76rem;margin-top:.25rem">FREE</div>
                                                 </div>
-                                                <div id="select-delivery" style="border:2px solid ${fulfillmentType === 'delivery' ? 'var(--teal)' : 'var(--line)'};padding:.75rem;border-radius:8px;cursor:pointer;background:${fulfillmentType === 'delivery' ? 'var(--mint)' : 'var(--surface)'}">
-                                                    <strong style="font-size:.85rem;display:block">${icon('truck', 14)} Home Delivery</strong>
-                                                    <small style="color:var(--muted)">Within 45 mins</small>
-                                                    <div style="color:var(--ink);font-weight:700;font-size:.78rem;margin-top:.25rem">₹30 Fee</div>
+                                                <div id="select-delivery" style="border:2px solid ${fulfillmentType === 'delivery' ? 'var(--teal)' : 'var(--line)'};padding:.75rem;border-radius:10px;cursor:pointer;background:${fulfillmentType === 'delivery' ? 'var(--mint)' : 'var(--surface)'};transition:all .15s ease">
+                                                    <div style="display:flex;align-items:center;justify-content:space-between">
+                                                        <strong style="font-size:.82rem;display:flex;align-items:center;gap:.3rem">${icon('truck', 13)} Home Delivery</strong>
+                                                        ${fulfillmentType === 'delivery' ? `<span style="color:var(--teal)">${icon('check', 13)}</span>` : ''}
+                                                    </div>
+                                                    <small style="color:var(--muted);display:block;margin-top:2px">Within 45 mins</small>
+                                                    <div style="color:var(--ink);font-weight:800;font-size:.76rem;margin-top:.25rem">₹30 Fee</div>
                                                 </div>
                                             </div>
                                         </div>
 
                                         ${fulfillmentType === 'delivery' ? `
-                                            <div class="field" style="margin-bottom:1.25rem">
-                                                <label for="delivery-addr" style="font-weight:600;font-size:.85rem;display:block;margin-bottom:.3rem">Delivery Address</label>
-                                                <input id="delivery-addr" type="text" value="Flat 402, Aditya Towers, Gachibowli, Hyderabad" required style="width:100%;padding:.6rem .8rem;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:.88rem">
+                                            <div class="field" style="margin-bottom:1.15rem">
+                                                <label for="delivery-addr" style="font-weight:700;font-size:.8rem;display:block;margin-bottom:.3rem">Delivery Address</label>
+                                                <input id="delivery-addr" type="text" value="Flat 402, Aditya Towers, Gachibowli, Hyderabad" required style="width:100%;padding:.55rem .75rem;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:.85rem">
+                                            </div>
+                                        ` : ''}
+
+                                        <!-- Generic Subsidy Savings Callout -->
+                                        ${totalSavings > 0 ? `
+                                            <div style="background:#f0fff4;border:1px solid #c6f6d5;border-radius:8px;padding:.6rem .8rem;margin-bottom:1rem;display:flex;align-items:center;gap:.5rem;font-size:.78rem;color:#276749">
+                                                <span>${icon('sparkles', 15)}</span>
+                                                <span>You save <strong>₹${totalSavings}</strong> with Jan Aushadhi generic formulary subsidies!</span>
                                             </div>
                                         ` : ''}
 
                                         <!-- Price Breakdown -->
-                                        <div style="margin-bottom:1.25rem;font-size:.88rem">
-                                            <div style="display:flex;justify-content:space-between;color:var(--muted);margin-bottom:.25rem">
-                                                <span>Subtotal</span>
-                                                <span>₹${cartTotal}</span>
+                                        <div style="margin-bottom:1.15rem;font-size:.85rem">
+                                            <div style="display:flex;justify-content:space-between;color:var(--muted);margin-bottom:.3rem">
+                                                <span>Items Subtotal</span>
+                                                <span style="font-weight:600">₹${cartTotal}</span>
                                             </div>
                                             <div style="display:flex;justify-content:space-between;color:var(--muted);margin-bottom:.5rem">
                                                 <span>Fulfillment Fee</span>
-                                                <span>${fulfillmentType === 'delivery' ? '₹30' : '₹0 (Free)'}</span>
+                                                <span style="font-weight:600">${fulfillmentType === 'delivery' ? '₹30' : '₹0 (Free)'}</span>
                                             </div>
-                                            <div style="display:flex;justify-content:space-between;font-size:1.1rem;font-weight:700;border-top:1px solid var(--line);padding-top:.5rem;color:var(--ink)">
+                                            <div style="display:flex;justify-content:space-between;font-size:1.1rem;font-weight:800;border-top:1px solid var(--line);padding-top:.6rem;color:var(--ink)">
                                                 <span>Total Payable</span>
                                                 <span style="color:var(--teal)">₹${cartTotal + (fulfillmentType === 'delivery' ? 30 : 0)}</span>
                                             </div>
                                         </div>
 
-                                        <button type="button" id="btn-place-pharm-order" class="btn-primary btn-icon" style="width:100%;justify-content:center;padding:.75rem;font-size:.95rem" ${cart.length ? '' : 'disabled'}>
+                                        <button type="button" id="btn-place-pharm-order" class="btn-primary btn-icon" style="width:100%;justify-content:center;padding:.75rem;font-size:.92rem;font-weight:700" ${cart.length ? '' : 'disabled'}>
                                             ${icon('check', 16)} Place Pharmacy Order (₹${cartTotal + (fulfillmentType === 'delivery' ? 30 : 0)})
                                         </button>
-                                        <small style="color:var(--muted);display:block;text-align:center;margin-top:.5rem;font-size:.75rem">
+                                        <small style="color:var(--muted);display:block;text-align:center;margin-top:.45rem;font-size:.72rem">
                                             Pay cash at counter or UPI upon delivery.
                                         </small>
                                     </div>
@@ -443,6 +502,15 @@
                     }
                 };
             });
+
+            // Clear cart
+            const clearCartBtn = container.querySelector('#btn-clear-cart');
+            if (clearCartBtn) {
+                clearCartBtn.onclick = () => {
+                    cart = [];
+                    render();
+                };
+            }
 
             // Track Order Modal trigger
             container.querySelectorAll('.btn-track-order').forEach(btn => {
